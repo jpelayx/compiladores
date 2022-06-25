@@ -11,7 +11,10 @@ integer {digit}+
 exponent [eE][+-]?{integer}
 real {integer}("."{integer})?{exponent}?
 
+%x MULTILINE_COMMENT
+
 %%
+	/* Reserved words */
 int { return TK_PR_INT; }
 float { return TK_PR_FLOAT; }
 bool { return TK_PR_BOOL; }
@@ -39,7 +42,11 @@ public { return TK_PR_PUBLIC; }
 protected { return TK_PR_PROTECTED; }
 end { return TK_PR_END; }
 default { return TK_PR_DEFAULT; }
+
+	/* Special characters */
 {opssimples} { return yytext[0]; }
+
+	/* Operators (more than one character) */
 \<\= { return TK_OC_LE; }
 \>\= { return TK_OC_GE; }
 \=\= { return TK_OC_EQ; }
@@ -48,13 +55,32 @@ default { return TK_PR_DEFAULT; }
 \|\| { return TK_OC_OR; }
 \>\> { return TK_OC_SL; }
 \<\< { return TK_OC_SR; }
+
+	/* Literals */
 [+-]?{integer} { return TK_LIT_INT; }
 [+-]?{real} { return TK_LIT_FLOAT; }
 false { return TK_LIT_FALSE; }
 true { return TK_LIT_TRUE; }
-\'.\' { return TK_LIT_CHAR; }
-\".*\" { return TK_LIT_STRING; }
+\'([^'\n])\' { return TK_LIT_CHAR; }
+\"([^"\n])*\" { return TK_LIT_STRING; }
 {alpha}({alpha}|{digit})* { return TK_IDENTIFICADOR; }
+
+	/* Empty spaces */
+[ \t]
+
+	/* Single line comment */
+\/\/.*
+
+	/* Multi line comment */
+\/\*	{BEGIN(MULTILINE_COMMENT);}
+<MULTILINE_COMMENT>\n {line_number+=1;}
+<MULTILINE_COMMENT>"*/" {BEGIN(INITIAL);}
+<MULTILINE_COMMENT>. 
+
+	/* New line */
+\n {line_number+=1;}
+
+	/* Anything else */
 . { return TOKEN_ERRO; }
 
 %%
@@ -73,7 +99,7 @@ int main () {
     {
       printf("ERRO");
     }
-    printf("TOKEN [%d] [%s]\n", token, yytext);
+    printf("Linha: %d - TOKEN [%d] [%s]\n", get_line_number(), token, yytext);
 
   }
 
