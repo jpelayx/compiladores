@@ -89,19 +89,3 @@ int get_line_number()
 {
     return line_number;
 }
-
-
-int main () {
-  int token;
-
-  while ((token = yylex())){
-    if (token == TOKEN_ERRO) 
-    {
-      printf("ERRO");
-    }
-    printf("Linha: %d - TOKEN [%d] [%s]\n", get_line_number(), token, yytext);
-
-  }
-
-  return 0;
-}
