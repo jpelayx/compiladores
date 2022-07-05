@@ -54,8 +54,8 @@ void yyerror (char const *s);
 programa: programa var_global | programa funcao | ;
 
 tipo: TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING;
-static: TK_PR_STATIC | ;
-const: TK_PR_CONST | ;
+estatico: TK_PR_STATIC | ;
+constante: TK_PR_CONST | ;
 vetor: '[' TK_LIT_INT ']' |; /* falta garantir que positivo */
 
 var_global: tipo TK_IDENTIFICADOR vetor lista_identificadores ';' | TK_PR_STATIC tipo TK_IDENTIFICADOR lista_identificadores ';' ; 
@@ -63,10 +63,11 @@ lista_identificadores: lista_identificadores ',' TK_IDENTIFICADOR vetor | ;
 
 funcao: cabecalho bloco_cmd;
 
-cabecalho: static tipo '(' lista_parametros ')'
-lista_parametros: const TK_IDENTIFICADOR mais_parametros | ;
-mais_parametros: ',' const TK_IDENTIFICADOR | ;
+cabecalho: estatico tipo '(' lista_parametros ')'
+lista_parametros: constante TK_IDENTIFICADOR mais_parametros | ;
+mais_parametros: ',' constante TK_IDENTIFICADOR | ;
 
+bloco_cmd: ;
 
 %%
 
