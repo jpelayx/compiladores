@@ -1,5 +1,6 @@
 %{
-#include "tokens.h"
+#include <stdio.h>
+#include "parser.tab.h"
 
 int line_number = 1;
 %}
