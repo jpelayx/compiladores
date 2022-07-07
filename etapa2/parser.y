@@ -3,7 +3,10 @@
 
 int yylex(void);
 void yyerror (char const *s);
+int get_line_number();
 %}
+
+%define parse.error verbose
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -73,6 +76,5 @@ bloco_cmd: ;
 
 void yyerror(char const *s)
 {
-    printf ("%s\n", s);
+    printf ("line %d: %s\n", get_line_number(), s);
 }
-
