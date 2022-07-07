@@ -58,16 +58,68 @@ estatico: TK_PR_STATIC | ;
 constante: TK_PR_CONST | ;
 vetor: '[' TK_LIT_INT ']' |; /* falta garantir que positivo */
 
-var_global: tipo TK_IDENTIFICADOR vetor lista_identificadores ';' | TK_PR_STATIC tipo TK_IDENTIFICADOR lista_identificadores ';' ; 
-lista_identificadores: lista_identificadores ',' TK_IDENTIFICADOR vetor | ;
+var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores ';'
+lista_identificadores: lista_identificadores ',' TK_IDENTIFICADOR | ;
 
 funcao: cabecalho bloco_cmd;
 
-cabecalho: estatico tipo '(' lista_parametros ')'
-lista_parametros: constante TK_IDENTIFICADOR mais_parametros | ;
-mais_parametros: ',' constante TK_IDENTIFICADOR | ;
+cabecalho: estatico tipo vetor '(' lista_parametros ')'
+lista_parametros: constante tipo TK_IDENTIFICADOR mais_parametros | ;
+mais_parametros: ',' constante tipo TK_IDENTIFICADOR mais_parametros | ;
 
+	/* Comandos simples */
+
+valores_inicializa_variavel: TK_LIT_TRUE | TK_LIT_FALSE | TK_LIT_INT | TK_LIT_FLOAT | TK_LIT_STRING | TK_LIT_CHAR | TK_IDENTIFICADOR
+inicializa_variavel: "<=" valores_inicializa_variavel ; 
+declaracao_variavel: estatico constante tipo lista_identificadores inicializa_variavel;
+
+atribuicao: TK_IDENTIFICADOR '=' expressao | TK_IDENTIFICADOR'['expressao']' '=' expressao
+
+parametro_chamada_funcao: expressao mais_parametros_chamada_funcao | ;
+mais_parametros_chamada_funcao: ',' expressao mais_parametros_chamada_funcao | ;
+chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')';
+
+return: TK_PR_RETURN expressao;
+break: TK_PR_BREAK;
+continue: TK_PR_CONTINUE;
+
+expressao: TK_IDENTIFICADOR 
+	 | TK_IDENTIFICADOR vetor 
+	 | TK_LIT_INT 
+	 | TK_LIT_FLOAT 
+	 | chamada_de_funcao 
+	 /*Unarios
+	 | '+' expressao
+	 | '-' expressao
+	 | '!' expressao
+	 | '&' expressao
+	 | '*' expressao
+	 | '?' expressao
+	 | '#' expressao
+	 */
+	 /*Binarios*/
+	 | expressao '+' expressao
+	 | expressao '-' expressao
+	 | expressao '*' expressao
+	 | expressao '/' expressao
+	 | expressao '%' expressao
+	 | expressao '|' expressao
+	 | expressao '&' expressao
+	 | expressao '^' expressao
+	 | expressao TK_OC_LE expressao
+	 | expressao TK_OC_GE expressao
+	 | expressao TK_OC_EQ expressao
+	 | expressao TK_OC_NE expressao
+	 | expressao '<' expressao
+	 | expressao '>' expressao	 	 
+	 | expressao TK_OC_AND expressao
+	 | expressao TK_OC_OR expressao
+	 /*Ternario*/
+	 | expressao '?' expressao ':' expressao
+	 
 bloco_cmd: ;
+	
+
 
 %%
 
