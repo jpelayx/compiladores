@@ -104,20 +104,20 @@ for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd;
 
 while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd;
 
-/* Expressoes */
+  /* Expressoes */
 
 /* Obs: A precedencia dos operadores foi baseada na precedencia em C.
 
 TODO: 
 - associatividade do &, * e  #
 - expressoes bitwise??? valem para expressoes booleanas e aritimeticas? 
-  concertar precedencia quano uma expressao aritmetica é chamada em uma 
+  concertar precedencia do | e & quando uma expressao aritmetica é chamada em uma 
   expressao booleana via operador comparativo. */
 
 operandos_aritmeticos: TK_IDENTIFICADOR acesso_vetor | TK_LIT_FLOAT | TK_LIT_INT | chamada_de_funcao;
 operandos_booleanos: TK_IDENTIFICADOR acesso_vetor | TK_LIT_TRUE | TK_LIT_FALSE | chamada_de_funcao;
 
-expressao: ternario | expr_aritmetica | expr_bool ;
+expressao: ternario | expr_aritmetica | expr_booleana ;
 ternario: expressao '?' expressao ':' expressao ;
 
 /* nomeacao: 
@@ -135,8 +135,9 @@ a3: a3 opa4 a4 | a4;
 opa4: '%' | '*' | '/';              /* resto,  multiplicao e divisao */
 a4: a4 opa5 a5 | a5;
 opa5: '^';                          /* exponenciacao */
-a5: opa6 a6 | a6;
-opa6: '+' | '-' | '&' | '*'  | '#'; /* + unario, - unario, conteudo de enderco,.. */
+a5: opa6 a5 | a5 opa6_dir | a6 ;
+opa6: '+' | '-' | '&' | '#';        /* + unario, - unario, #, endereco de variavel */
+opa6_dir: '*';                      /* conteudo de endereco */  
 a6: '(' expr_aritmetica ')' | operandos_aritmeticos;
 
 /* nomeacao: 
@@ -150,15 +151,16 @@ b1: b1 opb2 b2 | b2;
 opb2: TK_OC_AND;                       /* && */
 b2: b2 opb3 b3 | b3;
 opb3: '|';                             /* bitwise or */ 
-b3: b3 opb4 b4_oc | b3 opb_4 b4_un | b4_oc | b4_un; /* separando em ops comparativas e demais ops */
+b3: b3 opb4 b4_oc | b3 opb4 b4 | b4_oc | b4; /* separando em ops comparativas (b4_oc) e demais ops */
 opb4: '&';                             /* bitwise and */
 b4_oc: b4_oc opb5_oc expr_aritmetica | b5_oc;
 opb5_oc: TK_OC_EQ | TK_OC_NE;          /* ==, != */
 b5_oc: b5_oc opb6 expr_aritmetica | expr_aritmetica;
 opb6: TK_OC_GE | '>' | TK_OC_LE | '<'; /* >=, >, <=, < */
-b4_un: opb5_un b4_un | b5_un
-opb5_un: '!' | '&' | '*' | '#';        /* negacao, endereco de variavel, conteudo de endereco, # */
-b5_un: '(' expr_booleana ')' | operandos_booleanos
+b4: opb5 b4 | b4 opb5_dir | b5
+opb5: '!' | '#' | '&';                 /* negacao, endereco de variavel, # */
+opb5_dir: '*';                         /* conteudo de endereco */
+b5: '(' expr_booleana ')' | operandos_booleanos
 
 %%
 
