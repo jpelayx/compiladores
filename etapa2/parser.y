@@ -52,6 +52,10 @@ int get_line_number();
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
+
+%precedence "ternario"
+%precedence "unario"
+
 %left '?' 
 %right ':'
 
@@ -142,8 +146,8 @@ TODO:
                  implementar associatividade */
 
 expressao: e1;
-e1: e1 '?' e1 ':' e1 | e2;
-e2: e2 '?' | e3;
+e1: e1 '?' e1 ':' e1 %prec "ternario" | e2 %prec "ternario";
+e2: e2 '?' %prec "unario" | e3 %prec "unario" ;
 e3: e3 TK_OC_OR e4 | e4; 
 e4: e4 TK_OC_AND e5 | e5;
 e5: e5 '|' e6 | e6;
