@@ -6,7 +6,7 @@ void yyerror (char const *s);
 int get_line_number();
 %}
 
-%define parse.error verbose
+%define parse.error detailed
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -114,53 +114,51 @@ TODO:
   concertar precedencia do | e & quando uma expressao aritmetica é chamada em uma 
   expressao booleana via operador comparativo. */
 
-operandos_aritmeticos: TK_IDENTIFICADOR acesso_vetor | TK_LIT_FLOAT | TK_LIT_INT | chamada_de_funcao;
-operandos_booleanos: TK_IDENTIFICADOR acesso_vetor | TK_LIT_TRUE | TK_LIT_FALSE | chamada_de_funcao;
 
-expressao: ternario | expr_aritmetica | expr_booleana ;
-ternario: expressao '?' expressao ':' expressao ;
 
 /* nomeacao: 
-  - opa1, ..., opan: opan: operadores aritmeticos com precedencia 1 
-                     opa1: operadores aritmeticos com precedencia n ...
-  - a1, ..., an: expressoes aritmeticas em diferentes niveis para 
+  - op1, ..., opn: opn: operadores aritmeticos com precedencia 1 
+                   op1: operadores aritmeticos com precedencia n ...
+  - e1, ..., en: expressoes aritmeticas em diferentes niveis para 
                  implementar associatividade */
-expr_aritmetica: expr_aritmetica opa1 a1 | a1;
-opa1: '|';                   /* bitwise or */
-a1: a1 opa2 a2 | a2;
-opa2: '&';                          /* bitwise and */
-a2: a2 opa3 a3 | a3;
-opa3: '+' | '-';                    /* soma, subtracao */
-a3: a3 opa4 a4 | a4;
-opa4: '%' | '*' | '/';              /* resto,  multiplicao e divisao */
-a4: a4 opa5 a5 | a5;
-opa5: '^';                          /* exponenciacao */
-a5: opa6 a5 | a5 opa6_dir | a6 ;
-opa6: '+' | '-' | '&' | '#';        /* + unario, - unario, #, endereco de variavel */
-opa6_dir: '*';                      /* conteudo de endereco */  
-a6: '(' expr_aritmetica ')' | operandos_aritmeticos;
 
-/* nomeacao: 
-  - opb1, ..., opbn: opbn: operadores booleanos com precedencia 1 
-                     opb1: operadores booleanos com precedencia n ...
-  - b1, ..., bn: expressoes booleanas em diferentes niveis para 
-                 implementar associatividade */
-expr_booleana: expr_booleana opb1 b1 | b1;
-opb1: TK_OC_OR;                        /* || */
-b1: b1 opb2 b2 | b2;
-opb2: TK_OC_AND;                       /* && */
-b2: b2 opb3 b3 | b3;
-opb3: '|';                             /* bitwise or */ 
-b3: b3 opb4 b4_oc | b3 opb4 b4 | b4_oc | b4; /* separando em ops comparativas (b4_oc) e demais ops */
-opb4: '&';                             /* bitwise and */
-b4_oc: b4_oc opb5_oc expr_aritmetica | b5_oc;
-opb5_oc: TK_OC_EQ | TK_OC_NE;          /* ==, != */
-b5_oc: b5_oc opb6 expr_aritmetica | expr_aritmetica;
-opb6: TK_OC_GE | '>' | TK_OC_LE | '<'; /* >=, >, <=, < */
-b4: opb5 b4 | b4 opb5_dir | b5
-opb5: '!' | '#' | '&';                 /* negacao, endereco de variavel, # */
-opb5_dir: '*';                         /* conteudo de endereco */
-b5: '(' expr_booleana ')' | operandos_booleanos
+expressao: e1;
+e1: e1 '?' e1 ':' e1 | e2;
+e2: e2 '?' | e3;
+e3: e3 TK_OC_OR e4 | e4; 
+e4: e4 TK_OC_AND e5 | e5;
+e5: e5 '|' e6 | e6;
+e6: e6 '&' e7 | e7;
+e7: e7 op7 e8 | e8;
+op7: TK_OC_EQ
+   | TK_OC_NE;
+e8: e8 op8 e9 | e9;
+op8: TK_OC_GE
+   | TK_OC_LE
+   | '>'
+   | '<';
+e9: e9 op9 e10 | e10;
+op9: '+'
+   | '-';
+e10: e10 op10 e11 | e11;
+op10: '*'
+    | '/'
+    | '%';
+e11: e11 '^' e10 | e10;
+e12: op12 e12 | operador;
+op12: '*'
+    | '&'
+	| '#'
+	| '+'
+	| '-'
+	| '!';
+operador: '(' expressao ')' 
+        | TK_IDENTIFICADOR acesso_vetor
+    	| chamada_de_funcao
+        | TK_LIT_FLOAT
+    	| TK_LIT_INT
+        | TK_LIT_TRUE 
+		| TK_LIT_FALSE;
 
 %%
 
