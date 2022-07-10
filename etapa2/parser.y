@@ -115,9 +115,9 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')';
 shift: TK_IDENTIFICADOR acesso_vetor token_shift TK_LIT_INT;
 token_shift: TK_OC_SL | TK_OC_SR ;
 
-retorno: TK_PR_RETURN expressao;
+retorno: TK_PR_RETURN expressao ;
 
-controle_fluxo: cf_if | cf_for | cf_while;
+controle_fluxo: cf_if | cf_for | cf_while ;
 
 cf_if: TK_PR_IF '(' expressao ')' bloco_cmd cf_else;
 cf_else: TK_PR_ELSE bloco_cmd | ;
@@ -163,7 +163,7 @@ e10: e10 op10 e11 | e11;
 op10: '*'
     | '/'
     | '%';
-e11: e11 '^' e10 | e10;
+e11: e11 '^' e12 | e12;
 e12: op12 e12 | operador;
 op12: '*'
     | '&'
