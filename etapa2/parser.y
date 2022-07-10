@@ -52,6 +52,9 @@ int get_line_number();
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
+%left '?' 
+%right ':'
+
 %%
 
 programa: programa var_global | programa funcao | ;
@@ -59,35 +62,54 @@ programa: programa var_global | programa funcao | ;
 tipo: TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING;
 estatico: TK_PR_STATIC | ;
 constante: TK_PR_CONST | ;
-vetor: '[' TK_LIT_INT ']' |; /* falta garantir que positivo */
+vetor: '[' TK_LIT_INT ']' | ; /* falta garantir que positivo */
 
 var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';' ;
 lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor | ;
 
 funcao: cabecalho bloco_cmd;
 
-cabecalho: estatico tipo TK_IDENTIFICADOR '(' lista_parametros ')' ;
-lista_parametros: constante tipo TK_IDENTIFICADOR mais_parametros | ;
-mais_parametros: ',' constante tipo TK_IDENTIFICADOR mais_parametros | ;
+cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')' ;
+parametros: constante tipo TK_IDENTIFICADOR lista_parametros | ;
+lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR | ;
 
 bloco_cmd: '{' lista_comandos '}';
 lista_comandos: lista_comandos comando | ;
-comando: bloco_cmd | declaracao_variavel ';' | atribuicao ';'| chamada_de_funcao ';'| shift ';'| retorno ';'| 
-         TK_PR_BREAK ';'| TK_PR_CONTINUE ';' | controle_fluxo; /* etc....*/
+comando: bloco_cmd 
+       | declaracao_variavel ';'
+       | atribuicao ';'
+       | chamada_de_funcao ';'
+       | shift ';'
+       | retorno ';'
+       | TK_PR_BREAK ';'
+       | TK_PR_CONTINUE ';' 
+       | entrada ';'
+       | saida ';'
+       | controle_fluxo; 
 
 	/* Comandos simples */
 
 declaracao_variavel: estatico constante tipo TK_IDENTIFICADOR inicializa_variavel lista_identificadores_l;
-valores_inicializa_variavel: TK_LIT_TRUE | TK_LIT_FALSE | TK_LIT_INT | TK_LIT_FLOAT | TK_LIT_STRING | TK_LIT_CHAR | TK_IDENTIFICADOR;
-inicializa_variavel: TK_OC_LE valores_inicializa_variavel | ; 
-lista_identificadores_l: lista_identificadores_l ',' TK_IDENTIFICADOR inicializa_variavel | ;
+lista_identificadores_l: lista_identificadores_l ',' estatico constante tipo TK_IDENTIFICADOR inicializa_variavel | ;
+inicializa_variavel: TK_OC_LE identificador_ou_literal | ; 
+identificador_ou_literal: 
+	TK_LIT_TRUE 
+	|TK_LIT_FALSE
+	|TK_LIT_INT
+	|TK_LIT_FLOAT
+	|TK_LIT_STRING
+	|TK_LIT_CHAR
+	|TK_IDENTIFICADOR;
+
 
 acesso_vetor: '[' expressao ']' |;
-
 atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao;
 
+entrada: TK_PR_INPUT TK_IDENTIFICADOR;
+saida: TK_PR_OUTPUT identificador_ou_literal;
+
 parametro_chamada_funcao: expressao mais_parametros_chamada_funcao | ;
-mais_parametros_chamada_funcao: ',' expressao mais_parametros_chamada_funcao | ;
+mais_parametros_chamada_funcao: mais_parametros_chamada_funcao ',' expressao | ;
 chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')';
 
 shift: TK_IDENTIFICADOR acesso_vetor token_shift TK_LIT_INT;
@@ -97,8 +119,8 @@ retorno: TK_PR_RETURN expressao;
 
 controle_fluxo: if | for | while;
 
-if: TK_PR_IF '(' expressao ')' bloco_cmd else; /* com ambiguidade */
-else: TK_PR_ELSE bloco_cmd;
+if: TK_PR_IF '(' expressao ')' bloco_cmd else;
+else: TK_PR_ELSE bloco_cmd | ;
 
 for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd;
 
@@ -107,14 +129,11 @@ while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd;
   /* Expressoes */
 
 /* Obs: A precedencia dos operadores foi baseada na precedencia em C.
-
 TODO: 
 - associatividade do &, * e  #
 - expressoes bitwise??? valem para expressoes booleanas e aritimeticas? 
   concertar precedencia do | e & quando uma expressao aritmetica é chamada em uma 
   expressao booleana via operador comparativo. */
-
-
 
 /* nomeacao: 
   - op1, ..., opn: opn: operadores aritmeticos com precedencia 1 
@@ -161,7 +180,6 @@ operador: '(' expressao ')'
 		| TK_LIT_FALSE;
 
 %%
-
 void yyerror(char const *s)
 {
     printf ("line %d: %s\n", get_line_number(), s);

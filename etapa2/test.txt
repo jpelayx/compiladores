@@ -1,0 +1,4 @@
+static int axx (float a, bool b, string c) {
+	static const int a <= true;
+	a = *4 ;
+}
