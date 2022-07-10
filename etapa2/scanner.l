@@ -5,7 +5,7 @@
 int line_number = 1;
 %}
 
-opssimples [\,\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$]
+opssimples [\,\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\?]
 digit [0-9]
 alpha [a-zA-Z_]
 integer {digit}+
