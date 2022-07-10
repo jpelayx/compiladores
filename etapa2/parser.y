@@ -117,14 +117,14 @@ token_shift: TK_OC_SL | TK_OC_SR ;
 
 retorno: TK_PR_RETURN expressao;
 
-controle_fluxo: if | for | while;
+controle_fluxo: cf_if | cf_for | cf_while;
 
-if: TK_PR_IF '(' expressao ')' bloco_cmd else;
-else: TK_PR_ELSE bloco_cmd | ;
+cf_if: TK_PR_IF '(' expressao ')' bloco_cmd cf_else;
+cf_else: TK_PR_ELSE bloco_cmd | ;
 
-for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd;
+cf_for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd;
 
-while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd;
+cf_while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd;
 
   /* Expressoes */
 
