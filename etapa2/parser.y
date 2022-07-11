@@ -52,7 +52,8 @@ int get_line_number();
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-%left '?' ':'
+%left '?' 
+%left ':'
 %left avaliacao_logica
 %left '<' '>' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE
 %left TK_OC_OR
@@ -117,7 +118,7 @@ identificador_ou_literal:
 	|TK_IDENTIFICADOR;
 
 
-acesso_vetor: '[' expressao_aritmetica ']' | ;
+acesso_vetor: '[' expressao ']' | ;
 atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao;
 
 entrada: TK_PR_INPUT TK_IDENTIFICADOR;
@@ -171,13 +172,14 @@ expressao_aritmetica:
 literal_booleano: TK_LIT_TRUE | TK_LIT_FALSE
 
 operandos_booleanos: 
-	literal_booleano
+	TK_IDENTIFICADOR acesso_vetor
+	| literal_booleano
 	| expressao_booleana
 	| '(' expressao_booleana ')'
 
 expressao_booleana:
 	'!' operandos_booleanos
-	| '?' operandos_booleanos %prec avaliacao_logica
+	|'?' operandos_booleanos  %prec avaliacao_logica
 	//comparadores logicos	
 	| operandos_aritmeticos '<' operandos_aritmeticos
 	| operandos_aritmeticos '>' operandos_aritmeticos
@@ -197,7 +199,6 @@ expressao:
 	| expressao_booleana
 	// ternario
 	| expressao '?' expressao ':' expressao
-	
 	
 	
 	
