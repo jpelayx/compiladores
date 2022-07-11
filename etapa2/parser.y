@@ -94,7 +94,7 @@ comando: bloco_cmd
 	/* Comandos simples */
 
 declaracao_variavel: estatico constante tipo TK_IDENTIFICADOR inicializa_variavel lista_identificadores_l;
-lista_identificadores_l: lista_identificadores_l ',' estatico constante tipo TK_IDENTIFICADOR inicializa_variavel | ;
+lista_identificadores_l: lista_identificadores_l ',' estatico constante TK_IDENTIFICADOR inicializa_variavel | ;
 inicializa_variavel: TK_OC_LE identificador_ou_literal | ; 
 identificador_ou_literal: 
 	TK_LIT_TRUE 
@@ -144,6 +144,17 @@ TODO:
                    op1: operadores aritmeticos com precedencia n ...
   - e1, ..., en: expressoes aritmeticas em diferentes niveis para 
                  implementar associatividade */
+operandos : 
+	  TK_IDENTIFICADOR acesso_vetor;
+	| chamada_de_funcao;
+
+operandos_aritmeticos:
+	  TK_LIT_INT
+	| TK_LIT_FLOAT;
+
+operandos_booleanos:
+	  TK_LIT_FALSE
+	| TK_LIT_TRUE;
 
 expressao: e1;
 e1: e1 '?' e1 ':' e1 %prec "ternario" | e2 %prec "ternario";
