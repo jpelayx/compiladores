@@ -52,8 +52,19 @@ int get_line_number();
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-%left '?' 
-%right ':'
+%left '?' ':'
+%left avaliacao_logica
+%left '<' '>' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE
+%left TK_OC_OR
+%left TK_OC_AND
+%left '&' '|'
+%left '+' '-'
+%left '*' '/' '%'
+%left '^'
+%right '#'
+%right endereco_variavel valor_ponteiro
+%left '!'
+%left inverte_sinal
 
 %%
 
@@ -94,17 +105,19 @@ comando:
 declaracao_variavel: estatico constante tipo TK_IDENTIFICADOR inicializa_variavel lista_identificadores_l;
 lista_identificadores_l: lista_identificadores_l ',' estatico constante tipo TK_IDENTIFICADOR inicializa_variavel | ;
 inicializa_variavel: TK_OC_LE identificador_ou_literal | ; 
-identificador_ou_literal: 
-	TK_LIT_TRUE 
+literal: TK_LIT_TRUE 
 	|TK_LIT_FALSE
 	|TK_LIT_INT
 	|TK_LIT_FLOAT
 	|TK_LIT_STRING
-	|TK_LIT_CHAR
+	|TK_LIT_CHAR;
+
+identificador_ou_literal: 
+	literal
 	|TK_IDENTIFICADOR;
 
 
-acesso_vetor: '[' expressao ']' |;
+acesso_vetor: '[' expressao ']' | ;
 atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao;
 
 entrada: TK_PR_INPUT TK_IDENTIFICADOR;
@@ -128,10 +141,55 @@ for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd;
 
 while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd;
 
-expressao: '$';
+  /* Expressoes */
 
+expressao:
+	'(' expressao ')' 
+	| literal 
+	| TK_IDENTIFICADOR acesso_vetor
+	| chamada_de_funcao	
+	| '+' expressao
+	| '-' expressao %prec inverte_sinal
+	| '!' expressao
+	| '&' expressao %prec endereco_variavel
+	| '*' expressao %prec valor_ponteiro
+	| '?' expressao %prec avaliacao_logica
+	| '#' expressao 
+	| expressao '^' expressao
+	| expressao '*' expressao
+	| expressao '/' expressao
+	| expressao '%' expressao
+	| expressao '+' expressao
+	| expressao '-' expressao
+	//bitwise and
+	| expressao '&' expressao
+	//bitwise or
+	| expressao '|' expressao
+	//comparadores logicos	
+	| expressao '<' expressao
+	| expressao '>' expressao
+	| expressao TK_OC_EQ expressao
+	| expressao TK_OC_NE expressao
+	| expressao TK_OC_GE expressao
+	| expressao TK_OC_LE expressao
+	//operadores logicos	
+	| expressao TK_OC_AND expressao
+	| expressao TK_OC_OR expressao
+	// ternario
+	| expressao '?' expressao ':'
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
 %%
 void yyerror(char const *s)
 {
     printf ("line %d: %s\n", get_line_number(), s);
 }
+
