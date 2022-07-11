@@ -5,7 +5,7 @@
 int line_number = 1;
 %}
 
-opssimples [\,\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$]
+opssimples [\,\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\?]
 digit [0-9]
 alpha [a-zA-Z_]
 integer {digit}+
@@ -58,7 +58,7 @@ default { return TK_PR_DEFAULT; }
 \<\< { return TK_OC_SR; }
 
 	/* Literals */
-[+-]?{integer} { return TK_LIT_INT; }
+{integer} { return TK_LIT_INT; }
 [+-]?{real} { return TK_LIT_FLOAT; }
 false { return TK_LIT_FALSE; }
 true { return TK_LIT_TRUE; }
