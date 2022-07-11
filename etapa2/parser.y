@@ -99,12 +99,11 @@ comando:
 	| entrada ';'
 	| saida ';'
 	| controle_fluxo; 
-	/* etc....*/
 
 	/* Comandos simples */
 
 declaracao_variavel: estatico constante tipo TK_IDENTIFICADOR inicializa_variavel lista_identificadores_l;
-lista_identificadores_l: lista_identificadores_l ',' estatico constante tipo TK_IDENTIFICADOR inicializa_variavel | ;
+lista_identificadores_l: lista_identificadores_l ',' TK_IDENTIFICADOR inicializa_variavel | ;
 inicializa_variavel: TK_OC_LE identificador_ou_literal | ; 
 literal: TK_LIT_TRUE 
 	|TK_LIT_FALSE
