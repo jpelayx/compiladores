@@ -87,7 +87,7 @@ mais_parametros: ',' constante tipo TK_IDENTIFICADOR mais_parametros | ;
 bloco_cmd: '{' lista_comandos '}';
 lista_comandos: lista_comandos comando | ;
 comando: 
-	bloco_cmd 
+	bloco_cmd ';'
 	| declaracao_variavel ';'
 	| atribuicao ';'
 	| chamada_de_funcao ';'
@@ -117,7 +117,7 @@ identificador_ou_literal:
 	|TK_IDENTIFICADOR;
 
 
-acesso_vetor: '[' expressao ']' | ;
+acesso_vetor: '[' expressao_aritmetica ']' | ;
 atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao;
 
 entrada: TK_PR_INPUT TK_IDENTIFICADOR;
@@ -142,41 +142,61 @@ for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd;
 while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd;
 
   /* Expressoes */
-
-expressao:
-	'(' expressao ')' 
-	| literal 
+literal_numerico: TK_LIT_INT | TK_LIT_FLOAT  
+  
+operandos_aritmeticos: 
+	literal_numerico 
+	| chamada_de_funcao 
 	| TK_IDENTIFICADOR acesso_vetor
-	| chamada_de_funcao	
-	| '+' expressao
-	| '-' expressao %prec inverte_sinal
-	| '!' expressao
-	| '&' expressao %prec endereco_variavel
-	| '*' expressao %prec valor_ponteiro
-	| '?' expressao %prec avaliacao_logica
-	| '#' expressao 
-	| expressao '^' expressao
-	| expressao '*' expressao
-	| expressao '/' expressao
-	| expressao '%' expressao
-	| expressao '+' expressao
-	| expressao '-' expressao
+	| expressao_aritmetica
+	| '(' expressao_aritmetica ')'
+	
+expressao_aritmetica: 
+	'+' operandos_aritmeticos
+	| '-' operandos_aritmeticos %prec inverte_sinal
+	| '&' operandos_aritmeticos %prec endereco_variavel
+	| '*' operandos_aritmeticos %prec valor_ponteiro
+	| '#' operandos_aritmeticos
+	| operandos_aritmeticos '+' operandos_aritmeticos
+	| operandos_aritmeticos '-' operandos_aritmeticos
+	| operandos_aritmeticos '^' operandos_aritmeticos
+	| operandos_aritmeticos '*' operandos_aritmeticos
+	| operandos_aritmeticos '/' operandos_aritmeticos
+	| operandos_aritmeticos '%' operandos_aritmeticos
 	//bitwise and
-	| expressao '&' expressao
+	| operandos_aritmeticos '&' operandos_aritmeticos
 	//bitwise or
-	| expressao '|' expressao
+	| operandos_aritmeticos '|' operandos_aritmeticos
+	
+literal_booleano: TK_LIT_TRUE | TK_LIT_FALSE
+
+operandos_booleanos: 
+	literal_booleano
+	| expressao_booleana
+	| '(' expressao_booleana ')'
+
+expressao_booleana:
+	'!' operandos_booleanos
+	| '?' operandos_booleanos %prec avaliacao_logica
 	//comparadores logicos	
-	| expressao '<' expressao
-	| expressao '>' expressao
-	| expressao TK_OC_EQ expressao
-	| expressao TK_OC_NE expressao
-	| expressao TK_OC_GE expressao
-	| expressao TK_OC_LE expressao
+	| operandos_aritmeticos '<' operandos_aritmeticos
+	| operandos_aritmeticos '>' operandos_aritmeticos
+	| operandos_aritmeticos TK_OC_EQ operandos_aritmeticos
+	| operandos_aritmeticos TK_OC_NE operandos_aritmeticos
+	| operandos_aritmeticos TK_OC_GE operandos_aritmeticos
+	| operandos_aritmeticos TK_OC_LE operandos_aritmeticos
 	//operadores logicos	
-	| expressao TK_OC_AND expressao
-	| expressao TK_OC_OR expressao
+	| operandos_booleanos TK_OC_AND operandos_booleanos
+	| operandos_booleanos TK_OC_OR operandos_booleanos
+	
+expressao:
+	TK_IDENTIFICADOR acesso_vetor
+	| chamada_de_funcao
+	| literal_numerico
+	| expressao_aritmetica
+	| expressao_booleana
 	// ternario
-	| expressao '?' expressao ':'
+	| expressao '?' expressao ':' expressao
 	
 	
 	
