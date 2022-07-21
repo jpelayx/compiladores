@@ -3,6 +3,8 @@
   Não modifique este arquivo.
 */
 #include <stdio.h>
+#include "ast.h"
+
 extern int yyparse(void);
 extern int yylex_destroy(void);
 
