@@ -57,7 +57,19 @@ int get_line_number();
 %precedence "unario"
 
 %left '?' 
-%right ':'
+%left ':'
+%left avaliacao_logica
+%left '<' '>' TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE
+%left TK_OC_OR
+%left TK_OC_AND
+%left '&' '|'
+%left '+' '-'
+%left '*' '/' '%'
+%left '^'
+%right '#'
+%right endereco_variavel valor_ponteiro
+%left '!'
+%left inverte_sinal
 
 %%
 
@@ -79,34 +91,37 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR | ;
 
 bloco_cmd: '{' lista_comandos '}';
 lista_comandos: lista_comandos comando | ;
-comando: bloco_cmd 
-       | declaracao_variavel ';'
-       | atribuicao ';'
-       | chamada_de_funcao ';'
-       | shift ';'
-       | retorno ';'
-       | TK_PR_BREAK ';'
-       | TK_PR_CONTINUE ';' 
-       | entrada ';'
-       | saida ';'
-       | controle_fluxo; 
+comando: 
+	bloco_cmd ';'
+	| declaracao_variavel ';'
+	| atribuicao ';'
+	| chamada_de_funcao ';'
+	| shift ';'
+	| retorno ';'
+	| TK_PR_BREAK ';'
+	| TK_PR_CONTINUE ';' 
+	| entrada ';'
+	| saida ';'
+	| controle_fluxo; 
 
 	/* Comandos simples */
 
 declaracao_variavel: estatico constante tipo TK_IDENTIFICADOR inicializa_variavel lista_identificadores_l;
-lista_identificadores_l: lista_identificadores_l ',' estatico constante TK_IDENTIFICADOR inicializa_variavel | ;
+lista_identificadores_l: lista_identificadores_l ',' TK_IDENTIFICADOR inicializa_variavel | ;
 inicializa_variavel: TK_OC_LE identificador_ou_literal | ; 
-identificador_ou_literal: 
-	TK_LIT_TRUE 
+literal: TK_LIT_TRUE 
 	|TK_LIT_FALSE
 	|TK_LIT_INT
 	|TK_LIT_FLOAT
 	|TK_LIT_STRING
-	|TK_LIT_CHAR
+	|TK_LIT_CHAR;
+
+identificador_ou_literal: 
+	literal
 	|TK_IDENTIFICADOR;
 
 
-acesso_vetor: '[' expressao ']' |;
+acesso_vetor: '[' expressao ']' | ;
 atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao;
 
 entrada: TK_PR_INPUT TK_IDENTIFICADOR;
@@ -131,71 +146,66 @@ cf_for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd;
 cf_while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd;
 
   /* Expressoes */
+literal_numerico: TK_LIT_INT | TK_LIT_FLOAT  
+  
+operandos_aritmeticos: 
+	literal_numerico 
+	| chamada_de_funcao 
+	| TK_IDENTIFICADOR acesso_vetor
+	| expressao_aritmetica
+	| '(' expressao_aritmetica ')'
+	
+expressao_aritmetica: 
+	'+' operandos_aritmeticos
+	| '-' operandos_aritmeticos %prec inverte_sinal
+	| '&' operandos_aritmeticos %prec endereco_variavel
+	| '*' operandos_aritmeticos %prec valor_ponteiro
+	| '#' operandos_aritmeticos
+	| operandos_aritmeticos '+' operandos_aritmeticos
+	| operandos_aritmeticos '-' operandos_aritmeticos
+	| operandos_aritmeticos '^' operandos_aritmeticos
+	| operandos_aritmeticos '*' operandos_aritmeticos
+	| operandos_aritmeticos '/' operandos_aritmeticos
+	| operandos_aritmeticos '%' operandos_aritmeticos
+	//bitwise and
+	| operandos_aritmeticos '&' operandos_aritmeticos
+	//bitwise or
+	| operandos_aritmeticos '|' operandos_aritmeticos
+	
+literal_booleano: TK_LIT_TRUE | TK_LIT_FALSE
 
-/* Obs: A precedencia dos operadores foi baseada na precedencia em C.
-TODO: 
-- associatividade do &, * e  #
-- expressoes bitwise??? valem para expressoes booleanas e aritimeticas? 
-  concertar precedencia do | e & quando uma expressao aritmetica é chamada em uma 
-  expressao booleana via operador comparativo. */
+operandos_booleanos: 
+	TK_IDENTIFICADOR acesso_vetor
+	| literal_booleano
+	| expressao_booleana
+	| '(' expressao_booleana ')'
 
-/* nomeacao: 
-  - op1, ..., opn: opn: operadores aritmeticos com precedencia 1 
-                   op1: operadores aritmeticos com precedencia n ...
-  - e1, ..., en: expressoes aritmeticas em diferentes niveis para 
-                 implementar associatividade */
-operandos : 
-	  TK_IDENTIFICADOR acesso_vetor;
-	| chamada_de_funcao;
-
-operandos_aritmeticos:
-	  TK_LIT_INT
-	| TK_LIT_FLOAT;
-
-operandos_booleanos:
-	  TK_LIT_FALSE
-	| TK_LIT_TRUE;
-
-expressao: e1;
-e1: e1 '?' e1 ':' e1 %prec "ternario" | e2 %prec "ternario";
-e2: e2 '?' %prec "unario" | e3 %prec "unario" ;
-e3: e3 TK_OC_OR e4 | e4; 
-e4: e4 TK_OC_AND e5 | e5;
-e5: e5 '|' e6 | e6;
-e6: e6 '&' e7 | e7;
-e7: e7 op7 e8 | e8;
-op7: TK_OC_EQ
-   | TK_OC_NE;
-e8: e8 op8 e9 | e9;
-op8: TK_OC_GE
-   | TK_OC_LE
-   | '>'
-   | '<';
-e9: e9 op9 e10 | e10;
-op9: '+'
-   | '-';
-e10: e10 op10 e11 | e11;
-op10: '*'
-    | '/'
-    | '%';
-e11: e11 '^' e12 | e12;
-e12: op12 e12 | operador;
-op12: '*'
-    | '&'
-	| '#'
-	| '+'
-	| '-'
-	| '!';
-operador: '(' expressao ')' 
-        | TK_IDENTIFICADOR acesso_vetor
-    	| chamada_de_funcao
-        | TK_LIT_FLOAT
-    	| TK_LIT_INT
-        | TK_LIT_TRUE 
-		| TK_LIT_FALSE;
-
+expressao_booleana:
+	'!' operandos_booleanos
+	|'?' operandos_booleanos  %prec avaliacao_logica
+	//comparadores logicos	
+	| operandos_aritmeticos '<' operandos_aritmeticos
+	| operandos_aritmeticos '>' operandos_aritmeticos
+	| operandos_aritmeticos TK_OC_EQ operandos_aritmeticos
+	| operandos_aritmeticos TK_OC_NE operandos_aritmeticos
+	| operandos_aritmeticos TK_OC_GE operandos_aritmeticos
+	| operandos_aritmeticos TK_OC_LE operandos_aritmeticos
+	//operadores logicos	
+	| operandos_booleanos TK_OC_AND operandos_booleanos
+	| operandos_booleanos TK_OC_OR operandos_booleanos
+	
+expressao:
+	TK_IDENTIFICADOR acesso_vetor
+	| chamada_de_funcao
+	| literal_numerico
+	| expressao_aritmetica
+	| expressao_booleana
+	// ternario
+	| expressao '?' expressao ':' expressao
+	
 %%
 void yyerror(char const *s)
 {
     printf ("line %d: %s\n", get_line_number(), s);
 }
+

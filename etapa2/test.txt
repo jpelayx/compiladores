@@ -1,4 +1,14 @@
 static int axx (float a, bool b, string c) {
 	static const int a <= true;
 	a = *4 ;
+	a = &c;
+	a = !10;
+}
+bool axx (float a, bool b, string c) {
+	a = *4 ;
+	a = &c;
+	a = !10;
+	if (x > 4) {
+		funcao(x - 1);
+	}
 }
