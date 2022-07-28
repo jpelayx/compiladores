@@ -1,10 +1,22 @@
 %{
 #include <stdio.h>
+#include <stdbool.h>
+#include "ast.h"
+#include "valor_token.h"
 
 int yylex(void);
 void yyerror (char const *s);
 int get_line_number();
+
 %}
+
+%code requires { #include "ast.h" }
+%code requires { #include "valor_token.h" }
+
+%union {
+	valor_token_t valor_lexico;
+	ast_t *arvore;
+}
 
 %define parse.error detailed
 
@@ -35,23 +47,25 @@ int get_line_number();
 %token TK_PR_PROTECTED
 %token TK_PR_END
 %token TK_PR_DEFAULT
-%token TK_OC_LE
-%token TK_OC_GE
-%token TK_OC_EQ
-%token TK_OC_NE
-%token TK_OC_AND
-%token TK_OC_OR
-%token TK_OC_SL
-%token TK_OC_SR
-%token TK_LIT_INT
-%token TK_LIT_FLOAT
-%token TK_LIT_FALSE
-%token TK_LIT_TRUE
-%token TK_LIT_CHAR
-%token TK_LIT_STRING
-%token TK_IDENTIFICADOR
+%token<valor_lexico> TK_OC_LE
+%token<valor_lexico> TK_OC_GE
+%token<valor_lexico> TK_OC_EQ
+%token<valor_lexico> TK_OC_NE
+%token<valor_lexico> TK_OC_AND
+%token<valor_lexico> TK_OC_OR
+%token<valor_lexico> TK_OC_SL
+%token<valor_lexico> TK_OC_SR
+%token<valor_lexico> TK_LIT_INT
+%token<valor_lexico> TK_LIT_FLOAT
+%token<valor_lexico> TK_LIT_FALSE
+%token<valor_lexico> TK_LIT_TRUE
+%token<valor_lexico> TK_LIT_CHAR
+%token<valor_lexico> TK_LIT_STRING
+%token<valor_lexico> TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
+/* %type<arvore> programa 
+   ...                    */
 
 %precedence "ternario"
 %precedence "unario"
