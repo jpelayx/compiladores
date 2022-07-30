@@ -116,7 +116,8 @@ comando:
 	| TK_PR_CONTINUE ';' 
 	| entrada ';'
 	| saida ';'
-	| controle_fluxo; 
+	| controle_fluxo ';'
+	; 
 
 	/* Comandos simples */
 
