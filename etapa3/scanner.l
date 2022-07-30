@@ -48,7 +48,7 @@ default { return TK_PR_DEFAULT; }
 
 	/* Special characters */
 {opssimples} { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operando_composto;
+       yylval.valor_lexico.tipo = caractere_especial;
 	   yylval.valor_lexico.valor.caractere = yytext[0];
 	   return yytext[0]; }
 
