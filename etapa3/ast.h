@@ -13,12 +13,12 @@ typedef struct ast {
 ast_t *ast_new(const char *label);
 
 // Libera recursivamente o nó e seus filhos
-void ast_free(ast_t *tree);
+void libera(ast_t *arvore);
 
 // Adiciona child como filho da tree
-void ast_add_child(ast_t *tree, ast_t *child);
+void ast_add_child(ast_t *arvore, ast_t *child);
 
 // Imprime recursivamente a árvore
-void ast_print(ast_t *tree);
+void exporta(ast_t *arvore);
 
 #endif //_AST_H_
