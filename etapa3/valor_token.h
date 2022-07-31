@@ -5,7 +5,7 @@
 
 typedef enum tipo_token {
 	caractere_especial,
-	operando_composto,
+	operador_composto,
 	identificador,
 	literal
 } tipo_token_t;
@@ -29,6 +29,6 @@ typedef struct valor_token {
 		bool booleano;
 		char* cadeia_caracteres;
 	} valor;
-} valor_token_t ;
+} valor_token_t;
 
 #endif // _VALOR_TOKEN_H_

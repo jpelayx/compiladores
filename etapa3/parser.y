@@ -18,7 +18,7 @@ int get_line_number();
 	ast_t *arvore;
 }
 
-%define parse.error detailed
+%define parse.error verbose
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -124,7 +124,7 @@ comando:
 declaracao_variavel: estatico constante tipo TK_IDENTIFICADOR inicializa_variavel lista_identificadores_l;
 lista_identificadores_l: lista_identificadores_l ',' TK_IDENTIFICADOR inicializa_variavel | ;
 inicializa_variavel: TK_OC_LE identificador_ou_literal | ; 
-literal: TK_LIT_TRUE 
+literal: TK_LIT_TRUE
 	|TK_LIT_FALSE
 	|TK_LIT_INT
 	|TK_LIT_FLOAT

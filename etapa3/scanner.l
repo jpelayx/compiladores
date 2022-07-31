@@ -54,42 +54,42 @@ default { return TK_PR_DEFAULT; }
 
 	/* Operators (more than one character) */
 \<\= { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operando_composto;
+       yylval.valor_lexico.tipo = operador_composto;
 	   char texto[] = "<=";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto); 
 	   return TK_OC_LE; }
 \>\= { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operando_composto;
+       yylval.valor_lexico.tipo = operador_composto;
 	   char texto[] = ">=";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_GE; }
 \=\= { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operando_composto;
+       yylval.valor_lexico.tipo = operador_composto;
 	   char texto[] = "==";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_EQ; }
 \!\= { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operando_composto;
+       yylval.valor_lexico.tipo = operador_composto;
 	   char texto[] = "!=";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_NE; }
 \&\& { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operando_composto;
+       yylval.valor_lexico.tipo = operador_composto;
 	   char texto[] = "&&";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_AND; }
 \|\| { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operando_composto;
+       yylval.valor_lexico.tipo = operador_composto;
 	   char texto[] = "||";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_OR; }
 \>\> { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operando_composto;
+       yylval.valor_lexico.tipo = operador_composto;
 	   char texto[] = ">>";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_SL; }
 \<\< { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operando_composto;
+       yylval.valor_lexico.tipo = operador_composto;
 	   char texto[] = "<<";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_SR; }
