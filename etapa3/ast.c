@@ -24,6 +24,29 @@ void insere_filho(ast_t *pai, ast_t *filho){
 	}
 }
 
+ast_t* insere_filhos(ast_t *pai, ast_t *filho1, ast_t *filho2, ast_t *filho3, ast_t *filho4){
+	if(pai != NULL){
+		if(filho1 != NULL){
+			insere_filho(pai, filho1);
+			
+			if(filho2 != NULL){
+				insere_filho(pai, filho2);
+				
+				if(filho3 != NULL){
+					insere_filho(pai, filho3);
+					
+					if(filho4 != NULL){
+						insere_filho(pai, filho4);
+					}
+				}
+			}
+		}
+	}
+	
+	
+	return pai;
+}
+
 void imprime_nodo(ast_t *nodo){
 	if((ast_t *)nodo != NULL){
 	
@@ -90,6 +113,12 @@ void imprime_nodo(ast_t *nodo){
 		}
 	}
 	*/
+		printf("*********************\n");
+		printf("%d\n", ((ast_t *)nodo)-> tipo);
+		if((ast_t *)nodo -> valor_lexico != NULL){
+			printf("%d\n", ((ast_t *)nodo)-> valor_lexico -> tipo);
+			
+		}
 	}
 	
 }
@@ -114,15 +143,17 @@ void imprime_arestas(ast_t *arvore){
 
 }
 
-void exporta (void *arvore)
+extern void exporta (void *arvore)
 {
+	printf("AAAAAAA\n");
 	if(arvore != NULL){
+		printf("BBBBBBBB\n");
 		imprime_nodos(arvore);
 		imprime_arestas(arvore);
 	}
 }
 
-void libera (void *arvore)
+extern void libera (void *arvore)
 {
     return;
 }

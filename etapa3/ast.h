@@ -18,6 +18,7 @@ typedef enum tipos_ast_nodo
 	lista_funcao,
 	lista_comando,
 	lista_expressao,
+	placeholder_literal,
 	//comandos simples
 	inicializacao,
 	atribuicao,
@@ -30,6 +31,7 @@ typedef enum tipos_ast_nodo
 	cmd_if,
 	cmd_for,
 	cmd_while,
+	id,
 	//expressoes aritmeticas e logicas
 	unario,
 	binario,
@@ -46,8 +48,11 @@ typedef struct ast {
 // Cria nó sem filhos
 ast_t *cria_nodo(valor_token_t *valor_lexico, tipos_nodo_t tipo);
 
-// Adiciona child como filho da tree
+// Adiciona nó filho
 void insere_filho(ast_t *pai, ast_t *filho);
+
+// Um pai tem no máximo 4 filhos (no caso do for)
+ast_t *insere_filhos(ast_t *pai, ast_t *filho1, ast_t *filho2, ast_t *filho3, ast_t *filho4);
 
 // Libera recursivamente o nó e seus filhos
 void libera(void *arvore);

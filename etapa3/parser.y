@@ -8,6 +8,8 @@ int yylex(void);
 void yyerror (char const *s);
 int get_line_number();
 
+
+extern void *arvore;
 %}
 
 %code requires { #include "ast.h" }
@@ -15,7 +17,7 @@ int get_line_number();
 
 %union {
 	valor_token_t valor_lexico;
-	ast_t *arvore;
+	ast_t *nodo;
 }
 
 %define parse.error verbose
@@ -64,8 +66,49 @@ int get_line_number();
 %token<valor_lexico> TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-/* %type<arvore> programa 
-   ...                    */
+//Caracteres especiais também tem valor léxico
+%token<valor_lexico> ','
+%token<valor_lexico> ';'
+%token<valor_lexico> ':'
+%token<valor_lexico> '('
+%token<valor_lexico> ')'
+%token<valor_lexico> '['
+%token<valor_lexico> ']'
+%token<valor_lexico> '{'
+%token<valor_lexico> '}'
+%token<valor_lexico> '+'
+%token<valor_lexico> '-'
+%token<valor_lexico> '*'
+%token<valor_lexico> '/'
+%token<valor_lexico> '<'
+%token<valor_lexico> '>'
+%token<valor_lexico> '='
+%token<valor_lexico> '!'
+%token<valor_lexico> '&'
+%token<valor_lexico> '%'
+%token<valor_lexico> '#'
+%token<valor_lexico> '^'
+%token<valor_lexico> '.'
+%token<valor_lexico> '$'
+%token<valor_lexico> '?'
+
+%type<nodo> programa 
+%type<nodo> var_global
+%type<nodo> funcao
+%type<nodo> cabecalho
+%type<nodo> bloco_cmd
+%type<nodo> lista_comandos
+%type<nodo> comando
+%type<nodo> atribuicao
+%type<nodo> expressao
+%type<nodo> operador_atribuicao
+%type<nodo> declaracao_variavel
+%type<nodo> lista_identificadores_l
+%type<nodo> inicializa_variavel
+%type<nodo> identificador_ou_literal
+%type<nodo> literal
+
+
 
 %precedence "ternario"
 %precedence "unario"
@@ -87,57 +130,70 @@ int get_line_number();
 
 %%
 
-programa: programa var_global | programa funcao | ;
+programa: programa var_global	{$$ = $1;} // var_global não tem inicializacao.
+	| programa funcao 	{arvore = $2; insere_filhos($2, $1, NULL, NULL, NULL);} //resto do programa é filho da funcao
+	| 			{$$ = NULL;}
+	;
 
 tipo: TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING;
 estatico: TK_PR_STATIC | ;
 constante: TK_PR_CONST | ;
 vetor: '[' TK_LIT_INT ']' | ; /* falta garantir que positivo */
 
-var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';' ;
+var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';' {$$ = NULL;};
 lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor | ;
 
-funcao: cabecalho bloco_cmd;
+//Bloco de comandos é filho de um identificador que tá no cabecalho!
+funcao: cabecalho bloco_cmd 		{$$ = insere_filhos($1, $2, NULL, NULL, NULL);}
 
-cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')' ;
+cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')' 	{$$ = cria_nodo(&$3, lista_funcao);} 
 parametros: constante tipo TK_IDENTIFICADOR lista_parametros | ;
 lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR | ;
 
-bloco_cmd: '{' lista_comandos '}';
-lista_comandos: lista_comandos comando | ;
+bloco_cmd: '{' lista_comandos '}' 	{$$ = $2;}
+lista_comandos: lista_comandos comando 	{$$ = insere_filhos($2, $1, NULL, NULL, NULL);} // o filho do comando é a lista de comandos
+		| 				{$$ = NULL;}
 comando: 
-	bloco_cmd ';'
-	| declaracao_variavel ';'
-	| atribuicao ';'
-	| chamada_de_funcao ';'
-	| shift ';'
-	| retorno ';'
-	| TK_PR_BREAK ';'
-	| TK_PR_CONTINUE ';' 
-	| entrada ';'
-	| saida ';'
-	| controle_fluxo ';'
+	bloco_cmd ';' 				{$$ = NULL;}
+	| declaracao_variavel ';' 		{$$ = $1;}
+	| atribuicao ';' 			{$$ = $1;}
+	| chamada_de_funcao ';' 		{$$ = NULL;}
+	| shift ';' 				{$$ = NULL;}
+	| retorno ';' 				{$$ = NULL;}
+	| TK_PR_BREAK ';' 			{$$ = NULL;}
+	| TK_PR_CONTINUE ';' 			{$$ = NULL;}
+	| entrada ';' 				{$$ = NULL;}
+	| saida ';' 				{$$ = NULL;}
+	| controle_fluxo ';' 			{$$ = NULL;}
 	; 
 
 	/* Comandos simples */
 
-declaracao_variavel: estatico constante tipo TK_IDENTIFICADOR inicializa_variavel lista_identificadores_l;
-lista_identificadores_l: lista_identificadores_l ',' TK_IDENTIFICADOR inicializa_variavel | ;
-inicializa_variavel: TK_OC_LE identificador_ou_literal | ; 
-literal: TK_LIT_TRUE
-	|TK_LIT_FALSE
-	|TK_LIT_INT
-	|TK_LIT_FLOAT
-	|TK_LIT_STRING
-	|TK_LIT_CHAR;
+declaracao_variavel: estatico constante tipo inicializa_variavel lista_identificadores_l {$$ = insere_filhos($4, $5, NULL, NULL, NULL);}
+lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel 	{$$ = insere_filhos($3, $1, NULL, NULL, NULL);}
+	| 									{$$ = NULL;}
+inicializa_variavel: 
+	TK_IDENTIFICADOR 					{$$ = NULL;} //ignora declaracao de variavel sem inicialização
+	| TK_IDENTIFICADOR TK_OC_LE identificador_ou_literal	{$$ = insere_filhos(cria_nodo(&$2, inicializacao), cria_nodo(&$1, id), $3, NULL, NULL);}
+	
+literal: TK_LIT_TRUE 		{$$ = cria_nodo(&$1, placeholder_literal);}
+	|TK_LIT_FALSE 		{$$ = cria_nodo(&$1, placeholder_literal);}
+	|TK_LIT_INT 		{$$ = cria_nodo(&$1, placeholder_literal);}
+	|TK_LIT_FLOAT 		{$$ = cria_nodo(&$1, placeholder_literal);}
+	|TK_LIT_STRING 	{$$ = cria_nodo(&$1, placeholder_literal);}
+	|TK_LIT_CHAR 		{$$ = cria_nodo(&$1, placeholder_literal);}
 
 identificador_ou_literal: 
-	literal
-	|TK_IDENTIFICADOR;
+	literal 		{$$ = $1;}
+	|TK_IDENTIFICADOR 	{$$ = cria_nodo(&$1, id);}
 
 
-acesso_vetor: '[' expressao ']' | ;
-atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao;
+acesso_vetor: '[' expressao ']' 
+		|
+		;
+atribuicao: TK_IDENTIFICADOR acesso_vetor operador_atribuicao expressao {$$ = insere_filhos($3, cria_nodo(&$1, id), $4, NULL, NULL);}
+operador_atribuicao: '=' 	{$$ = cria_nodo(&$1, atribuicao);}
+
 
 entrada: TK_PR_INPUT TK_IDENTIFICADOR;
 saida: TK_PR_OUTPUT identificador_ou_literal;
@@ -210,13 +266,13 @@ expressao_booleana:
 	| operandos_booleanos TK_OC_OR operandos_booleanos
 	
 expressao:
-	TK_IDENTIFICADOR acesso_vetor
-	| chamada_de_funcao
-	| literal_numerico
-	| expressao_aritmetica
-	| expressao_booleana
+	TK_IDENTIFICADOR acesso_vetor			{$$ = NULL;}
+	| chamada_de_funcao 				{$$ = NULL;}
+	| literal_numerico				{$$ = NULL;}
+	| expressao_aritmetica				{$$ = NULL;}
+	| expressao_booleana				{$$ = NULL;}
 	// ternario
-	| expressao '?' expressao ':' expressao
+	| expressao '?' expressao ':' expressao	{$$ = NULL;}
 	
 %%
 void yyerror(char const *s)
