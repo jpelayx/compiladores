@@ -4,10 +4,10 @@
 #include <stdbool.h>
 
 typedef enum tipo_token {
-	caractere_especial,
-	operador_composto,
-	identificador,
-	literal
+	tk_caractere_especial,
+	tk_operador_composto,
+	tk_identificador,
+	tk_literal
 } tipo_token_t;
 
 typedef enum tipo_literal {

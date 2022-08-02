@@ -1,2 +1,7 @@
 *.tgz
 .vscode
+etapa3/teste.txt
+etapa3/scanner.lex.c
+etapa3/parser.tab.h
+etapa3/parser.tab.c
+etapa3/etapa3

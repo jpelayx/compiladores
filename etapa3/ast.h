@@ -12,30 +12,32 @@ a)Onde se enquandra [] e palavras reservadas (if, return, while, ...)??!
 b)Qual vai ser o tipo do VALOR_LEXICO deles?!
 */
 
-
 typedef enum tipos_ast_nodo
 {
 	lista_funcao,
 	lista_comando,
 	lista_expressao,
-	placeholder_literal,
 	//comandos simples
-	inicializacao,
+	declaracao,
 	atribuicao,
-	indexador_vetor,
-	entrada_saida,
+	entrada,
+	saida,
 	chamada_funcao,
-	shift,
+	cmd_shift,
 	cmd_return,
-	break_continue,
+	cmd_break,
+	cmd_continue,
 	cmd_if,
 	cmd_for,
 	cmd_while,
-	id,
 	//expressoes aritmeticas e logicas
 	unario,
 	binario,
-	ternario
+	ternario,
+	// outros
+	acesso_vetor,
+	identificador,
+	literal
 } tipos_nodo_t;
 
 typedef struct ast {
@@ -46,13 +48,19 @@ typedef struct ast {
 } ast_t;
 
 // Cria nó sem filhos
-ast_t *cria_nodo(valor_token_t *valor_lexico, tipos_nodo_t tipo);
+ast_t *cria_nodo(tipos_nodo_t tipo, valor_token_t *valor_lexico);
+
+// Cria nó do tipo binárico com dois filhos 
+ast_t *cria_nodo_binario(valor_token_t *valor_lexico, ast_t *f1, ast_t *f2);
+
+// Cria nó do tipo unário com um filho 
+ast_t *cria_nodo_unario(valor_token_t *valor_lexico, ast_t *f1);
+
+// Cria nó do tipo acesso_vetor ou identificador (se nenhum acesso for feito)
+ast_t *cria_nodo_vetor(valor_token_t *valor_lexico, ast_t *vetor);
 
 // Adiciona nó filho
 void insere_filho(ast_t *pai, ast_t *filho);
-
-// Um pai tem no máximo 4 filhos (no caso do for)
-ast_t *insere_filhos(ast_t *pai, ast_t *filho1, ast_t *filho2, ast_t *filho3, ast_t *filho4);
 
 // Libera recursivamente o nó e seus filhos
 void libera(void *arvore);

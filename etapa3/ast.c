@@ -4,7 +4,7 @@
 
 // baseado em: https://www.inf.ufrgs.br/~schnorr/tutorial-bison-p2.html
 
-ast_t* cria_nodo(valor_token_t *valor_lexico, tipos_nodo_t tipo){
+ast_t* cria_nodo(tipos_nodo_t tipo, valor_token_t *valor_lexico){
 	ast_t* ret = NULL;
 	ret = calloc(sizeof(ast_t), 1);
 	if(ret != NULL){
@@ -14,6 +14,31 @@ ast_t* cria_nodo(valor_token_t *valor_lexico, tipos_nodo_t tipo){
 		ret-> valor_lexico = valor_lexico;
 	}
 	return ret;	
+}
+
+ast_t *cria_nodo_binario(valor_token_t *valor_lexico, ast_t *f1, ast_t *f2){
+	ast_t *ret = cria_nodo(binario, valor_lexico);
+	insere_filho(ret, f1);
+	insere_filho(ret, f2);
+	return ret;
+}
+
+ast_t *cria_nodo_unario(valor_token_t *valor_lexico, ast_t *f1) {
+	ast_t *ret = cria_nodo(unario, valor_lexico);
+	insere_filho(ret, f1);
+	return ret;
+}
+
+ast_t *cria_nodo_vetor(valor_token_t *valor_lexico_id, ast_t *vetor) {
+	ast_t *n;
+	if(vetor == NULL)
+		n = cria_nodo(identificador, valor_lexico_id);
+	else {
+		n = cria_nodo(acesso_vetor, NULL);
+		insere_filho(n, cria_nodo(identificador, valor_lexico_id));
+		insere_filho(n, vetor);
+	}
+	return n;
 }
 
 void insere_filho(ast_t *pai, ast_t *filho){
@@ -65,8 +90,9 @@ void imprime_nodo(ast_t *nodo){
 		a) Tipo do NODO vs tipo do valor_lexico!!!! (qual usar nesse caso?)
 		
 		printf("%p [label=\"", arvore);
+		
 	
-		switch(((ast_t *)arvore)-> valor_lexico-> tipo{
+		switch (nodo->tipo){
 			// Se um identificador é chamada de funcao, imprime "call " na frente.
 			case identificador:
 				if(((ast_t *)arvore)-> tipo == chamada_funcao{
@@ -111,16 +137,13 @@ void imprime_nodo(ast_t *nodo){
 				break;
 				
 		}
-	}
+	} 
 	*/
-		printf("*********************\n");
-		printf("%d\n", ((ast_t *)nodo)-> tipo);
-		if((ast_t *)nodo -> valor_lexico != NULL){
-			printf("%d\n", ((ast_t *)nodo)-> valor_lexico -> tipo);
-			
-		}
-	}
 	
+		printf("*********************\n");
+		printf("%d\n", ((ast_t *)nodo)->tipo);
+		// printf("%d\n", ((ast_t *)nodo)->valor_lexico.tipo);
+	}	
 }
 
 void imprime_nodos(ast_t *arvore){

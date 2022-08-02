@@ -48,48 +48,48 @@ default { return TK_PR_DEFAULT; }
 
 	/* Special characters */
 {opssimples} { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = caractere_especial;
+       yylval.valor_lexico.tipo = tk_caractere_especial;
 	   yylval.valor_lexico.valor.caractere = yytext[0];
 	   return yytext[0]; }
 
 	/* Operators (more than one character) */
 \<\= { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operador_composto;
+       yylval.valor_lexico.tipo = tk_operador_composto;
 	   char texto[] = "<=";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto); 
 	   return TK_OC_LE; }
 \>\= { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operador_composto;
+       yylval.valor_lexico.tipo = tk_operador_composto;
 	   char texto[] = ">=";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_GE; }
 \=\= { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operador_composto;
+       yylval.valor_lexico.tipo = tk_operador_composto;
 	   char texto[] = "==";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_EQ; }
 \!\= { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operador_composto;
+       yylval.valor_lexico.tipo = tk_operador_composto;
 	   char texto[] = "!=";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_NE; }
 \&\& { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operador_composto;
+       yylval.valor_lexico.tipo = tk_operador_composto;
 	   char texto[] = "&&";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_AND; }
 \|\| { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operador_composto;
+       yylval.valor_lexico.tipo = tk_operador_composto;
 	   char texto[] = "||";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_OR; }
 \>\> { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operador_composto;
+       yylval.valor_lexico.tipo = tk_operador_composto;
 	   char texto[] = ">>";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_SL; }
 \<\< { yylval.valor_lexico.linha = get_line_number();
-       yylval.valor_lexico.tipo = operador_composto;
+       yylval.valor_lexico.tipo = tk_operador_composto;
 	   char texto[] = "<<";
 	   yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	   return TK_OC_SR; }
@@ -97,43 +97,43 @@ default { return TK_PR_DEFAULT; }
 	/* Literals */
 {integer} {
 	yylval.valor_lexico.linha = get_line_number();
-	yylval.valor_lexico.tipo = literal;
+	yylval.valor_lexico.tipo = tk_literal;
 	yylval.valor_lexico.tipo_literal = tipo_inteiro;
 	yylval.valor_lexico.valor.inteiro = atoi(yytext);
 	return TK_LIT_INT; }
 [+-]?{real} {
 	yylval.valor_lexico.linha = get_line_number();
-	yylval.valor_lexico.tipo = literal;
+	yylval.valor_lexico.tipo = tk_literal;
 	yylval.valor_lexico.tipo_literal = tipo_ponto_flutuante;
 	yylval.valor_lexico.valor.ponto_flutuante = atof(yytext);
-	 return TK_LIT_FLOAT; }
+	return TK_LIT_FLOAT; }
 false { 
 	yylval.valor_lexico.linha = get_line_number();
-	yylval.valor_lexico.tipo = literal;
+	yylval.valor_lexico.tipo = tk_literal;
 	yylval.valor_lexico.tipo_literal = tipo_booleano;
 	yylval.valor_lexico.valor.booleano = false;
 	return TK_LIT_FALSE; }
 true { 
 	yylval.valor_lexico.linha = get_line_number();
-	yylval.valor_lexico.tipo = literal;
+	yylval.valor_lexico.tipo = tk_literal;
 	yylval.valor_lexico.tipo_literal = tipo_booleano;
 	yylval.valor_lexico.valor.booleano = true;
 	return TK_LIT_TRUE; }
 \'([^'\n])\' { 
 	yylval.valor_lexico.linha = get_line_number();
-	yylval.valor_lexico.tipo = literal;
+	yylval.valor_lexico.tipo = tk_literal;
 	yylval.valor_lexico.tipo_literal = tipo_caractere;
 	yylval.valor_lexico.valor.caractere = yytext[0];
 	return TK_LIT_CHAR; }
 \"([^"\n])*\" { 
 	yylval.valor_lexico.linha = get_line_number();
-	yylval.valor_lexico.tipo = literal;
+	yylval.valor_lexico.tipo = tk_literal;
 	yylval.valor_lexico.tipo_literal = tipo_cadeia_caracteres;
 	yylval.valor_lexico.valor.cadeia_caracteres = strdup(yytext);
 	return TK_LIT_STRING; }
 {alpha}({alpha}|{digit})* { 
 	yylval.valor_lexico.linha = get_line_number();
-	yylval.valor_lexico.tipo = identificador;
+	yylval.valor_lexico.tipo = tk_identificador;
 	yylval.valor_lexico.valor.cadeia_caracteres = strdup(yytext);
 	return TK_IDENTIFICADOR; }
 
