@@ -156,6 +156,7 @@ programa: programa var_global	{$$ = $1;} // var_global não tem inicializacao.
 			insere_filho(n, $2);
 			if($1 != NULL)
 				insere_filho(n, $1);
+			$$ = n;
 		}
 	| 	{$$ = NULL;};
 
@@ -168,10 +169,12 @@ var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';' ;
 lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor | ;
 
 //Bloco de comandos é filho de um identificador que tá no cabecalho!
+// problema: isso aqui ta gerando um item da lista de comando a mais do que deveria
 funcao: cabecalho bloco_cmd
 	{
-		ast_t *n = cria_nodo(lista_comando, &$1); 
-		insere_filho(n, $2);
+		ast_t *n = $2;
+		if(n != NULL)
+			n->valor_lexico = &$1; //salvando o identificador da funcao 
 		$$ = n;
 	}	
 

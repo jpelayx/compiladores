@@ -178,5 +178,8 @@ extern void exporta (void *arvore)
 
 extern void libera (void *arvore)
 {
-    return;
+	ast_t *t = (ast_t*)arvore;
+    for(int i = 0; i < t->num_filhos; i++)
+		libera((void*)(t->filhos[i]));
+	free(t);
 }
