@@ -173,8 +173,11 @@ lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor | ;
 funcao: cabecalho bloco_cmd
 	{
 		ast_t *n = $2;
-		if(n != NULL)
-			n->valor_lexico = &$1; //salvando o identificador da funcao 
+		if(n != NULL){
+			// ast_t *id = $1;
+			// n->valor_lexico = id->valor_lexico; //salvando o identificador da funcao 
+			n->valor_lexico = &$1;
+		}
 		$$ = n;
 	}	
 

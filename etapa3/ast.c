@@ -76,7 +76,6 @@ void imprime_nodo(ast_t *nodo){
 	if((ast_t *)nodo != NULL){
 		//Só imprime algo para nodos NÃO intermediarios		
 		if (!(nodo->tipo == lista_funcao 
-		|| nodo->tipo == lista_comando
 		|| nodo->tipo == lista_expressao)){
 			// Para todos os nodos (nao intermediarios), imprime:
 			printf("[label=\"");
@@ -144,7 +143,7 @@ void imprime_nodo(ast_t *nodo){
 							printf("%s", nodo-> valor_lexico-> valor.cadeia_caracteres);
 							break;	
 					}
-						break;
+					break;
 				/*
 					Aqui se enquadram:
 					identifificadores
@@ -154,11 +153,14 @@ void imprime_nodo(ast_t *nodo){
 						+, -, &, *, #, etc
 							 
 				*/	
+				case lista_comando:
+					if(nodo->valor_lexico != NULL)
+						printf("%s \n", nodo->valor_lexico->valor.cadeia_caracteres);
 				case identificador:
 				case unario:
 				case binario:
 				case cmd_shift:
-					printf("%s", nodo-> valor_lexico-> valor.cadeia_caracteres);	
+						printf("%s", nodo-> valor_lexico-> valor.cadeia_caracteres);	
 					break;
 				default:
 					/*
@@ -166,6 +168,7 @@ void imprime_nodo(ast_t *nodo){
 					tratados foram do switch, que são os nodos intermediarios 
 					(lista_funcao, lista_comando, lista_expressao)		
 					*/
+					printf("alou\n");
 					break;	
 				
 			}		
