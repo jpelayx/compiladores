@@ -6,7 +6,7 @@
 
 ast_t* cria_nodo(tipos_nodo_t tipo, valor_token_t *valor_lexico){
 	ast_t* ret = NULL;
-	ret = calloc(sizeof(ast_t), 1);
+	ret = calloc(1,sizeof(ast_t));
 	if(ret != NULL){
 		ret-> num_filhos = 0;
 		ret-> filhos = NULL;
@@ -44,7 +44,7 @@ ast_t *cria_nodo_vetor(valor_token_t *valor_lexico_id, ast_t *vetor) {
 void insere_filho(ast_t *pai, ast_t *filho){
 	if(pai != NULL && filho != NULL){
 		pai-> num_filhos++;
-		pai-> filhos = realloc(pai-> filhos, pai->num_filhos);
+		pai-> filhos = realloc(pai-> filhos, pai->num_filhos * sizeof(ast_t*));
 		pai-> filhos[pai-> num_filhos-1] = filho;
 	}
 }
@@ -76,7 +76,8 @@ void imprime_nodo(ast_t *nodo){
 	if((ast_t *)nodo != NULL){
 		//Só imprime algo para nodos NÃO intermediarios		
 		if (!(nodo->tipo == lista_funcao 
-		|| nodo->tipo == lista_expressao)){
+		|| nodo->tipo == lista_expressao
+		|| (nodo->tipo == lista_comando && nodo->valor_lexico == NULL))){
 			// Para todos os nodos (nao intermediarios), imprime:
 			printf("[label=\"");
 		
@@ -155,12 +156,16 @@ void imprime_nodo(ast_t *nodo){
 				*/	
 				case lista_comando:
 					if(nodo->valor_lexico != NULL)
-						printf("%s \n", nodo->valor_lexico->valor.cadeia_caracteres);
+						printf("%s", nodo->valor_lexico->valor.cadeia_caracteres);
+					break;
 				case identificador:
 				case unario:
 				case binario:
 				case cmd_shift:
-						printf("%s", nodo-> valor_lexico-> valor.cadeia_caracteres);	
+						if(nodo->valor_lexico->tipo == tk_caractere_especial)
+							printf("%c", nodo->valor_lexico->valor.caractere);
+						else
+							printf("%s", nodo-> valor_lexico-> valor.cadeia_caracteres);	
 					break;
 				default:
 					/*
@@ -217,5 +222,15 @@ extern void libera (void *arvore)
 	ast_t *t = (ast_t*)arvore;
     for(int i = 0; i < t->num_filhos; i++)
 		libera((void*)(t->filhos[i]));
+
+	if(t->valor_lexico != NULL)
+	{
+		if( t->valor_lexico->tipo == tk_operador_composto ||
+		    t->valor_lexico->tipo == tk_identificador ||
+		   (t->valor_lexico->tipo == tk_literal && t->valor_lexico->tipo_literal == tipo_cadeia_caracteres)){
+			free(t->valor_lexico->valor.cadeia_caracteres);
+		}
+		free(t->valor_lexico);
+	}
 	free(t);
 }

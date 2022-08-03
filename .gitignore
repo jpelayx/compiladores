@@ -1,5 +1,6 @@
 *.tgz
 .vscode
+vgcore.*
 etapa3/teste.txt
 etapa3/scanner.lex.c
 etapa3/parser.tab.h

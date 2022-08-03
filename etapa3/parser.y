@@ -16,7 +16,7 @@ extern void *arvore;
 %code requires { #include "valor_token.h" }
 
 %union {
-	valor_token_t valor_lexico;
+	valor_token_t *valor_lexico;
 	ast_t *nodo;
 }
 
@@ -176,7 +176,7 @@ funcao: cabecalho bloco_cmd
 		if(n != NULL){
 			// ast_t *id = $1;
 			// n->valor_lexico = id->valor_lexico; //salvando o identificador da funcao 
-			n->valor_lexico = &$1;
+			n->valor_lexico = $1;
 		}
 		$$ = n;
 	}	
@@ -203,14 +203,14 @@ comando:
 	bloco_cmd ';' 				{$$ = NULL;}
 	| declaracao_variavel ';' 	{$$ = $1;}
 	| atribuicao ';' 			{$$ = $1;}
-	| chamada_de_funcao ';' 	{$$ = NULL;}
-	| shift ';' 				{$$ = NULL;}
-	| retorno ';' 				{$$ = NULL;}
+	| chamada_de_funcao ';' 	{$$ = $1;}
+	| shift ';' 				{$$ = $1;}
+	| retorno ';' 				{$$ = $1;}
 	| TK_PR_BREAK ';' 			{$$ = NULL;}
 	| TK_PR_CONTINUE ';' 		{$$ = NULL;}
-	| entrada ';' 				{$$ = NULL;}
-	| saida ';' 				{$$ = NULL;}
-	| controle_fluxo ';' 		{$$ = NULL;}
+	| entrada ';' 				{$$ = $1;}
+	| saida ';' 				{$$ = $1;}
+	| controle_fluxo ';' 		{$$ = $1;}
 	; 
 
 	/* Comandos simples */
@@ -248,21 +248,21 @@ inicializa_variavel:
 	| TK_IDENTIFICADOR TK_OC_LE identificador_ou_literal
 		{
 			ast_t *n = cria_nodo(declaracao, NULL);
-			insere_filho(n, cria_nodo(identificador, &$1));
+			insere_filho(n, cria_nodo(identificador, $1));
 			insere_filho(n, $3);
 			$$ = n;
 		}	
 	
-literal: TK_LIT_TRUE   {$$ = cria_nodo(literal, &$1);} 		
-	   | TK_LIT_FALSE  {$$ = cria_nodo(literal, &$1);}	
-	   | TK_LIT_INT    {$$ = cria_nodo(literal, &$1);}	
-	   | TK_LIT_FLOAT  {$$ = cria_nodo(literal, &$1);}
-	   | TK_LIT_STRING {$$ = cria_nodo(literal, &$1);}
-	   | TK_LIT_CHAR   {$$ = cria_nodo(literal, &$1);};
+literal: TK_LIT_TRUE   {$$ = cria_nodo(literal, $1);} 		
+	   | TK_LIT_FALSE  {$$ = cria_nodo(literal, $1);}	
+	   | TK_LIT_INT    {$$ = cria_nodo(literal, $1);}	
+	   | TK_LIT_FLOAT  {$$ = cria_nodo(literal, $1);}
+	   | TK_LIT_STRING {$$ = cria_nodo(literal, $1);}
+	   | TK_LIT_CHAR   {$$ = cria_nodo(literal, $1);};
 
 identificador_ou_literal: 
 	literal {$$ = $1;}
-	|TK_IDENTIFICADOR {$$ = cria_nodo(identificador, &$1);};	
+	|TK_IDENTIFICADOR {$$ = cria_nodo(identificador, $1);};	
 
 
 acesso_vetor: '[' expressao ']' {$$ = $2;} 
@@ -271,7 +271,7 @@ acesso_vetor: '[' expressao ']' {$$ = $2;}
 atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao 
 	{
 		ast_t *n = cria_nodo(atribuicao, NULL);
-		insere_filho(n, cria_nodo_vetor(&$1, $2));
+		insere_filho(n, cria_nodo_vetor($1, $2));
 		insere_filho(n, $4);
 		$$ = n;
 	}
@@ -279,7 +279,7 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 entrada: TK_PR_INPUT TK_IDENTIFICADOR 
 	{
 		ast_t *n = cria_nodo(entrada, NULL);
-		insere_filho(n, cria_nodo(identificador, &$2));
+		insere_filho(n, cria_nodo(identificador, $2));
 		$$ = n;
 	};
 saida: TK_PR_OUTPUT identificador_ou_literal
@@ -312,7 +312,7 @@ mais_parametros_chamada_funcao: mais_parametros_chamada_funcao ',' expressao
 	| {$$ = NULL;};
 chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 	{
-		ast_t *n = cria_nodo(chamada_funcao, &$1);
+		ast_t *n = cria_nodo(chamada_funcao, $1);
 		if($3 != NULL)
 			insere_filho(n, $3);
 		$$ = n;
@@ -320,9 +320,9 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 
 shift: TK_IDENTIFICADOR acesso_vetor token_shift TK_LIT_INT
 	{
-		ast_t *n = cria_nodo(cmd_shift, &$3);
-		insere_filho(n, cria_nodo_vetor(&$1, $2));
-		insere_filho(n, cria_nodo(literal, &$4));
+		ast_t *n = cria_nodo(cmd_shift, $3);
+		insere_filho(n, cria_nodo_vetor($1, $2));
+		insere_filho(n, cria_nodo(literal, $4));
 		$$ = n;
 	};
 token_shift: TK_OC_SL {$$ = $1;}  // passando direto o valor_lexico 
@@ -370,58 +370,58 @@ cf_while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd
 	};
 
   /* Expressoes */
-literal_numerico: TK_LIT_INT   {$$ = cria_nodo(literal, &$1);}
-	            | TK_LIT_FLOAT {$$ = cria_nodo(literal, &$1);} 
+literal_numerico: TK_LIT_INT   {$$ = cria_nodo(literal, $1);}
+	            | TK_LIT_FLOAT {$$ = cria_nodo(literal, $1);} 
   
 operandos_aritmeticos: 
 	literal_numerico                {$$ = $1;}
 	| chamada_de_funcao             {$$ = $1;} 
-	| TK_IDENTIFICADOR acesso_vetor {$$ = cria_nodo_vetor(&$1, $2);}
+	| TK_IDENTIFICADOR acesso_vetor {$$ = cria_nodo_vetor($1, $2);}
 	| expressao_aritmetica          {$$ = $1;}
 	| '(' expressao_aritmetica ')'  {$$ = $2;}
 	
 expressao_aritmetica: 
-	 '+' operandos_aritmeticos                          { $$ = cria_nodo_unario(&($1), $2); }
-	| '-' operandos_aritmeticos %prec inverte_sinal     { $$ = cria_nodo_unario(&($1), $2); }
-	| '&' operandos_aritmeticos %prec endereco_variavel { $$ = cria_nodo_unario(&($1), $2); }
-	| '*' operandos_aritmeticos %prec valor_ponteiro    { $$ = cria_nodo_unario(&($1), $2); }
-	| '#' operandos_aritmeticos                         { $$ = cria_nodo_unario(&($1), $2); }
-	| operandos_aritmeticos '+' operandos_aritmeticos   { $$ = cria_nodo_binario(&($2), $1, $3); }
-	| operandos_aritmeticos '-' operandos_aritmeticos   { $$ = cria_nodo_binario(&($2), $1, $3); }
-	| operandos_aritmeticos '^' operandos_aritmeticos   { $$ = cria_nodo_binario(&($2), $1, $3); }
-	| operandos_aritmeticos '*' operandos_aritmeticos   { $$ = cria_nodo_binario(&($2), $1, $3); }
-	| operandos_aritmeticos '/' operandos_aritmeticos   { $$ = cria_nodo_binario(&($2), $1, $3); }
-	| operandos_aritmeticos '%' operandos_aritmeticos   { $$ = cria_nodo_binario(&($2), $1, $3); }
+	 '+' operandos_aritmeticos                          { $$ = cria_nodo_unario(($1), $2); }
+	| '-' operandos_aritmeticos %prec inverte_sinal     { $$ = cria_nodo_unario(($1), $2); }
+	| '&' operandos_aritmeticos %prec endereco_variavel { $$ = cria_nodo_unario(($1), $2); }
+	| '*' operandos_aritmeticos %prec valor_ponteiro    { $$ = cria_nodo_unario(($1), $2); }
+	| '#' operandos_aritmeticos                         { $$ = cria_nodo_unario(($1), $2); }
+	| operandos_aritmeticos '+' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos '-' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos '^' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos '*' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos '/' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos '%' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
 	//bitwise and
-	| operandos_aritmeticos '&' operandos_aritmeticos   { $$ = cria_nodo_binario(&($2), $1, $3); }
+	| operandos_aritmeticos '&' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
 	//bitwise or
-	| operandos_aritmeticos '|' operandos_aritmeticos   { $$ = cria_nodo_binario(&($2), $1, $3); }
+	| operandos_aritmeticos '|' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
 	
-literal_booleano: TK_LIT_TRUE  {$$ = cria_nodo(literal, &($1));} 
-                | TK_LIT_FALSE {$$ = cria_nodo(literal, &($1));}
+literal_booleano: TK_LIT_TRUE  {$$ = cria_nodo(literal, ($1));} 
+                | TK_LIT_FALSE {$$ = cria_nodo(literal, ($1));}
 
 operandos_booleanos: 
-	  TK_IDENTIFICADOR acesso_vetor	{ $$ = cria_nodo_vetor(&$1, $2);}
+	  TK_IDENTIFICADOR acesso_vetor	{ $$ = cria_nodo_vetor($1, $2);}
 	| literal_booleano {$$ = $1;}
 	| expressao_booleana {$$ = $1;}
 	| '(' expressao_booleana ')' {$$ = $2;}
 
 expressao_booleana:
-	 '!' operandos_booleanos	{ $$ = cria_nodo_unario(&($1), $2); }
-	|'?' operandos_booleanos  %prec avaliacao_logica { $$ = cria_nodo_unario(&($1), $2); }
+	 '!' operandos_booleanos	{ $$ = cria_nodo_unario(($1), $2); }
+	|'?' operandos_booleanos  %prec avaliacao_logica { $$ = cria_nodo_unario(($1), $2); }
 	//comparadores logicos	
-	| operandos_aritmeticos '<' operandos_aritmeticos  { $$ = cria_nodo_binario(&($2), $1, $3); }
-	| operandos_aritmeticos '>' operandos_aritmeticos  { $$ = cria_nodo_binario(&($2), $1, $3); }
-	| operandos_aritmeticos TK_OC_EQ operandos_aritmeticos  { $$ = cria_nodo_binario(&($2), $1, $3); }
-	| operandos_aritmeticos TK_OC_NE operandos_aritmeticos  { $$ = cria_nodo_binario(&($2), $1, $3); }
-	| operandos_aritmeticos TK_OC_GE operandos_aritmeticos  { $$ = cria_nodo_binario(&($2), $1, $3); }
-	| operandos_aritmeticos TK_OC_LE operandos_aritmeticos  { $$ = cria_nodo_binario(&($2), $1, $3); }
+	| operandos_aritmeticos '<' operandos_aritmeticos  { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos '>' operandos_aritmeticos  { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos TK_OC_EQ operandos_aritmeticos  { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos TK_OC_NE operandos_aritmeticos  { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos TK_OC_GE operandos_aritmeticos  { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos TK_OC_LE operandos_aritmeticos  { $$ = cria_nodo_binario(($2), $1, $3); }
 	//operadores logicos	
-	| operandos_booleanos TK_OC_AND operandos_booleanos { $$ = cria_nodo_binario(&($2), $1, $3); }
-	| operandos_booleanos TK_OC_OR operandos_booleanos  { $$ = cria_nodo_binario(&($2), $1, $3); }
+	| operandos_booleanos TK_OC_AND operandos_booleanos { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_booleanos TK_OC_OR operandos_booleanos  { $$ = cria_nodo_binario(($2), $1, $3); }
 	
 expressao:
-	TK_IDENTIFICADOR acesso_vetor	{$$ = cria_nodo_vetor(&($1), $2);}
+	TK_IDENTIFICADOR acesso_vetor	{$$ = cria_nodo_vetor(($1), $2);}
 	| chamada_de_funcao             {$$ = $1;}
 	| literal_numerico              {$$ = $1;}
 	| expressao_aritmetica			{$$ = $1;}
