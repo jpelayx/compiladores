@@ -139,23 +139,31 @@ void imprime_nodo(ast_t *nodo){
 					case tipo_cadeia_caracteres:
 						printf("%s", ((ast_t *)nodo)-> valor_lexico-> valor.cadeia_caracteres);
 						break;	
-				}	
-			default:
-				/*Aqui se enquadram:
+				}
+					break;
+			/*
+				Aqui se enquadram:
+				identifificadores
 				operacoes cujo valor lexico é o suficiente para a impressao do label, como:
 					operadores compostos (&&, ||, <<, >>, !=, ==, >=, <=)
-					caracteres especiais que representam operadores aritmeticos ou booleanos, como:
-						+, -, &, *, #, etc
-					identifificadores
+				caracteres especiais que representam operadores aritmeticos ou booleanos, como:
+					+, -, &, *, #, etc
 						 
-				
-				*/
-				
+			*/	
+			case identificador:
+				printf("ZZZZZZZZ");
 				//printf("%s", ((ast_t *)nodo)-> valor_lexico-> valor.cadeia_caracteres);	
+				break;
+			case unario:
+			case binario:
+			case cmd_shift:
+				break;
+			// Caso seja um nodo intermediario, como: lista_funcao, lista_comando, lista_expressao,
+			default:
 				break;
 		}		
 		// Final comum para todos os labels	
-		printf("\"]");
+		printf("\"]\n");
 	}	
 }
 

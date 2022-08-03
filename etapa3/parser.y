@@ -147,7 +147,7 @@ extern void *arvore;
 
 %%
 
-input: programa YYEOF {arvore = $1;};
+input: programa {arvore = $1;};
 
 programa: programa var_global	{$$ = $1;} // var_global não tem inicializacao.
 	| programa funcao 
