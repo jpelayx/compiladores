@@ -81,7 +81,7 @@ void imprime_nodo(ast_t *nodo){
 		switch (nodo->tipo){
 			case chamada_funcao:
 				printf("call ");
-				printf("%s", ((ast_t *)arvore)-> valor_lexico -> valor.cadeia_caracteres);
+				printf("%s", ((ast_t *)nodo)-> valor_lexico -> valor.cadeia_caracteres);
 				break;
 			case declaracao:
 				printf("<=");
@@ -122,22 +122,22 @@ void imprime_nodo(ast_t *nodo){
 				break;
 			//Se for literal, precisa verificar o tipo para fazer a impressao.
 			case literal:
-				switch(((ast_t *)arvore)-> valor_lexico -> valor.tipo_literal){
+				switch(((ast_t *)nodo)-> valor_lexico -> tipo_literal){
 					case tipo_inteiro:
-						printf("%d", ((ast_t *)arvore)-> valor.inteiro);
+						printf("%d", ((ast_t *)nodo)-> valor_lexico-> valor.inteiro);
 						break;
 					case tipo_ponto_flutuante:
 						break;
 					case tipo_caractere:
-						printf("%c", ((ast_t *)arvore)-> valor.caractere);
+						printf("%c", ((ast_t *)nodo)-> valor_lexico-> valor.caractere);
 						break;
 					case tipo_booleano:
-						((ast_t *)arvore)-> valor.booleano 
-						? printf("true");
+						((ast_t *)nodo)-> valor_lexico-> valor.booleano 
+						? printf("true")
 						: printf("false");
 						break;
 					case tipo_cadeia_caracteres:
-						printf("%s", ((ast_t *)arvore)-> valor.cadeia_caracteres);
+						printf("%s", ((ast_t *)nodo)-> valor_lexico-> valor.cadeia_caracteres);
 						break;	
 				}	
 			default:
@@ -151,7 +151,7 @@ void imprime_nodo(ast_t *nodo){
 				
 				*/
 				
-				printf("%s", ((ast_t *)arvore)-> valor_lexico-> valor.cadeia_caracteres);	
+				//printf("%s", ((ast_t *)nodo)-> valor_lexico-> valor.cadeia_caracteres);	
 				break;
 		}		
 		// Final comum para todos os labels	
