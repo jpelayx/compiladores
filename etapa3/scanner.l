@@ -128,8 +128,25 @@ true {
 \"([^"\n])*\" { 
 	yylval.valor_lexico.linha = get_line_number();
 	yylval.valor_lexico.tipo = tk_literal;
+	
+	//Remove aspas da string
+	char* texto = strdup(yytext);
+	int j = 0;
+	for(int i= 0; i < strlen(yytext); i++){
+		if(texto[i] == '\\'){
+			texto[j++] = texto[i++];
+			texto[j++] = texto[i];
+			if(texto[i] == '\0'){
+				break;
+			}
+		} else if(texto[i] != '"'){
+			texto[j++] = texto[i];
+		}
+	}
+	texto[j] = '\0';
+	
 	yylval.valor_lexico.tipo_literal = tipo_cadeia_caracteres;
-	yylval.valor_lexico.valor.cadeia_caracteres = strdup(yytext);
+	yylval.valor_lexico.valor.cadeia_caracteres = strdup(texto);
 	return TK_LIT_STRING; }
 {alpha}({alpha}|{digit})* { 
 	yylval.valor_lexico.linha = get_line_number();
