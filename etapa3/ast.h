@@ -14,9 +14,7 @@ b)Qual vai ser o tipo do VALOR_LEXICO deles?!
 
 typedef enum tipos_ast_nodo
 {
-	lista_funcao,
-	lista_comando,
-	lista_expressao,
+	funcao,
 	//comandos simples
 	declaracao,
 	atribuicao,
@@ -61,6 +59,11 @@ ast_t *cria_nodo_vetor(valor_token_t *valor_lexico, ast_t *vetor);
 
 // Adiciona nó filho
 void insere_filho(ast_t *pai, ast_t *filho);
+
+/* retorna uma lista head:tail (se head for NULL, retorna tail)
+ * sendo que, uma lista de expressoes eh uma expressao com o ultimo filho
+ * apontando para a proxima expressao etc. */
+ast_t *insere_lista(ast_t *head, ast_t *tail);
 
 // Libera recursivamente o nó e seus filhos
 void libera(void *arvore);

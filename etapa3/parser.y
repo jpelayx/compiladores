@@ -151,14 +151,8 @@ input: programa {arvore = $1;};
 
 programa: programa var_global	{$$ = $1;} // var_global não tem inicializacao.
 	| programa funcao 
-		{
-			ast_t *n = cria_nodo(lista_funcao, NULL);
-			insere_filho(n, $2);
-			if($1 != NULL)
-				insere_filho(n, $1);
-			$$ = n;
-		}
-	| 	{$$ = NULL;};
+		{ $$ = insere_lista($2, $1);		} 
+	| 	{ $$ = NULL;};
 
 tipo: TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING;
 estatico: TK_PR_STATIC | ;
@@ -172,12 +166,8 @@ lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor | ;
 // problema: isso aqui ta gerando um item da lista de comando a mais do que deveria
 funcao: cabecalho bloco_cmd
 	{
-		ast_t *n = $2;
-		if(n != NULL){
-			// ast_t *id = $1;
-			// n->valor_lexico = id->valor_lexico; //salvando o identificador da funcao 
-			n->valor_lexico = $1;
-		}
+		ast_t *n = cria_nodo(funcao, $1); // valor lexico eh o identificador em cabecalho
+		insere_filho(n, $2);
 		$$ = n;
 	}	
 
@@ -187,17 +177,7 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR | ;
 
 bloco_cmd: '{' lista_comandos '}' 	{$$ = $2;}
 lista_comandos: lista_comandos comando 
-		{
-			if($2 != NULL) {
-				ast_t *n = cria_nodo(lista_comando, NULL);
-				insere_filho(n, $2); // 1o, comando
-				if($1 != NULL)
-					insere_filho(n, $1); // 2o, proximo da lista
-				$$ = n;
-			}
-			else 
-				$$ = $1;
-		}
+		{$$ = insere_lista($2, $1);}
 	|   {$$ = NULL;};
 comando: 
 	bloco_cmd ';' 				{$$ = NULL;}
@@ -215,32 +195,10 @@ comando:
 
 	/* Comandos simples */
 
-/* supondo aqui que, como mais de uma atribuição é possivel, elas vao em uma lista de 
- * expressoes, mas acho que talvez seja uma boa perguntar pro schnorr */
 declaracao_variavel: estatico constante tipo inicializa_variavel lista_identificadores_l
-	{
-		if($4 != NULL) {
-			ast_t *n = cria_nodo(lista_expressao, NULL);
-			insere_filho(n, $4); // 1o, expressao
-			if($5 != NULL)
-				insere_filho(n, $5); // 2o, proximo da lista
-			$$ = n;
-		}
-		else 
-			$$ = $5;
-	};
+	{ $$ = insere_lista($4, $5);};
 lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel
-		{
-			if($3 != NULL){
-				ast_t *n = cria_nodo(lista_expressao, NULL);
-				insere_filho(n, $3); // 1o, expressao
-				if($1 != NULL)
-					insere_filho(n, $1); // 2o, proximo da lista
-				$$ = n;
-			}
-			else 
-				$$ = $1;
-		} 	
+		{$$ = insere_lista($3, $1);	} 	
 	|   {$$ = NULL;}
 inicializa_variavel: 
 	TK_IDENTIFICADOR 					
@@ -293,22 +251,10 @@ saida: TK_PR_OUTPUT identificador_ou_literal
  * mas acho que tem que ter pelo menos dois, o primeiro que é a expressao 
  * e o segundo, opcional, que é a próxima lista_expressao, se houver.     */
 parametro_chamada_funcao: expressao mais_parametros_chamada_funcao 
-	{
-		ast_t *n = cria_nodo(lista_expressao, NULL);
-		insere_filho(n, $1); // 1o a expressao
-		if($2 != NULL)
-			insere_filho(n, $2); // 2o o proximo item da lista
-		$$ = n;
-	}
+	  {$$ = insere_lista($1, $2);}
     | {$$ = NULL;};
 mais_parametros_chamada_funcao: mais_parametros_chamada_funcao ',' expressao 
-	{
-		ast_t *n = cria_nodo(lista_expressao, NULL);
-		insere_filho(n, $3);
-		if($1 != NULL)
-			insere_filho(n, $1);
-		$$ = n;
-	}
+	  {$$ = insere_lista($3, $1);}
 	| {$$ = NULL;};
 chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 	{
