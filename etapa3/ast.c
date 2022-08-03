@@ -62,7 +62,7 @@ ast_t *insere_lista(ast_t *head, ast_t *tail)
 
 void imprime_nodo(ast_t *nodo){
 	if((ast_t *)nodo != NULL){
-		printf("[label=\"");
+		printf("%p [label=\"", nodo);
 
 		//Verifica o tipo do NODO.
 		switch (nodo->tipo){
