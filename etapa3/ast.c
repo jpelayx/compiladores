@@ -78,7 +78,6 @@ void imprime_nodo(ast_t *nodo){
 		if (!(nodo->tipo == lista_funcao 
 		|| nodo->tipo == lista_comando
 		|| nodo->tipo == lista_expressao)){
-		
 			// Para todos os nodos (nao intermediarios), imprime:
 			printf("[label=\"");
 		
@@ -86,7 +85,7 @@ void imprime_nodo(ast_t *nodo){
 			switch (nodo->tipo){
 				case chamada_funcao:
 					printf("call ");
-					printf("%s", ((ast_t *)nodo)-> valor_lexico -> valor.cadeia_caracteres);
+					printf("%s", nodo-> valor_lexico -> valor.cadeia_caracteres);
 					break;
 				case declaracao:
 					printf("<=");
@@ -127,22 +126,22 @@ void imprime_nodo(ast_t *nodo){
 					break;
 				//Se for literal, precisa verificar o tipo para fazer a impressao.
 				case literal:
-					switch(((ast_t *)nodo)-> valor_lexico -> tipo_literal){
+					switch(nodo-> valor_lexico -> tipo_literal){
 						case tipo_inteiro:
-							printf("%d", ((ast_t *)nodo)-> valor_lexico-> valor.inteiro);
+							printf("%d", nodo-> valor_lexico-> valor.inteiro);
 							break;
 						case tipo_ponto_flutuante:
 							break;
 						case tipo_caractere:
-							printf("%c", ((ast_t *)nodo)-> valor_lexico-> valor.caractere);
+							printf("%c", nodo-> valor_lexico-> valor.caractere);
 							break;
 						case tipo_booleano:
-							((ast_t *)nodo)-> valor_lexico-> valor.booleano 
+							nodo-> valor_lexico-> valor.booleano 
 							? printf("true")
 							: printf("false");
 							break;
 						case tipo_cadeia_caracteres:
-							printf("%s", ((ast_t *)nodo)-> valor_lexico-> valor.cadeia_caracteres);
+							printf("%s", nodo-> valor_lexico-> valor.cadeia_caracteres);
 							break;	
 					}
 						break;
@@ -156,20 +155,25 @@ void imprime_nodo(ast_t *nodo){
 							 
 				*/	
 				case identificador:
-					printf("ZZZZZZZZ");
-					//printf("%s", ((ast_t *)nodo)-> valor_lexico-> valor.cadeia_caracteres);	
-					break;
 				case unario:
 				case binario:
 				case cmd_shift:
+					printf("%s", nodo-> valor_lexico-> valor.cadeia_caracteres);	
 					break;
-				// Caso seja um nodo intermediario, como: lista_funcao, lista_comando, lista_expressao,
 				default:
-					break;
+					/*
+					Tem que ter enunciado para todos os tipos de nodos até para os que foram
+					tratados foram do switch, que são os nodos intermediarios 
+					(lista_funcao, lista_comando, lista_expressao)		
+					*/
+					break;	
+				
 			}		
 			// Final comum para todos os labels	
 			printf("\"]\n");
 
+		} else {
+			printf("AQUI TEM UM NODO INTERMEDIARIO: %d\n", nodo->tipo); 
 		}
 	}	
 }
