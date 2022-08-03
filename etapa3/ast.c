@@ -74,96 +74,103 @@ ast_t* insere_filhos(ast_t *pai, ast_t *filho1, ast_t *filho2, ast_t *filho3, as
 
 void imprime_nodo(ast_t *nodo){
 	if((ast_t *)nodo != NULL){
-		// Para todos os nodos, imprime:
-		printf("[label=\"");
-	
-		//Verifica o tipo do NODO.
-		switch (nodo->tipo){
-			case chamada_funcao:
-				printf("call ");
-				printf("%s", ((ast_t *)nodo)-> valor_lexico -> valor.cadeia_caracteres);
-				break;
-			case declaracao:
-				printf("<=");
-				break;
-			case atribuicao:
-				printf("=");
-				break;
-			case acesso_vetor:
-				printf("[]");
-				break;
-			//Palavras reservadas.
-			case cmd_while:
-				printf("while");
-				break;
-			case cmd_for:
-				printf("for");
-				break;
-			case cmd_if:
-				printf("if");
-				break;
-			case cmd_return:
-				printf("return");
-				break;
-			case cmd_break:
-				printf("break");
-				break;
-			case cmd_continue:
-				printf("continue");
-				break;
-			case entrada:
-				printf("input");
-				break;
-			case saida:
-				printf("output");
-				break;
-			case ternario:
-				printf("?:");
-				break;
-			//Se for literal, precisa verificar o tipo para fazer a impressao.
-			case literal:
-				switch(((ast_t *)nodo)-> valor_lexico -> tipo_literal){
-					case tipo_inteiro:
-						printf("%d", ((ast_t *)nodo)-> valor_lexico-> valor.inteiro);
-						break;
-					case tipo_ponto_flutuante:
-						break;
-					case tipo_caractere:
-						printf("%c", ((ast_t *)nodo)-> valor_lexico-> valor.caractere);
-						break;
-					case tipo_booleano:
-						((ast_t *)nodo)-> valor_lexico-> valor.booleano 
-						? printf("true")
-						: printf("false");
-						break;
-					case tipo_cadeia_caracteres:
-						printf("%s", ((ast_t *)nodo)-> valor_lexico-> valor.cadeia_caracteres);
-						break;	
-				}
+		//Só imprime algo para nodos NÃO intermediarios		
+		if (!(nodo->tipo == lista_funcao 
+		|| nodo->tipo == lista_comando
+		|| nodo->tipo == lista_expressao)){
+		
+			// Para todos os nodos (nao intermediarios), imprime:
+			printf("[label=\"");
+		
+			//Verifica o tipo do NODO.
+			switch (nodo->tipo){
+				case chamada_funcao:
+					printf("call ");
+					printf("%s", ((ast_t *)nodo)-> valor_lexico -> valor.cadeia_caracteres);
 					break;
-			/*
-				Aqui se enquadram:
-				identifificadores
-				operacoes cujo valor lexico é o suficiente para a impressao do label, como:
-					operadores compostos (&&, ||, <<, >>, !=, ==, >=, <=)
-				caracteres especiais que representam operadores aritmeticos ou booleanos, como:
-					+, -, &, *, #, etc
-						 
-			*/	
-			case identificador:
-				printf("ZZZZZZZZ");
-				//printf("%s", ((ast_t *)nodo)-> valor_lexico-> valor.cadeia_caracteres);	
-				break;
-			case unario:
-			case binario:
-			case cmd_shift:
-				break;
-			// Caso seja um nodo intermediario, como: lista_funcao, lista_comando, lista_expressao,
-			default:
-				break;
-		}		
-		// Final comum para todos os labels	
-		printf("\"]\n");
+				case declaracao:
+					printf("<=");
+					break;
+				case atribuicao:
+					printf("=");
+					break;
+				case acesso_vetor:
+					printf("[]");
+					break;
+				//Palavras reservadas.
+				case cmd_while:
+					printf("while");
+					break;
+				case cmd_for:
+					printf("for");
+					break;
+				case cmd_if:
+					printf("if");
+					break;
+				case cmd_return:
+					printf("return");
+					break;
+				case cmd_break:
+					printf("break");
+					break;
+				case cmd_continue:
+					printf("continue");
+					break;
+				case entrada:
+					printf("input");
+					break;
+				case saida:
+					printf("output");
+					break;
+				case ternario:
+					printf("?:");
+					break;
+				//Se for literal, precisa verificar o tipo para fazer a impressao.
+				case literal:
+					switch(((ast_t *)nodo)-> valor_lexico -> tipo_literal){
+						case tipo_inteiro:
+							printf("%d", ((ast_t *)nodo)-> valor_lexico-> valor.inteiro);
+							break;
+						case tipo_ponto_flutuante:
+							break;
+						case tipo_caractere:
+							printf("%c", ((ast_t *)nodo)-> valor_lexico-> valor.caractere);
+							break;
+						case tipo_booleano:
+							((ast_t *)nodo)-> valor_lexico-> valor.booleano 
+							? printf("true")
+							: printf("false");
+							break;
+						case tipo_cadeia_caracteres:
+							printf("%s", ((ast_t *)nodo)-> valor_lexico-> valor.cadeia_caracteres);
+							break;	
+					}
+						break;
+				/*
+					Aqui se enquadram:
+					identifificadores
+					operacoes cujo valor lexico é o suficiente para a impressao do label, como:
+						operadores compostos (&&, ||, <<, >>, !=, ==, >=, <=)
+					caracteres especiais que representam operadores aritmeticos ou booleanos, como:
+						+, -, &, *, #, etc
+							 
+				*/	
+				case identificador:
+					printf("ZZZZZZZZ");
+					//printf("%s", ((ast_t *)nodo)-> valor_lexico-> valor.cadeia_caracteres);	
+					break;
+				case unario:
+				case binario:
+				case cmd_shift:
+					break;
+				// Caso seja um nodo intermediario, como: lista_funcao, lista_comando, lista_expressao,
+				default:
+					break;
+			}		
+			// Final comum para todos os labels	
+			printf("\"]\n");
+
+		}
 	}	
 }
 
@@ -192,8 +199,9 @@ extern void exporta (void *arvore)
 	printf("AAAAAAA\n");
 	if(arvore != NULL){
 		printf("BBBBBBBB\n");
-		imprime_nodos(arvore);
 		imprime_arestas(arvore);
+		printf("\n");
+		imprime_nodos(arvore);	
 	}
 }
 
