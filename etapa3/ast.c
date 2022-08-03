@@ -74,75 +74,88 @@ ast_t* insere_filhos(ast_t *pai, ast_t *filho1, ast_t *filho2, ast_t *filho3, as
 
 void imprime_nodo(ast_t *nodo){
 	if((ast_t *)nodo != NULL){
+		// Para todos os nodos, imprime:
+		printf("[label=\"");
 	
-		/* NOT WORKING.
-		Ideia: ver o tipo do valor lexico de cada nodo 
-		(
-		caractere_especial,
-		operador_composto,
-		identificador,
-		literal
-		)
-		
-		e printar o nodo de acordo. 
-		
-		******Problemas******:
-		a) Tipo do NODO vs tipo do valor_lexico!!!! (qual usar nesse caso?)
-		
-		printf("%p [label=\"", arvore);
-		
-	
+		//Verifica o tipo do NODO.
 		switch (nodo->tipo){
-			// Se um identificador é chamada de funcao, imprime "call " na frente.
-			case identificador:
-				if(((ast_t *)arvore)-> tipo == chamada_funcao{
-					printf("call ");
-				}
-				
-				printf("%s", ((ast_t *)arvore)-> valor_lexico-> cadeia_caracteres);
-				
-				break;
-			case operador_composto:
-				printf("%s", ((ast_t *)arvore)-> valor_lexico-> cadeia_caracteres);
-				break;
-			// Se for literal tem que verificar o tipo pra poder printar.
-			case literal:
-				switch(((ast_t *)arvore)-> valor_lexico-> tipo_literal){
-					case tipo_inteiro:
-						printf("%d", ((ast_t *)arvore)-> valor_lexico -> valor.inteiro);
-						break;
-					case tipo_ponto_flutuante:
-						printf("%f", ((ast_t *)arvore)-> valor_lexico -> valor.ponto_flutuante);
-						break;
-					case tipo_caractere:
-						printf("%c", ((ast_t *)arvore)-> valor_lexico -> valor.caractere);
-						break;
-					case tipo_booleano:
-						if(((ast_t *)arvore)-> valor_lexico -> valor.booleano){
-							printf("true");
-						} else {
-							printf("false");
-						}
-						break;
-					case tipo_cadeia_caracteres:
-						printf("%s", ((ast_t *)arvore)-> valor_lexico -> valor.cadeia_caracteres);
-						break;
-					default:
-						break;
-				}
-				break;
-			case caractere_especial:
-				//alguma coisa especial aqui ou só printar mesmo?
+			case chamada_funcao:
+				printf("call ");
 				printf("%s", ((ast_t *)arvore)-> valor_lexico -> valor.cadeia_caracteres);
 				break;
+			case declaracao:
+				printf("<=");
+				break;
+			case atribuicao:
+				printf("=");
+				break;
+			case acesso_vetor:
+				printf("[]");
+				break;
+			//Palavras reservadas.
+			case cmd_while:
+				printf("while");
+				break;
+			case cmd_for:
+				printf("for");
+				break;
+			case cmd_if:
+				printf("if");
+				break;
+			case cmd_return:
+				printf("return");
+				break;
+			case cmd_break:
+				printf("break");
+				break;
+			case cmd_continue:
+				printf("continue");
+				break;
+			case entrada:
+				printf("input");
+				break;
+			case saida:
+				printf("output");
+				break;
+			case ternario:
+				printf("?:");
+				break;
+			//Se for literal, precisa verificar o tipo para fazer a impressao.
+			case literal:
+				switch(((ast_t *)arvore)-> valor_lexico -> valor.tipo_literal){
+					case tipo_inteiro:
+						printf("%d", ((ast_t *)arvore)-> valor.inteiro);
+						break;
+					case tipo_ponto_flutuante:
+						break;
+					case tipo_caractere:
+						printf("%c", ((ast_t *)arvore)-> valor.caractere);
+						break;
+					case tipo_booleano:
+						((ast_t *)arvore)-> valor.booleano 
+						? printf("true");
+						: printf("false");
+						break;
+					case tipo_cadeia_caracteres:
+						printf("%s", ((ast_t *)arvore)-> valor.cadeia_caracteres);
+						break;	
+				}	
+			default:
+				/*Aqui se enquadram:
+				operacoes cujo valor lexico é o suficiente para a impressao do label, como:
+					operadores compostos (&&, ||, <<, >>, !=, ==, >=, <=)
+					caracteres especiais que representam operadores aritmeticos ou booleanos, como:
+						+, -, &, *, #, etc
+					identifificadores
+						 
 				
-		}
-	} 
-	*/
-	
-		printf("*********************\n");
-		printf("%d\n", ((ast_t *)nodo)->tipo);
-		// printf("%d\n", ((ast_t *)nodo)->valor_lexico.tipo);
+				*/
+				
+				printf("%s", ((ast_t *)arvore)-> valor_lexico-> valor.cadeia_caracteres);	
+				break;
+		}		
+		// Final comum para todos os labels	
+		printf("\"]");
 	}	
 }
 
