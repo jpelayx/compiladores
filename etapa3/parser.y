@@ -66,16 +66,7 @@ extern void *arvore;
 %token<valor_lexico> TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-%token<valor_lexico> ','
-%token<valor_lexico> ';'
-%token<valor_lexico> ':'
 %token<valor_lexico> '|'
-%token<valor_lexico> '('
-%token<valor_lexico> ')'
-%token<valor_lexico> '['
-%token<valor_lexico> ']'
-%token<valor_lexico> '{'
-%token<valor_lexico> '}'
 %token<valor_lexico> '+'
 %token<valor_lexico> '-'
 %token<valor_lexico> '*'
@@ -88,7 +79,6 @@ extern void *arvore;
 %token<valor_lexico> '%'
 %token<valor_lexico> '#'
 %token<valor_lexico> '^'
-%token<valor_lexico> '.'
 %token<valor_lexico> '$'
 %token<valor_lexico> '?'
 
@@ -157,10 +147,10 @@ programa: programa var_global	{$$ = $1;} // var_global não tem inicializacao.
 tipo: TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING;
 estatico: TK_PR_STATIC | ;
 constante: TK_PR_CONST | ;
-vetor: '[' TK_LIT_INT ']' | ; 
+vetor: '[' TK_LIT_INT ']' {libera_tk($2);}| ; 
 
-var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';' ;
-lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor | ;
+var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';' {libera_tk($3);};
+lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor  {libera_tk($3);}| ;
 
 //Bloco de comandos é filho de um identificador que tá no cabecalho!
 // problema: isso aqui ta gerando um item da lista de comando a mais do que deveria
@@ -172,15 +162,15 @@ funcao: cabecalho bloco_cmd
 	}	
 
 cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')' {$$ = $3;};	
-parametros: constante tipo TK_IDENTIFICADOR lista_parametros | ;
-lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR | ;
+parametros: constante tipo TK_IDENTIFICADOR lista_parametros {libera_tk($3);}| ;
+lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR {libera_tk($5);}| ;
 
 bloco_cmd: '{' lista_comandos '}' 	{$$ = $2;}
 lista_comandos: lista_comandos comando 
 		{$$ = insere_lista($2, $1);}
 	|   {$$ = NULL;};
 comando: 
-	bloco_cmd ';' 				{$$ = NULL;}
+	bloco_cmd ';' 				{$$ = $1;}
 	| declaracao_variavel ';' 	{$$ = $1;}
 	| atribuicao ';' 			{$$ = $1;}
 	| chamada_de_funcao ';' 	{$$ = $1;}
@@ -190,7 +180,7 @@ comando:
 	| TK_PR_CONTINUE ';' 		{$$ = NULL;}
 	| entrada ';' 				{$$ = $1;}
 	| saida ';' 				{$$ = $1;}
-	| controle_fluxo ';' 		{$$ = $1;}
+	| controle_fluxo    		{$$ = $1;}
 	; 
 
 	/* Comandos simples */
@@ -202,12 +192,13 @@ lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel
 	|   {$$ = NULL;}
 inicializa_variavel: 
 	TK_IDENTIFICADOR 					
-		{$$ = NULL;} //ignora declaracao de variavel sem inicialização
+		{libera_tk($1); $$ = NULL;} //ignora declaracao de variavel sem inicialização
 	| TK_IDENTIFICADOR TK_OC_LE identificador_ou_literal
 		{
 			ast_t *n = cria_nodo(declaracao, NULL);
 			insere_filho(n, cria_nodo(identificador, $1));
 			insere_filho(n, $3);
+			libera_tk($2);
 			$$ = n;
 		}	
 	
@@ -231,6 +222,7 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 		ast_t *n = cria_nodo(atribuicao, NULL);
 		insere_filho(n, cria_nodo_vetor($1, $2));
 		insere_filho(n, $4);
+		libera_tk($3);
 		$$ = n;
 	}
 
@@ -317,7 +309,7 @@ cf_while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd
 
   /* Expressoes */
 literal_numerico: TK_LIT_INT   {$$ = cria_nodo(literal, $1);}
-	            | TK_LIT_FLOAT {$$ = cria_nodo(literal, $1);} 
+	            | TK_LIT_FLOAT {$$ = cria_nodo(literal, $1);} ;
   
 operandos_aritmeticos: 
 	literal_numerico                {$$ = $1;}
@@ -378,6 +370,7 @@ expressao:
 		insere_filho(n, $1);
 		insere_filho(n, $3);
 		insere_filho(n, $5);
+		libera_tk($2);
 		$$ = n;	}
 	
 %%

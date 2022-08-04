@@ -31,4 +31,6 @@ typedef struct valor_token {
 	} valor;
 } valor_token_t;
 
+void libera_tk(valor_token_t *v);
+
 #endif // _VALOR_TOKEN_H_

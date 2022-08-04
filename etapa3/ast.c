@@ -42,10 +42,16 @@ ast_t *cria_nodo_vetor(valor_token_t *valor_lexico_id, ast_t *vetor) {
 }
 
 void insere_filho(ast_t *pai, ast_t *filho){
-	if(pai != NULL && filho != NULL){
-		pai-> num_filhos++;
-		pai-> filhos = realloc(pai-> filhos, pai->num_filhos * sizeof(ast_t*));
-		pai-> filhos[pai-> num_filhos-1] = filho;
+	if(pai == NULL)	{
+		if(filho != NULL)
+			free(filho);
+		return;
+	}
+
+	if(filho != NULL) {
+		pai->num_filhos++;
+		pai->filhos = realloc(pai-> filhos, pai->num_filhos * sizeof(ast_t*));
+		pai->filhos[pai-> num_filhos-1] = filho;
 	}
 }
 
@@ -145,7 +151,7 @@ void imprime_nodo(ast_t *nodo){
 					if(nodo->valor_lexico->tipo == tk_caractere_especial)
 						printf("%c", nodo->valor_lexico->valor.caractere);
 					else
-						printf("%s", nodo-> valor_lexico-> valor.cadeia_caracteres);	
+						printf("%s", nodo->valor_lexico->valor.cadeia_caracteres);	
 				break;
 			default:
 				/*
@@ -184,9 +190,7 @@ void imprime_arestas(ast_t *arvore){
 
 extern void exporta (void *arvore)
 {
-	printf("AAAAAAA\n");
 	if(arvore != NULL){
-		printf("BBBBBBBB\n");
 		imprime_arestas(arvore);
 		printf("\n");
 		imprime_nodos(arvore);	
@@ -195,18 +199,17 @@ extern void exporta (void *arvore)
 
 extern void libera (void *arvore)
 {
+	if(arvore == NULL)
+		return;
 	ast_t *t = (ast_t*)arvore;
-    for(int i = 0; i < t->num_filhos; i++)
+    for(int i = 0; i < t->num_filhos; i++){
 		libera((void*)(t->filhos[i]));
+	}
 
 	if(t->valor_lexico != NULL)
 	{
-		if( t->valor_lexico->tipo == tk_operador_composto ||
-		    t->valor_lexico->tipo == tk_identificador ||
-		   (t->valor_lexico->tipo == tk_literal && t->valor_lexico->tipo_literal == tipo_cadeia_caracteres)){
-			free(t->valor_lexico->valor.cadeia_caracteres);
-		}
-		free(t->valor_lexico);
+		libera_tk(t->valor_lexico);
 	}
+	free(t->filhos);
 	free(t);
 }

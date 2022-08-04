@@ -7,7 +7,8 @@ int get_line_number();
 int line_number = 1;
 %}
 
-opssimples [\,\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\?]
+opssimples [\,\;\:\(\)\[\]\{\}]
+opssimples_val [\+\-\|\*\/\<\>\=\!\&\%\#\^\$\?]
 digit [0-9]
 alpha [a-zA-Z_]
 integer {digit}+
@@ -47,61 +48,69 @@ end { return TK_PR_END; }
 default { return TK_PR_DEFAULT; }
 
 	/* Special characters */
-{opssimples} { 
+{opssimples_val} { 
 	   yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
 	   yylval.valor_lexico->linha = get_line_number();
        yylval.valor_lexico->tipo = tk_caractere_especial;
 	   yylval.valor_lexico->valor.caractere = yytext[0];
 	   return yytext[0]; }
-
+{opssimples} {return yytext[0];}
 	/* Operators (more than one character) */
 \<\= { yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
  yylval.valor_lexico->linha = get_line_number();
        yylval.valor_lexico->tipo = tk_operador_composto;
-	   char texto[] = "<=";
-	   yylval.valor_lexico->valor.cadeia_caracteres = strdup(texto); 
+	   char *texto = malloc(3*sizeof(char));
+		texto[0] = '<'; texto[1] = '='; texto[2] = 0;
+	   yylval.valor_lexico->valor.cadeia_caracteres = texto; 
 	   return TK_OC_LE; }
 \>\= { yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
  yylval.valor_lexico->linha = get_line_number();
        yylval.valor_lexico->tipo = tk_operador_composto;
-	   char texto[] = ">=";
-	   yylval.valor_lexico->valor.cadeia_caracteres = strdup(texto);
+	   char *texto = malloc(3*sizeof(char));
+		texto[0] = '>'; texto[1] = '='; texto[2] = 0;
+	   yylval.valor_lexico->valor.cadeia_caracteres = texto;
 	   return TK_OC_GE; }
 \=\= { yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
  yylval.valor_lexico->linha = get_line_number();
        yylval.valor_lexico->tipo = tk_operador_composto;
-	   char texto[] = "==";
-	   yylval.valor_lexico->valor.cadeia_caracteres = strdup(texto);
+	   char *texto = malloc(3*sizeof(char));
+		texto[0] = '='; texto[1] = '='; texto[2] = 0;
+	   yylval.valor_lexico->valor.cadeia_caracteres = texto;
 	   return TK_OC_EQ; }
 \!\= { yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
  yylval.valor_lexico->linha = get_line_number();
        yylval.valor_lexico->tipo = tk_operador_composto;
-	   char texto[] = "!=";
-	   yylval.valor_lexico->valor.cadeia_caracteres = strdup(texto);
+	   char *texto = malloc(3*sizeof(char));
+		texto[0] = '!'; texto[1] = '='; texto[2] = 0;
+	   yylval.valor_lexico->valor.cadeia_caracteres = texto;
 	   return TK_OC_NE; }
 \&\& { yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
  yylval.valor_lexico->linha = get_line_number();
        yylval.valor_lexico->tipo = tk_operador_composto;
-	   char texto[] = "&&";
-	   yylval.valor_lexico->valor.cadeia_caracteres = strdup(texto);
+	   char *texto = malloc(3*sizeof(char));
+		texto[0] = '&'; texto[1] = '&'; texto[2] = 0;
+	   yylval.valor_lexico->valor.cadeia_caracteres = texto;
 	   return TK_OC_AND; }
 \|\| { yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
  yylval.valor_lexico->linha = get_line_number();
        yylval.valor_lexico->tipo = tk_operador_composto;
-	   char texto[] = "||";
-	   yylval.valor_lexico->valor.cadeia_caracteres = strdup(texto);
+	   char *texto = malloc(3*sizeof(char));
+		texto[0] = '|'; texto[1] = '|'; texto[2] = 0;
+	   yylval.valor_lexico->valor.cadeia_caracteres = texto;
 	   return TK_OC_OR; }
 \>\> { yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
  yylval.valor_lexico->linha = get_line_number();
        yylval.valor_lexico->tipo = tk_operador_composto;
-	   char texto[] = ">>";
-	   yylval.valor_lexico->valor.cadeia_caracteres = strdup(texto);
+	   char *texto = malloc(3*sizeof(char));
+		texto[0] = '>'; texto[1] = '>'; texto[2] = 0;
+	   yylval.valor_lexico->valor.cadeia_caracteres = texto;
 	   return TK_OC_SL; }
 \<\< { yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
  yylval.valor_lexico->linha = get_line_number();
        yylval.valor_lexico->tipo = tk_operador_composto;
-	   char texto[] = "<<";
-	   yylval.valor_lexico->valor.cadeia_caracteres = strdup(texto);
+	   char *texto = malloc(3*sizeof(char));
+		texto[0] = '<'; texto[1] = '<'; texto[2] = 0;
+	   yylval.valor_lexico->valor.cadeia_caracteres = texto;
 	   return TK_OC_SR; }
 
 	/* Literals */
@@ -112,7 +121,7 @@ default { return TK_PR_DEFAULT; }
 	yylval.valor_lexico->tipo_literal = tipo_inteiro;
 	yylval.valor_lexico->valor.inteiro = atoi(yytext);
 	return TK_LIT_INT; }
-[+-]?{real} {
+-?{real} {
 	yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
 	yylval.valor_lexico->linha = get_line_number();
 	yylval.valor_lexico->tipo = tk_literal;
@@ -162,7 +171,7 @@ true { yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
 	texto[j] = '\0';
 	
 	yylval.valor_lexico->tipo_literal = tipo_cadeia_caracteres;
-	yylval.valor_lexico->valor.cadeia_caracteres = strdup(texto);
+	yylval.valor_lexico->valor.cadeia_caracteres = texto;
 	return TK_LIT_STRING; }
 {alpha}({alpha}|{digit})* { 
 	yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
