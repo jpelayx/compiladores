@@ -159,12 +159,11 @@ void imprime_nodo(ast_t *nodo){
 				tratados foram do switch, que são os nodos intermediarios 
 				(lista_funcao, lista_comando, lista_expressao)		
 				*/
-				printf("alou\n");
 				break;	
 			
 		}		
 		// Final comum para todos os labels	
-		printf("\"]\n");
+		printf("\"];\n");
 	}	
 }
 
@@ -192,7 +191,6 @@ extern void exporta (void *arvore)
 {
 	if(arvore != NULL){
 		imprime_arestas(arvore);
-		printf("\n");
 		imprime_nodos(arvore);	
 	}
 }
