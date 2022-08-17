@@ -3,14 +3,15 @@
 
 #include "valor_token.h"
 
-// olhar https://www.inf.ufrgs.br/~schnorr/tutorial-bison-p2.html
-
-
-// Para saber como printar o nodo da AST.
-/*******Problemas*******
-a)Onde se enquandra [] e palavras reservadas (if, return, while, ...)??!
-b)Qual vai ser o tipo do VALOR_LEXICO deles?!
-*/
+typedef enum tipo_semantico
+{
+	int_sem,
+	float_sem, 
+	bool_sem, 
+	char_sem, 
+	string_sem
+	// funcoes ?
+} tipos_semanticos_t;
 
 typedef enum tipos_ast_nodo
 {
@@ -39,10 +40,11 @@ typedef enum tipos_ast_nodo
 } tipos_nodo_t;
 
 typedef struct ast {
-	tipos_nodo_t tipo;
-	valor_token_t *valor_lexico;
-    	int num_filhos;
-    	struct ast **filhos;    
+	tipos_nodo_t tipo;           // tipo de nodo ast (literal, identificador, op binaria/unaria, etc)
+	tipos_semanticos_t tipo_sem; // tipo semantico (float, int, bool, char ou string)
+	valor_token_t *valor_lexico; 
+    int num_filhos;
+    struct ast **filhos;    
 } ast_t;
 
 // Cria nó sem filhos
