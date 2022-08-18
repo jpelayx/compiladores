@@ -180,7 +180,7 @@ comando:
 	| TK_PR_CONTINUE ';' 		{$$ = NULL;}
 	| entrada ';' 				{$$ = $1;}
 	| saida ';' 				{$$ = $1;}
-	| controle_fluxo    		{$$ = $1;}
+	| controle_fluxo ';'   		{$$ = $1;}
 	; 
 
 	/* Comandos simples */
