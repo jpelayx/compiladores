@@ -11,6 +11,14 @@ void libera_simbolo(simbolo_t *s)
     free(s);
 }
 
+void libera_lista_simbolos(lista_simbolos_t *l)
+{
+    if(l->next != NULL)
+        libera_lista_simbolos(l->next);
+    libera_simbolo(l->simbolo);
+    free(l);
+}
+
 tabela_simbolos_t *init_tabela_simbolos()
 {
     tabela_simbolos_t *t = calloc(1, sizeof(tabela_simbolos_t));
@@ -57,6 +65,14 @@ tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s)
     // TODO: checar ocupação pra ver redimensionamento.
 
     return t;
+}
+
+void libera_tabela_simbolos(tabela_simbolos_t *t)
+{
+    for (int i=0; i<t->tamanho; i++)
+        libera_lista_simbolos(t->dados[i]);
+    free(t->dados);
+    free(t);
 }
 
 void print_tabela(tabela_simbolos_t *t)

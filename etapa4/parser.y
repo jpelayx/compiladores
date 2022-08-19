@@ -4,6 +4,7 @@
 #include "ast.h"
 #include "valor_token.h"
 #include "tabela_simbolos.h"
+#include "escopo.h"
 
 int yylex(void);
 void yyerror (char const *s);
@@ -12,13 +13,14 @@ int get_line_number();
 
 extern void *arvore;
 
-tabela_simbolos_t *ts = NULL; //depois tem que virar uma pilha
+pilha_t *escopo = NULL;
 
 %}
 
 %code requires { #include "ast.h" }
 %code requires { #include "valor_token.h" }
 %code requires { #include "tabela_simbolos.h" }
+%code requires { #include "escopo.h" }
 
 %union {
 	valor_token_t *valor_lexico;
@@ -142,7 +144,7 @@ tabela_simbolos_t *ts = NULL; //depois tem que virar uma pilha
 
 %%
 
-input: programa {arvore = $1; print_tabela(ts);};
+input: programa {arvore = $1; print_tabela(topo(escopo));};
 
 programa: programa var_global	{$$ = $1;} // var_global não tem inicializacao.
 	| programa funcao 
@@ -193,11 +195,11 @@ comando:
 declaracao_variavel: estatico constante tipo inicializa_variavel lista_identificadores_l
 	{ $$ = insere_lista($5, $4);
 	  simbolo_t *s = novo_simbolo(); 
-	  ts = insere_simbolo(ts, s);	  };
+	  escopo = adiciona_simbolo(escopo, s); };
 lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel
 		{$$ = insere_lista($1, $3);
 		simbolo_t *s = novo_simbolo(); 
-	    ts = insere_simbolo(ts, s);	  } 	
+	    escopo = adiciona_simbolo(escopo, s); } 	
 	|   {$$ = NULL;}
 inicializa_variavel: 
 	TK_IDENTIFICADOR 					

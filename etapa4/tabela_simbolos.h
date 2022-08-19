@@ -38,6 +38,9 @@ typedef struct lista_simbolos
     struct lista_simbolos *next;
 } lista_simbolos_t;
 
+// libera recursivamente memoria alocada em uma lista de simbolos
+void libera_lista_simbolos(lista_simbolos_t *l);
+
 // tabela hash de simbolos
 typedef struct tabela_simbolos 
 {
