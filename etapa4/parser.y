@@ -198,10 +198,15 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR
 	{//primeira redução que vai ocorrer, inicio do escopo local da funcao c/ paramentros
 	 escopo = novo_escopo(escopo); };
 
-bloco_cmd: '{' lista_comandos '}' 	{$$ = $2;}
+bloco_cmd: '{' lista_comandos '}' 	
+	{$$ = $2; 
+	 printf("ESCOPO BLOCO \n");
+	 print_tabela(topo(escopo));
+	 escopo = sai_escopo(escopo); }
 lista_comandos: lista_comandos comando 
 		{$$ = insere_lista($1, $2);}
-	|   {$$ = NULL;};
+	|   {$$ = NULL; 
+	     escopo = novo_escopo(escopo);};
 comando: 
 	bloco_cmd ';' 				{$$ = $1;}
 	| declaracao_variavel ';' 	{$$ = $1;}
@@ -213,8 +218,7 @@ comando:
 	| TK_PR_CONTINUE ';' 		{$$ = cria_nodo(cmd_continue, NULL);}
 	| entrada ';' 				{$$ = $1;}
 	| saida ';' 				{$$ = $1;}
-	| controle_fluxo ';'   		{$$ = $1;}
-	; 
+	| controle_fluxo ';'   		{$$ = $1;}	; 
 
 	/* Comandos simples */
 
