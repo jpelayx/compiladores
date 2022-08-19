@@ -83,12 +83,28 @@ void print_tabela(tabela_simbolos_t *t)
         lista_simbolos_t *l = t->dados[i];
         if(l->simbolo != NULL)
         {
-            printf("um simbolo \n");
+            print_simbolo(l->simbolo);
             while(l->next != NULL)
             {
                 l = l->next;
-                printf("outro simbolo \n");
+                print_simbolo(l->simbolo);
             }
         }
+    }
+}
+
+void print_simbolo(simbolo_t *s)
+{
+    if(s->valor_lexico != NULL)
+    {
+        valor_token_t *v = s->valor_lexico;
+        if(v->tipo == tk_identificador)
+            printf("- %s\n", v->valor.cadeia_caracteres);
+        else
+            printf("literal \n");
+    }
+    else 
+    {
+        printf("simbolo sem valor lexico \n");
     }
 }

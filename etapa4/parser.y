@@ -156,21 +156,47 @@ estatico: TK_PR_STATIC | ;
 constante: TK_PR_CONST | ;
 vetor: '[' TK_LIT_INT ']' {libera_tk($2);}| ; 
 
-var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';' {libera_tk($3);};
-lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor  {libera_tk($3);}| ;
+var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';' 
+	{simbolo_t *s = novo_simbolo();
+	 s->valor_lexico = $3;
+	 escopo = adiciona_simbolo(escopo, s); };
+lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor  
+	{simbolo_t *s = novo_simbolo();
+	 s->valor_lexico = $3;
+	 escopo = adiciona_simbolo(escopo, s); } 
+	| ;
 
-//Bloco de comandos é filho de um identificador que tá no cabecalho!
+// Bloco de comandos é filho de um identificador que tá no cabecalho!
 // problema: isso aqui ta gerando um item da lista de comando a mais do que deveria
 funcao: cabecalho bloco_cmd
 	{
 		ast_t *n = cria_nodo(funcao, $1); // valor lexico eh o identificador em cabecalho
 		insere_filho(n, $2);
 		$$ = n;
+		printf("ESCOPO DA FUNCAO \n");
+		print_tabela(topo(escopo));
+		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
+		simbolo_t *s = novo_simbolo();
+		s->valor_lexico = $1;
+		escopo = adiciona_simbolo(escopo, s); // adicionando a funcao ao escopo global
 	}	
 
-cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')' {$$ = $3;};	
-parametros: constante tipo TK_IDENTIFICADOR lista_parametros {libera_tk($3);}| ;
-lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR {libera_tk($5);}| ;
+cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')' 
+	{$$ = $3;};	
+parametros: constante tipo TK_IDENTIFICADOR lista_parametros 
+	{simbolo_t *s = novo_simbolo();
+	 s->valor_lexico = $3;
+	 escopo = adiciona_simbolo(escopo, s); }
+	| 
+	{// primeira redução que vai ocorrer, inicio do escopo local da funcao s/ parametros
+	 escopo = novo_escopo(escopo);};
+lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR 
+	{simbolo_t *s = novo_simbolo();
+	 s->valor_lexico = $5;
+	 escopo = adiciona_simbolo(escopo, s); }
+	| 
+	{//primeira redução que vai ocorrer, inicio do escopo local da funcao c/ paramentros
+	 escopo = novo_escopo(escopo); };
 
 bloco_cmd: '{' lista_comandos '}' 	{$$ = $2;}
 lista_comandos: lista_comandos comando 
@@ -193,17 +219,16 @@ comando:
 	/* Comandos simples */
 
 declaracao_variavel: estatico constante tipo inicializa_variavel lista_identificadores_l
-	{ $$ = insere_lista($5, $4);
-	  simbolo_t *s = novo_simbolo(); 
-	  escopo = adiciona_simbolo(escopo, s); };
+	{ $$ = insere_lista($4, $5);};
 lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel
-		{$$ = insere_lista($1, $3);
-		simbolo_t *s = novo_simbolo(); 
-	    escopo = adiciona_simbolo(escopo, s); } 	
+		{$$ = insere_lista($3, $1); } 	
 	|   {$$ = NULL;}
 inicializa_variavel: 
 	TK_IDENTIFICADOR 					
-		{libera_tk($1); $$ = NULL;} //ignora declaracao de variavel sem inicialização
+		{$$ = NULL;
+		 simbolo_t *s = novo_simbolo();
+		 s->valor_lexico = $1;
+		 escopo = adiciona_simbolo(escopo, s); } //ignora declaracao de variavel sem inicialização
 	| TK_IDENTIFICADOR TK_OC_LE identificador_ou_literal
 		{
 			ast_t *n = cria_nodo(declaracao, NULL);
@@ -211,6 +236,9 @@ inicializa_variavel:
 			insere_filho(n, $3);
 			libera_tk($2);
 			$$ = n;
+			simbolo_t *s = novo_simbolo();
+			s->valor_lexico = $1;
+			escopo = adiciona_simbolo(escopo, s);
 		}	
 	
 literal: TK_LIT_TRUE   {$$ = cria_nodo(literal, $1);} 		

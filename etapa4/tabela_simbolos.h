@@ -12,6 +12,7 @@ typedef enum tipos_simbolo
 {
     simbolo_variavel, 
     simbolo_funcao, 
+    simbolo_parametro,
     simbolo_literal
 } tipos_simbolos_t;
 
@@ -30,6 +31,8 @@ simbolo_t *novo_simbolo();
 
 // libera a memoria alocada pelo simbolo 
 void libera_simbolo(simbolo_t *s);
+
+void print_simbolo(simbolo_t *s);
 
 // lista encadeada de simbolos
 typedef struct lista_simbolos

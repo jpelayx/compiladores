@@ -50,6 +50,14 @@ pilha_t* entra_escopo(pilha_t *p, tabela_simbolos_t *t){
     // }
 }
 
+pilha_t *novo_escopo(pilha_t *p)
+{
+    pilha_t *nt = calloc(1, sizeof(pilha_t));
+    nt->anterior = p;
+    nt->t = init_tabela_simbolos();
+    return nt;
+}
+
 //Pop
 // void sai_escopo(tabela_simbolos_t tabela, pilha *pilha){
 //     if(pilha->tamanho_atual > 1){
