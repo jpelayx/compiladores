@@ -9,8 +9,8 @@ typedef enum tipo_semantico
 	float_sem, 
 	bool_sem, 
 	char_sem, 
+	void_sem,
 	string_sem
-	// funcoes ?
 } tipos_semanticos_t;
 
 typedef enum tipos_ast_nodo
