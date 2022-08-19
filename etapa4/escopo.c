@@ -1,19 +1,6 @@
 #include "escopo.h"
 
 
-// pilha* inicializa_pilha(){
-//     pilha* p = calloc(1, sizeof(pilha));
-//     p->tamanho_atual = 0;
-
-//     tabela_simbolos_t* escopo_global = init_tabela_simbolos();
-    
-//     //Coloca o escopo global na pilha
-//     entra_escopo(escopo_global, p);
-
-//     return p;
-    
-// }
-
 pilha_t* inicializa_pilha()
 {
     pilha_t *p = calloc(1, sizeof(pilha_t));
@@ -22,15 +9,6 @@ pilha_t* inicializa_pilha()
     p->t = escopo_global;
     return p;
 }
-
-// tabela_simbolos_t* retorna_topo_pilha(pilha *pilha){
-//     //Se pilha é vazia, retorna NULL
-//     if(pilha->tamanho_atual == 0){
-//         return NULL;
-//     } else{
-//         return &pilha->tabelas[pilha->tamanho_atual-1];
-//     }
-// }
 
 tabela_simbolos_t *topo(pilha_t *p)
 {
@@ -43,11 +21,6 @@ pilha_t* entra_escopo(pilha_t *p, tabela_simbolos_t *t){
     nt->anterior = p;
     nt->t = t;
     return nt;    
-
-    // if(pilha->tamanho_atual < TAMANHO_MAX){
-    //     pilha->tabelas[pilha->tamanho_atual] = *tabela;
-    //     tabela_simbolos_t* escopo_global = init_tabela_simbolos();
-    // }
 }
 
 pilha_t *novo_escopo(pilha_t *p)
@@ -59,12 +32,6 @@ pilha_t *novo_escopo(pilha_t *p)
 }
 
 //Pop
-// void sai_escopo(tabela_simbolos_t tabela, pilha *pilha){
-//     if(pilha->tamanho_atual > 1){
-//         pilha->tamanho_atual--;
-//     }
-// }
-
 pilha_t* sai_escopo(pilha_t *p)
 {
     pilha_t *nt = p->anterior;

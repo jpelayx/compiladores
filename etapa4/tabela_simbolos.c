@@ -101,10 +101,10 @@ void print_simbolo(simbolo_t *s)
         if(v->tipo == tk_identificador)
             printf("- %s\n", v->valor.cadeia_caracteres);
         else
-            printf("literal \n");
+            printf("- literal \n");
     }
     else 
     {
-        printf("simbolo sem valor lexico \n");
+        printf("- simbolo sem valor lexico \n");
     }
 }

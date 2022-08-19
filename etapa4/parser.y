@@ -144,7 +144,7 @@ pilha_t *escopo = NULL;
 
 %%
 
-input: programa {arvore = $1; print_tabela(topo(escopo));};
+input: programa {arvore = $1; print_tabela(topo(escopo)); sai_escopo(escopo); };
 
 programa: programa var_global	{$$ = $1;} // var_global não tem inicializacao.
 	| programa funcao 
