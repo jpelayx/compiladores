@@ -143,11 +143,10 @@ true { yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
 	yylval.valor_lexico->valor.booleano = true;
 	return TK_LIT_TRUE; }
 \'([^'\n])\' { yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
- 
 	yylval.valor_lexico->linha = get_line_number();
 	yylval.valor_lexico->tipo = tk_literal;
 	yylval.valor_lexico->tipo_literal = tipo_caractere;
-	yylval.valor_lexico->valor.caractere = yytext[0];
+	yylval.valor_lexico->valor.caractere = yytext[1];
 	return TK_LIT_CHAR; }
 \"([^"\n])*\" { yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
  

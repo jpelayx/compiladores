@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include "ast.h"
 #include "valor_token.h"
+#include "tabela_simbolos.h"
 
 int yylex(void);
 void yyerror (char const *s);
@@ -10,10 +11,14 @@ int get_line_number();
 
 
 extern void *arvore;
+
+tabela_simbolos_t *ts = NULL; //depois tem que virar uma pilha
+
 %}
 
 %code requires { #include "ast.h" }
 %code requires { #include "valor_token.h" }
+%code requires { #include "tabela_simbolos.h" }
 
 %union {
 	valor_token_t *valor_lexico;
@@ -137,11 +142,11 @@ extern void *arvore;
 
 %%
 
-input: programa {arvore = $1;};
+input: programa {arvore = $1; print_tabela(ts);};
 
 programa: programa var_global	{$$ = $1;} // var_global não tem inicializacao.
 	| programa funcao 
-		{ $$ = insere_lista($2, $1);		} 
+		{ $$ = insere_lista($1, $2);		} 
 	| 	{ $$ = NULL;};
 
 tipo: TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING;
@@ -167,7 +172,7 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR {libera_t
 
 bloco_cmd: '{' lista_comandos '}' 	{$$ = $2;}
 lista_comandos: lista_comandos comando 
-		{$$ = insere_lista($2, $1);}
+		{$$ = insere_lista($1, $2);}
 	|   {$$ = NULL;};
 comando: 
 	bloco_cmd ';' 				{$$ = $1;}
@@ -176,19 +181,23 @@ comando:
 	| chamada_de_funcao ';' 	{$$ = $1;}
 	| shift ';' 				{$$ = $1;}
 	| retorno ';' 				{$$ = $1;}
-	| TK_PR_BREAK ';' 			{$$ = NULL;}
-	| TK_PR_CONTINUE ';' 		{$$ = NULL;}
+	| TK_PR_BREAK ';' 			{$$ = cria_nodo(cmd_break, NULL);}
+	| TK_PR_CONTINUE ';' 		{$$ = cria_nodo(cmd_continue, NULL);}
 	| entrada ';' 				{$$ = $1;}
 	| saida ';' 				{$$ = $1;}
-	| controle_fluxo ';'  		{$$ = $1;}
+	| controle_fluxo ';'   		{$$ = $1;}
 	; 
 
 	/* Comandos simples */
 
 declaracao_variavel: estatico constante tipo inicializa_variavel lista_identificadores_l
-	{ $$ = insere_lista($4, $5);};
+	{ $$ = insere_lista($5, $4);
+	  simbolo_t *s = novo_simbolo(); 
+	  ts = insere_simbolo(ts, s);	  };
 lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel
-		{$$ = insere_lista($3, $1);	} 	
+		{$$ = insere_lista($1, $3);
+		simbolo_t *s = novo_simbolo(); 
+	    ts = insere_simbolo(ts, s);	  } 	
 	|   {$$ = NULL;}
 inicializa_variavel: 
 	TK_IDENTIFICADOR 					
@@ -234,7 +243,7 @@ entrada: TK_PR_INPUT TK_IDENTIFICADOR
 	};
 saida: TK_PR_OUTPUT identificador_ou_literal
 	{
-		ast_t *n = cria_nodo(entrada, NULL);
+		ast_t *n = cria_nodo(saida, NULL);
 		insere_filho(n, $2);
 		$$ = n;
 	};
@@ -246,7 +255,7 @@ parametro_chamada_funcao: expressao mais_parametros_chamada_funcao
 	  {$$ = insere_lista($1, $2);}
     | {$$ = NULL;};
 mais_parametros_chamada_funcao: mais_parametros_chamada_funcao ',' expressao 
-	  {$$ = insere_lista($3, $1);}
+	  {$$ = insere_lista($1, $3);}
 	| {$$ = NULL;};
 chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 	{
