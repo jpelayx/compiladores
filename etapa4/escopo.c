@@ -44,7 +44,14 @@ pilha_t * adiciona_simbolo(pilha_t *p, simbolo_t *s)
 {
     if(p == NULL)
         p = inicializa_pilha();
-    insere_simbolo(topo(p), s);
+    if(busca(topo(p), s->valor_lexico->valor.cadeia_caracteres)){
+        //Já existe esse simbolo na tabela!
+        erro_redeclaracao(
+            s->valor_lexico->valor.cadeia_caracteres,
+            s->valor_lexico->linha);
+    } else{
+        insere_simbolo(topo(p), s);
+    }
     return p;
 }
 

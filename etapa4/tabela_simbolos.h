@@ -1,6 +1,7 @@
 #ifndef _TABELA_SIMBOLOS_H_
 #define _TABELA_SIMBOLOS_H_
 
+#include "errors.h"
 #include "ast.h"
 
 #include "stdlib.h"
@@ -72,5 +73,9 @@ int func_hash(tabela_simbolos_t *t, int id);
 // p/ debug
 void print_tabela(tabela_simbolos_t *t);
 
+//Imprime mensagens de erro e sai do programa com código adequado
+void erro_redeclaracao(char *nome, int linha);
+
+void erro_nao_declaracao(char *nome, int linha);
 
 #endif //_TABELA_SIMBOLOS_H_

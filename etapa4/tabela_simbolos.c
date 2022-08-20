@@ -46,6 +46,8 @@ tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s)
         t = init_tabela_simbolos();
 
     // TODO: checar depois por redeclaração 
+    // Verificação feita antes de chegar aqui, pq é feita em:
+    // adiciona_simbolo no escopo.c, que chama essa funcao.
 
     s->id = t->proximo_id;
     t->proximo_id++;
@@ -140,3 +142,14 @@ bool busca(tabela_simbolos_t *t, char *nome){
     }
     return false;
 }
+
+void erro_redeclaracao(char *nome, int linha){
+    printf("error: redeclaration of '%s' on line %d\n", nome, linha);
+    exit(ERR_DECLARED);
+}
+
+void erro_nao_declaracao(char *nome, int linha){
+    printf("error: '%s' undeclared on line %d (first use in this scope)\n", nome, linha);
+    exit(ERR_DECLARED);
+}
+
