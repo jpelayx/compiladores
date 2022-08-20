@@ -148,8 +148,4 @@ void erro_redeclaracao(char *nome, int linha){
     exit(ERR_DECLARED);
 }
 
-void erro_nao_declaracao(char *nome, int linha){
-    printf("error: '%s' undeclared on line %d (first use in this scope)\n", nome, linha);
-    exit(ERR_DECLARED);
-}
 

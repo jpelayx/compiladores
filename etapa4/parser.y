@@ -254,23 +254,29 @@ literal: TK_LIT_TRUE   {$$ = cria_nodo(literal, $1);}
 
 identificador_ou_literal: 
 	literal {$$ = $1;}
-	|TK_IDENTIFICADOR {$$ = cria_nodo(identificador, $1);};	
-
+	|TK_IDENTIFICADOR {
+		verifica_erro_nao_declaracao(escopo, $1);
+		$$ = cria_nodo(identificador, $1);
+	};	
 
 acesso_vetor: '[' expressao ']' {$$ = $2;} 
 		    | {$$ = NULL;};
 
 atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao 
 	{
+		verifica_erro_nao_declaracao(escopo, $1);
 		ast_t *n = cria_nodo(atribuicao, NULL);
 		insere_filho(n, cria_nodo_vetor($1, $2));
 		insere_filho(n, $4);
 		libera_tk($3);
 		$$ = n;
+		
 	}
 
 entrada: TK_PR_INPUT TK_IDENTIFICADOR 
 	{
+		verifica_erro_nao_declaracao(escopo, $2);
+
 		ast_t *n = cria_nodo(entrada, NULL);
 		insere_filho(n, cria_nodo(identificador, $2));
 		$$ = n;
@@ -293,6 +299,7 @@ mais_parametros_chamada_funcao: mais_parametros_chamada_funcao ',' expressao
 	| {$$ = NULL;};
 chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 	{
+		verifica_erro_nao_declaracao(escopo, $1);
 		ast_t *n = cria_nodo(chamada_funcao, $1);
 		if($3 != NULL)
 			insere_filho(n, $3);
@@ -301,6 +308,7 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 
 shift: TK_IDENTIFICADOR acesso_vetor token_shift TK_LIT_INT
 	{
+		verifica_erro_nao_declaracao(escopo, $1);
 		ast_t *n = cria_nodo(cmd_shift, $3);
 		insere_filho(n, cria_nodo_vetor($1, $2));
 		insere_filho(n, cria_nodo(literal, $4));
@@ -357,7 +365,9 @@ literal_numerico: TK_LIT_INT   {$$ = cria_nodo(literal, $1);}
 operandos_aritmeticos: 
 	literal_numerico                {$$ = $1;}
 	| chamada_de_funcao             {$$ = $1;} 
-	| TK_IDENTIFICADOR acesso_vetor {$$ = cria_nodo_vetor($1, $2);}
+	| TK_IDENTIFICADOR acesso_vetor {
+		verifica_erro_nao_declaracao(escopo, $1);
+		$$ = cria_nodo_vetor($1, $2);}
 	| expressao_aritmetica          {$$ = $1;}
 	| '(' expressao_aritmetica ')'  {$$ = $2;}
 	
@@ -382,7 +392,9 @@ literal_booleano: TK_LIT_TRUE  {$$ = cria_nodo(literal, ($1));}
                 | TK_LIT_FALSE {$$ = cria_nodo(literal, ($1));}
 
 operandos_booleanos: 
-	  TK_IDENTIFICADOR acesso_vetor	{ $$ = cria_nodo_vetor($1, $2);}
+	  TK_IDENTIFICADOR acesso_vetor	{ 
+		verifica_erro_nao_declaracao(escopo, $1);
+		$$ = cria_nodo_vetor($1, $2);}
 	| literal_booleano {$$ = $1;}
 	| expressao_booleana {$$ = $1;}
 	| '(' expressao_booleana ')' {$$ = $2;}
@@ -402,7 +414,10 @@ expressao_booleana:
 	| operandos_booleanos TK_OC_OR operandos_booleanos  { $$ = cria_nodo_binario(($2), $1, $3); }
 	
 expressao:
-	TK_IDENTIFICADOR acesso_vetor	{$$ = cria_nodo_vetor(($1), $2);}
+	TK_IDENTIFICADOR acesso_vetor	{
+		verifica_erro_nao_declaracao(escopo, $1);
+		$$ = cria_nodo_vetor(($1), $2);
+	}
 	| chamada_de_funcao             {$$ = $1;}
 	| literal_numerico              {$$ = $1;}
 	| expressao_aritmetica			{$$ = $1;}

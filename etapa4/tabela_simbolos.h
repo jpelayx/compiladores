@@ -66,6 +66,7 @@ tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s);
 bool compara_nome_simbolo(simbolo_t *s, char *nome);
 
 // procura um simbolo na tabela por identificador
+// retorna TRUE se achou e FALSE se não achou
 bool busca(tabela_simbolos_t *t, char *nome);
 
 int func_hash(tabela_simbolos_t *t, int id);
@@ -76,6 +77,5 @@ void print_tabela(tabela_simbolos_t *t);
 //Imprime mensagens de erro e sai do programa com código adequado
 void erro_redeclaracao(char *nome, int linha);
 
-void erro_nao_declaracao(char *nome, int linha);
 
 #endif //_TABELA_SIMBOLOS_H_

@@ -75,3 +75,15 @@ bool procura_nome_em_todas_tabelas(pilha_t *p, char *nome){
     }
     return false;
 }
+
+void erro_nao_declaracao(char *nome, int linha){
+    printf("error: '%s' undeclared on line %d (first use in this scope)\n", nome, linha);
+    exit(ERR_DECLARED);
+}
+
+void verifica_erro_nao_declaracao(pilha_t *p, valor_token_t *v){
+    //***Verifica se a variavel já foi declarada***
+		if(!procura_nome_em_todas_tabelas(p, v->valor.cadeia_caracteres)){
+			erro_nao_declaracao(v->valor.cadeia_caracteres, v->linha);
+		} 
+}
