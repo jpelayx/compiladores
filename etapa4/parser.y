@@ -146,7 +146,7 @@ pilha_t *escopo = NULL;
 
 input: programa {arvore = $1; print_tabela(topo(escopo)); sai_escopo(escopo); };
 
-programa: programa var_global	{$$ = $1;} // var_global não tem inicializacao.
+programa: programa var_global	{$$ = $1;} 
 	| programa funcao 
 		{ $$ = insere_lista($1, $2);		} 
 	| 	{ $$ = NULL;};
@@ -166,8 +166,6 @@ lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor
 	 escopo = adiciona_simbolo(escopo, s); } 
 	| ;
 
-// Bloco de comandos é filho de um identificador que tá no cabecalho!
-// problema: isso aqui ta gerando um item da lista de comando a mais do que deveria
 funcao: cabecalho bloco_cmd
 	{
 		ast_t *n = cria_nodo(funcao, $1); // valor lexico eh o identificador em cabecalho

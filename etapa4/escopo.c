@@ -44,11 +44,13 @@ pilha_t * adiciona_simbolo(pilha_t *p, simbolo_t *s)
 {
     if(p == NULL)
         p = inicializa_pilha();
-    if(busca(topo(p), s->valor_lexico->valor.cadeia_caracteres)){
+    int linha = busca(topo(p), s->valor_lexico->valor.cadeia_caracteres);
+    if(linha != -1){
         //Já existe esse simbolo na tabela!
         erro_redeclaracao(
             s->valor_lexico->valor.cadeia_caracteres,
-            s->valor_lexico->linha);
+            s->valor_lexico->linha,
+            linha);
     } else{
         insere_simbolo(topo(p), s);
     }
@@ -66,15 +68,23 @@ pilha_t * adiciona_simbolo(pilha_t *p, simbolo_t *s)
 //     pilha->tamanho_atual = tamanho_original;
 // }
 
-bool procura_nome_em_todas_tabelas(pilha_t *p, char *nome){
+int procura_nome_em_todas_tabelas(pilha_t *p, char *nome){
+    int l;
     while (p != NULL){
-        if(busca(p->t, nome)){
-            return true;
+        l = busca(p->t, nome);
+        if(l != -1){
+            return l;
         }
         p = p->anterior;
     }
-    return false;
+    return l;
 }
+
+void erro_redeclaracao(char *nome, int linha_redeclaracao, int linha_original){
+    printf("error: redeclaration of '%s' on line %d (first declared in line %d)\n", nome, linha_redeclaracao, linha_original);
+    exit(ERR_DECLARED);
+}
+
 
 void erro_nao_declaracao(char *nome, int linha){
     printf("error: '%s' undeclared on line %d (first use in this scope)\n", nome, linha);

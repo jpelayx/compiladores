@@ -122,30 +122,32 @@ bool compara_nome_simbolo(simbolo_t *s, char *nome){
     return false;
 }
 
-bool busca(tabela_simbolos_t *t, char *nome){
+int busca(tabela_simbolos_t *t, char *nome){
     for(int i=0; i<t->tamanho; i++)
     {
         lista_simbolos_t *l = t->dados[i];
         if(l->simbolo != NULL)
         {
             if(compara_nome_simbolo(l->simbolo, nome)){
-                return true;
+                if(l->simbolo != NULL)
+                    return l->simbolo->valor_lexico->linha;
+                else 
+                    return 0;
             }
             while(l->next != NULL)
             {
                 l = l->next;
                 if(compara_nome_simbolo(l->simbolo, nome)){
-                    return true;
+                    if(l->simbolo != NULL)
+                        return l->simbolo->valor_lexico->linha;
+                    else 
+                        return 0;
                 }
             }
         }
     }
-    return false;
+    return -1;
 }
 
-void erro_redeclaracao(char *nome, int linha){
-    printf("error: redeclaration of '%s' on line %d\n", nome, linha);
-    exit(ERR_DECLARED);
-}
 
 
