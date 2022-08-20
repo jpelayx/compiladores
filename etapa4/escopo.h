@@ -38,4 +38,6 @@ pilha_t * adiciona_simbolo(pilha_t *p, simbolo_t *s);
 //Usar essa ideia aqui para procurar por variaveis em diferentes escopos
 void percorre_escopo();
 
+bool procura_nome_em_todas_tabelas(pilha_t *p, char *nome);
+
 #endif // _PILHA_H_

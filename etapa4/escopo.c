@@ -58,3 +58,13 @@ pilha_t * adiciona_simbolo(pilha_t *p, simbolo_t *s)
 
 //     pilha->tamanho_atual = tamanho_original;
 // }
+
+bool procura_nome_em_todas_tabelas(pilha_t *p, char *nome){
+    while (p != NULL){
+        if(busca(p->t, nome)){
+            return true;
+        }
+        p = p->anterior;
+    }
+    return false;
+}
