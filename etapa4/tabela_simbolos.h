@@ -62,12 +62,15 @@ void libera_tabela_simbolos(tabela_simbolos_t *t);
  * da tabela hash. */
 tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s);
 
+bool compara_nome_simbolo(simbolo_t *s, char *nome);
+
 // procura um simbolo na tabela por identificador
-void busca(tabela_simbolos_t *t, char *nome);
+bool busca(tabela_simbolos_t *t, char *nome);
 
 int func_hash(tabela_simbolos_t *t, int id);
 
 // p/ debug
 void print_tabela(tabela_simbolos_t *t);
+
 
 #endif //_TABELA_SIMBOLOS_H_

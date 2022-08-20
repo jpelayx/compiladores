@@ -1,3 +1,4 @@
+#include <string.h>
 #include "tabela_simbolos.h"
 
 simbolo_t *novo_simbolo(valor_token_t *valor, tipos_nodo_t tipo)
@@ -107,4 +108,35 @@ void print_simbolo(simbolo_t *s)
     {
         printf("- simbolo sem valor lexico \n");
     }
+}
+
+bool compara_nome_simbolo(simbolo_t *s, char *nome){
+    if(s != NULL){
+        //Verificar o nome do identificador!
+        if(strcmp(nome, s->valor_lexico->valor.cadeia_caracteres) == 0){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool busca(tabela_simbolos_t *t, char *nome){
+    for(int i=0; i<t->tamanho; i++)
+    {
+        lista_simbolos_t *l = t->dados[i];
+        if(l->simbolo != NULL)
+        {
+            if(compara_nome_simbolo(l->simbolo, nome)){
+                return true;
+            }
+            while(l->next != NULL)
+            {
+                l = l->next;
+                if(compara_nome_simbolo(l->simbolo, nome)){
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
