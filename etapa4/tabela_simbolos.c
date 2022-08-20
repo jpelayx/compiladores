@@ -102,13 +102,37 @@ void print_simbolo(simbolo_t *s)
     {
         valor_token_t *v = s->valor_lexico;
         if(v->tipo == tk_identificador)
-            printf("- %s\n", v->valor.cadeia_caracteres);
+        {
+            printf("- %s (", v->valor.cadeia_caracteres);
+            print_natureza(s->natureza);
+            printf(")\n");
+        }
         else
             printf("- literal \n");
     }
     else 
     {
         printf("- simbolo sem valor lexico \n");
+    }
+}
+
+void print_natureza(tipos_simbolos_t n)
+{
+    switch (n)
+    {
+    case simbolo_parametro:
+    case simbolo_variavel:
+        printf("variable");
+        break;
+    case simbolo_vetor:
+        printf("vector");
+        break;
+    case simbolo_funcao:
+        printf("function");
+        break;
+    case simbolo_literal:
+        printf("literal");
+        break;
     }
 }
 
@@ -122,31 +146,25 @@ bool compara_nome_simbolo(simbolo_t *s, char *nome){
     return false;
 }
 
-int busca(tabela_simbolos_t *t, char *nome){
+simbolo_t * busca(tabela_simbolos_t *t, char *nome){
     for(int i=0; i<t->tamanho; i++)
     {
         lista_simbolos_t *l = t->dados[i];
         if(l->simbolo != NULL)
         {
             if(compara_nome_simbolo(l->simbolo, nome)){
-                if(l->simbolo != NULL)
-                    return l->simbolo->valor_lexico->linha;
-                else 
-                    return 0;
+                return l->simbolo;
             }
             while(l->next != NULL)
             {
                 l = l->next;
                 if(compara_nome_simbolo(l->simbolo, nome)){
-                    if(l->simbolo != NULL)
-                        return l->simbolo->valor_lexico->linha;
-                    else 
-                        return 0;
+                    return l->simbolo;
                 }
             }
         }
     }
-    return -1;
+    return NULL;
 }
 
 

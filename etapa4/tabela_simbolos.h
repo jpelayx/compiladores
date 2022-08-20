@@ -12,6 +12,7 @@
 typedef enum tipos_simbolo
 {
     simbolo_variavel, 
+    simbolo_vetor,
     simbolo_funcao, 
     simbolo_parametro,
     simbolo_literal
@@ -21,7 +22,7 @@ typedef enum tipos_simbolo
 typedef struct simbolo {
     int id;
     tipos_semanticos_t tipo;
-    tipos_nodo_t natureza;
+    tipos_simbolos_t natureza;
     int tamanho;
     valor_token_t *valor_lexico;
 } simbolo_t;
@@ -34,6 +35,8 @@ simbolo_t *novo_simbolo();
 void libera_simbolo(simbolo_t *s);
 
 void print_simbolo(simbolo_t *s);
+
+void print_natureza(tipos_simbolos_t n);
 
 // lista encadeada de simbolos
 typedef struct lista_simbolos
@@ -66,9 +69,9 @@ tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s);
 bool compara_nome_simbolo(simbolo_t *s, char *nome);
 
 // procura um simbolo na tabela por identificador
-// retorna o numero da linha em que foi declarado se achou 
-// e -1 se não achou
-int busca(tabela_simbolos_t *t, char *nome);
+// retorna o ponteiro para o simbolo 
+// e NULL se não achou
+simbolo_t *busca(tabela_simbolos_t *t, char *nome);
 
 int func_hash(tabela_simbolos_t *t, int id);
 

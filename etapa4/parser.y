@@ -91,6 +91,7 @@ pilha_t *escopo = NULL;
 
 %type<nodo> programa 
 %type<nodo> funcao
+%type<valor_lexico> vetor
 %type<valor_lexico> cabecalho
 %type<nodo> bloco_cmd
 %type<nodo> lista_comandos
@@ -154,15 +155,30 @@ programa: programa var_global	{$$ = $1;}
 tipo: TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING;
 estatico: TK_PR_STATIC | ;
 constante: TK_PR_CONST | ;
-vetor: '[' TK_LIT_INT ']' {libera_tk($2);}| ; 
+vetor: '[' TK_LIT_INT ']' {$$ = $2;}
+     | {$$ = NULL;};
 
 var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';' 
 	{simbolo_t *s = novo_simbolo();
 	 s->valor_lexico = $3;
+	 if($4 == NULL)
+		s->natureza = simbolo_variavel;
+	 else {
+		s->natureza = simbolo_vetor;
+		s->tamanho = $4->valor.inteiro;
+		libera_tk($4);
+	 }
 	 escopo = adiciona_simbolo(escopo, s); };
 lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor  
 	{simbolo_t *s = novo_simbolo();
 	 s->valor_lexico = $3;
+	 if($4 == NULL)
+		s->natureza = simbolo_variavel;
+	 else {
+		s->natureza = simbolo_vetor;
+		s->tamanho = $4->valor.inteiro;
+		libera_tk($4);
+	 }
 	 escopo = adiciona_simbolo(escopo, s); } 
 	| ;
 
@@ -176,6 +192,7 @@ funcao: cabecalho bloco_cmd
 		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
 		simbolo_t *s = novo_simbolo();
 		s->valor_lexico = $1;
+		s->natureza = simbolo_funcao;
 		escopo = adiciona_simbolo(escopo, s); // adicionando a funcao ao escopo global
 	}	
 
@@ -184,6 +201,7 @@ cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')'
 parametros: constante tipo TK_IDENTIFICADOR lista_parametros 
 	{simbolo_t *s = novo_simbolo();
 	 s->valor_lexico = $3;
+	 s->natureza = simbolo_variavel;
 	 escopo = adiciona_simbolo(escopo, s); }
 	| 
 	{// primeira redução que vai ocorrer, inicio do escopo local da funcao s/ parametros
@@ -191,6 +209,7 @@ parametros: constante tipo TK_IDENTIFICADOR lista_parametros
 lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR 
 	{simbolo_t *s = novo_simbolo();
 	 s->valor_lexico = $5;
+	 s->natureza = simbolo_variavel;
 	 escopo = adiciona_simbolo(escopo, s); }
 	| 
 	{//primeira redução que vai ocorrer, inicio do escopo local da funcao c/ paramentros
@@ -227,10 +246,13 @@ lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel
 	|   {$$ = NULL;}
 inicializa_variavel: 
 	TK_IDENTIFICADOR 					
-		{$$ = NULL;
-		 simbolo_t *s = novo_simbolo();
-		 s->valor_lexico = $1;
-		 escopo = adiciona_simbolo(escopo, s); } //ignora declaracao de variavel sem inicialização
+		{
+			$$ = NULL;
+		 	simbolo_t *s = novo_simbolo();
+		 	s->valor_lexico = $1;
+		 	s->natureza = simbolo_variavel;
+		 	escopo = adiciona_simbolo(escopo, s); 
+		} //ignora declaracao de variavel sem inicialização
 	| TK_IDENTIFICADOR TK_OC_LE identificador_ou_literal
 		{
 			ast_t *n = cria_nodo(declaracao, NULL);
@@ -240,6 +262,7 @@ inicializa_variavel:
 			$$ = n;
 			simbolo_t *s = novo_simbolo();
 			s->valor_lexico = $1;
+		    s->natureza = simbolo_variavel;
 			escopo = adiciona_simbolo(escopo, s);
 		}	
 	
@@ -253,7 +276,7 @@ literal: TK_LIT_TRUE   {$$ = cria_nodo(literal, $1);}
 identificador_ou_literal: 
 	literal {$$ = $1;}
 	|TK_IDENTIFICADOR {
-		verifica_erro_nao_declaracao(escopo, $1);
+		verifica_erros(escopo, $1, simbolo_variavel);
 		$$ = cria_nodo(identificador, $1);
 	};	
 
@@ -262,7 +285,10 @@ acesso_vetor: '[' expressao ']' {$$ = $2;}
 
 atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao 
 	{
-		verifica_erro_nao_declaracao(escopo, $1);
+		if($2 == NULL)
+			verifica_erros(escopo, $1, simbolo_variavel);
+		else 
+			verifica_erros(escopo, $1, simbolo_vetor);
 		ast_t *n = cria_nodo(atribuicao, NULL);
 		insere_filho(n, cria_nodo_vetor($1, $2));
 		insere_filho(n, $4);
@@ -273,8 +299,7 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 
 entrada: TK_PR_INPUT TK_IDENTIFICADOR 
 	{
-		verifica_erro_nao_declaracao(escopo, $2);
-
+		verifica_erros(escopo, $2, simbolo_variavel);
 		ast_t *n = cria_nodo(entrada, NULL);
 		insere_filho(n, cria_nodo(identificador, $2));
 		$$ = n;
@@ -286,9 +311,6 @@ saida: TK_PR_OUTPUT identificador_ou_literal
 		$$ = n;
 	};
 
-/* na especificacao diz que a lista de expressoes tem pelo menos um filho 
- * mas acho que tem que ter pelo menos dois, o primeiro que é a expressao 
- * e o segundo, opcional, que é a próxima lista_expressao, se houver.     */
 parametro_chamada_funcao: expressao mais_parametros_chamada_funcao 
 	  {$$ = insere_lista($1, $2);}
     | {$$ = NULL;};
@@ -297,7 +319,7 @@ mais_parametros_chamada_funcao: mais_parametros_chamada_funcao ',' expressao
 	| {$$ = NULL;};
 chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 	{
-		verifica_erro_nao_declaracao(escopo, $1);
+		verifica_erros(escopo, $1, simbolo_funcao);
 		ast_t *n = cria_nodo(chamada_funcao, $1);
 		if($3 != NULL)
 			insere_filho(n, $3);
@@ -306,7 +328,10 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 
 shift: TK_IDENTIFICADOR acesso_vetor token_shift TK_LIT_INT
 	{
-		verifica_erro_nao_declaracao(escopo, $1);
+		if($2 == NULL)
+			verifica_erros(escopo, $1, simbolo_variavel);
+		else 
+			verifica_erros(escopo, $1, simbolo_vetor);
 		ast_t *n = cria_nodo(cmd_shift, $3);
 		insere_filho(n, cria_nodo_vetor($1, $2));
 		insere_filho(n, cria_nodo(literal, $4));
@@ -364,7 +389,10 @@ operandos_aritmeticos:
 	literal_numerico                {$$ = $1;}
 	| chamada_de_funcao             {$$ = $1;} 
 	| TK_IDENTIFICADOR acesso_vetor {
-		verifica_erro_nao_declaracao(escopo, $1);
+		if($2 == NULL)
+			verifica_erros(escopo, $1, simbolo_variavel);
+		else 
+			verifica_erros(escopo, $1, simbolo_vetor);
 		$$ = cria_nodo_vetor($1, $2);}
 	| expressao_aritmetica          {$$ = $1;}
 	| '(' expressao_aritmetica ')'  {$$ = $2;}
@@ -391,7 +419,10 @@ literal_booleano: TK_LIT_TRUE  {$$ = cria_nodo(literal, ($1));}
 
 operandos_booleanos: 
 	  TK_IDENTIFICADOR acesso_vetor	{ 
-		verifica_erro_nao_declaracao(escopo, $1);
+		if($2 == NULL)
+			verifica_erros(escopo, $1, simbolo_variavel);
+		else
+			verifica_erros(escopo, $1, simbolo_vetor);
 		$$ = cria_nodo_vetor($1, $2);}
 	| literal_booleano {$$ = $1;}
 	| expressao_booleana {$$ = $1;}
@@ -413,7 +444,10 @@ expressao_booleana:
 	
 expressao:
 	TK_IDENTIFICADOR acesso_vetor	{
-		verifica_erro_nao_declaracao(escopo, $1);
+		if($2 == NULL)
+			verifica_erros(escopo, $1, simbolo_variavel);
+		else
+			verifica_erros(escopo, $1, simbolo_vetor);
 		$$ = cria_nodo_vetor(($1), $2);
 	}
 	| chamada_de_funcao             {$$ = $1;}
