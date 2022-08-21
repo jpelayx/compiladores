@@ -128,7 +128,7 @@ pilha_t *escopo = NULL;
 
 // nodos temporarios 
 %type<nodo> lista_identificadores_g
-
+%type<nodo> lista_parametros
 
 %precedence "ternario"
 %precedence "unario"
@@ -175,7 +175,6 @@ var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';'
 		libera($4);
 	 }
 	 escopo = adiciona_simbolo(escopo, s); 
-	 exporta($5);
 	 escopo = adiciona_lista_simbolos(escopo, $5, $2); // adiciona as variaveis em lista_identificadores_g
 	 //libera($5); // tem que liberar a arvore temporaria mas ai caga tudo :(
 	};
@@ -208,7 +207,7 @@ parametros: constante tipo TK_IDENTIFICADOR lista_parametros
 	 s->valor_lexico = $3;
 	 s->natureza = simbolo_variavel;
 	 s->tipo = $2;
-	 escopo = adiciona_simbolo(escopo, s); }
+	 escopo = adiciona_simbolo(escopo, s);  }
 	| 
 	{// primeira redução que vai ocorrer, inicio do escopo local da funcao s/ parametros
 	 escopo = novo_escopo(escopo);};
@@ -216,6 +215,7 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR
 	{simbolo_t *s = novo_simbolo();
 	 s->valor_lexico = $5;
 	 s->natureza = simbolo_variavel;
+	 s->tipo = $4;
 	 escopo = adiciona_simbolo(escopo, s); }
 	| 
 	{//primeira redução que vai ocorrer, inicio do escopo local da funcao c/ paramentros
@@ -246,18 +246,15 @@ comando:
 	/* Comandos simples */
 
 declaracao_variavel: estatico constante tipo inicializa_variavel lista_identificadores_l
-	{ $$ = insere_inicio_lista($4, $5);};
+	{ $$ = insere_inicio_lista($4, $5);
+	  escopo = adiciona_lista_simbolos(escopo, $$, $3);};
 lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel
 		{$$ = insere_fim_lista($3, $1); } 	
 	|   {$$ = NULL;}
 inicializa_variavel: 
 	TK_IDENTIFICADOR 					
 		{
-			$$ = NULL;
-		 	simbolo_t *s = novo_simbolo();
-		 	s->valor_lexico = $1;
-		 	s->natureza = simbolo_variavel;
-		 	escopo = adiciona_simbolo(escopo, s); 
+			$$ = cria_nodo(identificador, $1);
 		} //ignora declaracao de variavel sem inicialização
 	| TK_IDENTIFICADOR TK_OC_LE identificador_ou_literal
 		{
@@ -266,10 +263,6 @@ inicializa_variavel:
 			insere_filho(n, $3);
 			libera_tk($2);
 			$$ = n;
-			simbolo_t *s = novo_simbolo();
-			s->valor_lexico = $1;
-		    s->natureza = simbolo_variavel;
-			escopo = adiciona_simbolo(escopo, s);
 		}	
 	
 literal: TK_LIT_TRUE   {$$ = cria_nodo(literal, $1);} 		

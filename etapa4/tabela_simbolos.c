@@ -10,18 +10,28 @@ simbolo_t *novo_simbolo()
 simbolo_t *novo_simbolo_de_nodo(ast_t *n)
 {
     simbolo_t *s = novo_simbolo();
-    if(n->tipo == identificador){
+    switch (n->tipo)
+    {
+    case identificador:
         s->natureza = simbolo_variavel;
         s->tamanho = 0;
         s->valor_lexico = calloc(1,sizeof(valor_token_t));
         memcpy(s->valor_lexico, n->valor_lexico, sizeof(valor_token_t));
-    }
-    else {
-        printf("acesso vetor \n");
+        break;
+    case acesso_vetor:
         s->natureza = simbolo_vetor;
         s->tamanho = n->filhos[1]->valor_lexico->valor.inteiro;
         s->valor_lexico = calloc(1,sizeof(valor_token_t));
         memcpy(s->valor_lexico, n->filhos[0]->valor_lexico, sizeof(valor_token_t));
+        break;
+    case declaracao:
+        s->natureza = simbolo_variavel;
+        s->tamanho = 0;
+        s->valor_lexico = calloc(1,sizeof(valor_token_t));
+        memcpy(s->valor_lexico, n->filhos[0]->valor_lexico, sizeof(valor_token_t));
+        break;
+    default:
+        break;
     }
     return s;
 }

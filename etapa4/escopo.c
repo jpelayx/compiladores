@@ -61,16 +61,17 @@ pilha_t *adiciona_lista_simbolos(pilha_t *p, ast_t *t, tipos_semanticos_t tipo)
 {
     if(t == NULL)
         return p;
-    simbolo_t *s = novo_simbolo_de_nodo(t);
-    s->tipo = tipo;
-    p = adiciona_simbolo(p, s);
-    while((t->tipo == identificador && t->num_filhos > 0) ||
-          (t->tipo == acesso_vetor  && t->num_filhos > 2)) {
-        t = t->filhos[t->num_filhos - 1];
+    simbolo_t *s;
+    do
+    {   
         s = novo_simbolo_de_nodo(t);
         s->tipo = tipo;
-        p = adiciona_simbolo(p, s);
-    }
+        p = adiciona_simbolo(p, s);   
+        if(t->num_filhos > 0)
+            t = t->filhos[t->num_filhos - 1];
+        else 
+            t = NULL;
+    } while (t != NULL);
     return p;   
 }
 
