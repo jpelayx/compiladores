@@ -90,6 +90,35 @@ ast_t *fim_da_lista(ast_t *t)
 	return fim;
 }
 
+ast_t *remove_nodos_inuteis(ast_t *t)
+{
+	ast_t *pai = NULL;
+	ast_t *n = t;
+
+	do
+	{
+		if(n->tipo == identificador && (pai == NULL || pai->tipo != declaracao))
+		{
+			if(n->num_filhos > 0)
+				n = n->filhos[0];
+			if(pai != NULL)
+			{
+				pai->filhos[0] = n; 			
+			}
+		}
+		else 
+		{
+			pai = n;
+			if(n->num_filhos > 2 && n->filhos[2] != NULL)
+				n = n->filhos[2];
+			
+		}
+	} while(n->num_filhos == 0 || n->filhos[n->num_filhos-1] == NULL);
+
+	return t;
+	
+}
+
 void imprime_nodo(ast_t *nodo){
 	if(nodo != NULL){
 		printf("%p [label=\"", nodo);

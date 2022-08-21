@@ -73,6 +73,8 @@ ast_t *insere_inicio_lista(ast_t *item, ast_t *lista);
 // retorna o nodo que tiver NULL como ultimo filho 
 ast_t *fim_da_lista(ast_t *t);
 
+ast_t *remove_nodos_inuteis(ast_t *t);
+
 // Libera recursivamente o nó e seus filhos
 void libera(void *arvore);
 
