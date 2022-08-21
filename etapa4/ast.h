@@ -64,10 +64,14 @@ ast_t *cria_nodo_vetor(valor_token_t *valor_lexico, ast_t *vetor);
 // Adiciona nó filho
 void insere_filho(ast_t *pai, ast_t *filho);
 
-/* retorna uma lista head:tail (se head for NULL, retorna tail)
- * sendo que, uma lista de expressoes eh uma expressao com o ultimo filho
- * apontando para a proxima expressao etc. */
-ast_t *insere_lista(ast_t *head, ast_t *tail);
+// dado um item, o transforma numa lista (ultimo filho é NULL)
+ast_t *inicia_lista(ast_t *item);
+// insere item no final de lista, garantindo que o retorno é uma lista
+ast_t *insere_fim_lista(ast_t *item, ast_t *lista);
+// insere item no inicio da lista
+ast_t *insere_inicio_lista(ast_t *item, ast_t *lista);
+// retorna o nodo que tiver NULL como ultimo filho 
+ast_t *fim_da_lista(ast_t *t);
 
 // Libera recursivamente o nó e seus filhos
 void libera(void *arvore);

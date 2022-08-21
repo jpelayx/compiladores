@@ -47,27 +47,51 @@ void insere_filho(ast_t *pai, ast_t *filho){
 			free(filho);
 		return;
 	}
-
-	if(filho != NULL) {
+	if(pai->num_filhos > 0 && pai->filhos[pai->num_filhos-1] == NULL)
+		pai->filhos[pai->num_filhos-1] = filho;
+	else {
 		pai->num_filhos++;
 		pai->filhos = realloc(pai-> filhos, pai->num_filhos * sizeof(ast_t*));
 		pai->filhos[pai-> num_filhos-1] = filho;
 	}
 }
 
-ast_t *insere_lista(ast_t *head, ast_t *tail)
+ast_t *inicia_lista(ast_t* item)
 {
-	if(head == NULL)
-		return tail;
-	else 
-	{
-		insere_filho(head, tail);
-		return head;
-	}
+	insere_filho(item, NULL);
+	return item;
+}
+
+
+ast_t *insere_fim_lista(ast_t *item, ast_t *lista)
+{
+	if(lista == NULL)
+		return inicia_lista(item);
+	insere_filho(fim_da_lista(lista), item);
+	insere_filho(item, NULL);
+	return lista;
+}
+
+ast_t *insere_inicio_lista(ast_t *item, ast_t *lista)
+{
+	if(lista == NULL)
+		return inicia_lista(item);
+	insere_filho(item, lista);
+	return item;
+}
+
+ast_t *fim_da_lista(ast_t *t)
+{
+	ast_t *fim = t;
+	while(fim->num_filhos > 0 && fim->filhos[fim->num_filhos-1] != NULL)
+		fim = fim->filhos[fim->num_filhos-1];
+	if(fim->num_filhos == 0 || fim->filhos[fim->num_filhos-1] != NULL)
+		return t; // nao eh lista
+	return fim;
 }
 
 void imprime_nodo(ast_t *nodo){
-	if((ast_t *)nodo != NULL){
+	if(nodo != NULL){
 		printf("%p [label=\"", nodo);
 
 		//Verifica o tipo do NODO.
@@ -180,8 +204,10 @@ void imprime_nodos(ast_t *arvore){
 void imprime_arestas(ast_t *arvore){
 	if(arvore != NULL){
 		for(int i = 0; i < arvore-> num_filhos; i++){
-			printf("%p, %p\n", (ast_t *)arvore, (ast_t *)arvore->filhos[i]); 
-			imprime_arestas((ast_t *)arvore->filhos[i]);
+			if(arvore->filhos[i] != NULL){
+				printf("%p, %p\n", (ast_t *)arvore, (ast_t *)arvore->filhos[i]); 
+				imprime_arestas((ast_t *)arvore->filhos[i]);
+			}
 		}
 		
 	}

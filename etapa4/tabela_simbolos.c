@@ -64,10 +64,6 @@ tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s)
     if(t == NULL)
         t = init_tabela_simbolos();
 
-    // TODO: checar depois por redeclaração 
-    // Verificação feita antes de chegar aqui, pq é feita em:
-    // adiciona_simbolo no escopo.c, que chama essa funcao.
-
     s->id = t->proximo_id;
     t->proximo_id++;
     int idx = func_hash(t, s->id);

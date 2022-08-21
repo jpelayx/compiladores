@@ -154,7 +154,7 @@ input: programa {arvore = $1; print_tabela(topo(escopo)); sai_escopo(escopo); };
 
 programa: programa var_global	{$$ = $1;} 
 	| programa funcao 
-		{ $$ = insere_lista($1, $2);		} 
+		{ $$ = insere_fim_lista($2, $1);		} 
 	| 	{ $$ = NULL;};
 
 tipo: TK_PR_INT {$$ = $1;} | TK_PR_FLOAT {$$ = $1;} | TK_PR_CHAR {$$ = $1;} | TK_PR_BOOL {$$ = $1;} | TK_PR_STRING {$$ = $1;};
@@ -175,13 +175,14 @@ var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';'
 		libera($4);
 	 }
 	 escopo = adiciona_simbolo(escopo, s); 
+	 exporta($5);
 	 escopo = adiciona_lista_simbolos(escopo, $5, $2); // adiciona as variaveis em lista_identificadores_g
 	 //libera($5); // tem que liberar a arvore temporaria mas ai caga tudo :(
 	};
 lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor  
 	{// cria uma arvore temporaria que guarda as variaveis 
 	 ast_t *n = cria_nodo_vetor($3, $4);
-	 $$ = insere_lista($1, n); }
+	 $$ = insere_fim_lista(n, $1); }
 	| {$$ = NULL;} ;
 
 funcao: cabecalho bloco_cmd
@@ -226,7 +227,7 @@ bloco_cmd: '{' lista_comandos '}'
 	 print_tabela(topo(escopo));
 	 escopo = sai_escopo(escopo); }
 lista_comandos: lista_comandos comando 
-		{$$ = insere_lista($1, $2);}
+		{$$ = insere_fim_lista($2, $1);}
 	|   {$$ = NULL; 
 	     escopo = novo_escopo(escopo);};
 comando: 
@@ -245,9 +246,9 @@ comando:
 	/* Comandos simples */
 
 declaracao_variavel: estatico constante tipo inicializa_variavel lista_identificadores_l
-	{ $$ = insere_lista($4, $5);};
+	{ $$ = insere_inicio_lista($4, $5);};
 lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel
-		{$$ = insere_lista($3, $1); } 	
+		{$$ = insere_fim_lista($3, $1); } 	
 	|   {$$ = NULL;}
 inicializa_variavel: 
 	TK_IDENTIFICADOR 					
@@ -317,10 +318,10 @@ saida: TK_PR_OUTPUT identificador_ou_literal
 	};
 
 parametro_chamada_funcao: expressao mais_parametros_chamada_funcao 
-	  {$$ = insere_lista($1, $2);}
+	  {$$ = insere_inicio_lista($1, $2);}
     | {$$ = NULL;};
 mais_parametros_chamada_funcao: mais_parametros_chamada_funcao ',' expressao 
-	  {$$ = insere_lista($1, $3);}
+	  {$$ = insere_fim_lista($3, $1);}
 	| {$$ = NULL;};
 chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 	{
