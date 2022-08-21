@@ -35,6 +35,9 @@ pilha_t* sai_escopo();
 // adiciona simbolo no escopo no topo da pilha
 pilha_t * adiciona_simbolo(pilha_t *p, simbolo_t *s);
 
+// adiciona os simbolos retirados da ast com o tipo especificado 
+pilha_t *adiciona_lista_simbolos(pilha_t *p, ast_t *t, tipos_semanticos_t tipo);
+
 //Usar essa ideia aqui para procurar por variaveis em diferentes escopos
 void percorre_escopo();
 

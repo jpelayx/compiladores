@@ -27,9 +27,11 @@ typedef struct simbolo {
     valor_token_t *valor_lexico;
 } simbolo_t;
 
-/* novo simbolo, 
- * necessario para manter a consistencia dos ids unicos */
+// cria novo simbolo vazio
 simbolo_t *novo_simbolo();
+
+// cria novo simbolo a partir de nodo da ast.
+simbolo_t *novo_simbolo_de_nodo(ast_t *n);
 
 // libera a memoria alocada pelo simbolo 
 void libera_simbolo(simbolo_t *s);

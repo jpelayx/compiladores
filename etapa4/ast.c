@@ -144,6 +144,7 @@ void imprime_nodo(ast_t *nodo){
 							
 			*/	
 			case identificador:
+			case identificador_vetor:
 			case funcao:
 			case unario:
 			case binario:
@@ -185,6 +186,35 @@ void imprime_arestas(ast_t *arvore){
 		
 	}
 
+}
+
+void imprime_tipo_semantico(tipos_semanticos_t t)
+{
+	switch (t)
+	{
+	case int_sem:
+		printf("int");
+		break;
+	case float_sem:
+		printf("float");
+		break;
+	case bool_sem:
+		printf("bool");
+		break;
+	case char_sem:
+		printf("char");
+		break;
+	case string_sem:
+		printf("string");
+		break;
+	case void_sem:
+		printf("void");
+		break;
+	
+	default:
+		printf("nda");
+		break;
+	}
 }
 
 extern void exporta (void *arvore)

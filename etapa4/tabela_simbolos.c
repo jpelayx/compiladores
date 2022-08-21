@@ -1,9 +1,28 @@
 #include <string.h>
 #include "tabela_simbolos.h"
 
-simbolo_t *novo_simbolo(valor_token_t *valor, tipos_nodo_t tipo)
+simbolo_t *novo_simbolo()
 {
     simbolo_t *s = calloc(1, sizeof(simbolo_t));
+    return s;
+}
+
+simbolo_t *novo_simbolo_de_nodo(ast_t *n)
+{
+    simbolo_t *s = novo_simbolo();
+    if(n->tipo == identificador){
+        s->natureza = simbolo_variavel;
+        s->tamanho = 0;
+        s->valor_lexico = calloc(1,sizeof(valor_token_t));
+        memcpy(s->valor_lexico, n->valor_lexico, sizeof(valor_token_t));
+    }
+    else {
+        printf("acesso vetor \n");
+        s->natureza = simbolo_vetor;
+        s->tamanho = n->filhos[1]->valor_lexico->valor.inteiro;
+        s->valor_lexico = calloc(1,sizeof(valor_token_t));
+        memcpy(s->valor_lexico, n->filhos[0]->valor_lexico, sizeof(valor_token_t));
+    }
     return s;
 }
 
@@ -105,7 +124,9 @@ void print_simbolo(simbolo_t *s)
         {
             printf("- %s (", v->valor.cadeia_caracteres);
             print_natureza(s->natureza);
-            printf(")\n");
+            printf(") : ");
+            imprime_tipo_semantico(s->tipo);
+            printf("\n");
         }
         else
             printf("- literal \n");

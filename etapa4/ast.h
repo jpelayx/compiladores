@@ -5,6 +5,7 @@
 
 typedef enum tipo_semantico
 {
+	nda,
 	int_sem,
 	float_sem, 
 	bool_sem, 
@@ -36,6 +37,7 @@ typedef enum tipos_ast_nodo
 	// outros
 	acesso_vetor,
 	identificador,
+	identificador_vetor, 
 	literal
 } tipos_nodo_t;
 
@@ -81,5 +83,7 @@ void imprime_nodo(ast_t *nodo);
 
 // Imprime as arestas (relações entre os nós) da árvore
 void imprime_arestas(ast_t *arvore);
+
+void imprime_tipo_semantico(tipos_semanticos_t t);
 
 #endif //_AST_H_

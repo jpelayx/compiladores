@@ -19,11 +19,11 @@ real {integer}("."{integer})?{exponent}?
 
 %%
 	/* Reserved words */
-int { return TK_PR_INT; }
-float { return TK_PR_FLOAT; }
-bool { return TK_PR_BOOL; }
-char { return TK_PR_CHAR; }
-string { return TK_PR_STRING; }
+int { yylval.tipo = int_sem; return TK_PR_INT; }
+float { yylval.tipo = float_sem; return TK_PR_FLOAT; }
+bool { yylval.tipo = bool_sem; return TK_PR_BOOL; }
+char { yylval.tipo = char_sem; return TK_PR_CHAR; }
+string { yylval.tipo = string_sem; return TK_PR_STRING; }
 if { return TK_PR_IF; }
 then { return TK_PR_THEN; }
 else { return TK_PR_ELSE; }

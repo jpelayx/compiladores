@@ -57,6 +57,23 @@ pilha_t * adiciona_simbolo(pilha_t *p, simbolo_t *s)
     return p;
 }
 
+pilha_t *adiciona_lista_simbolos(pilha_t *p, ast_t *t, tipos_semanticos_t tipo)
+{
+    if(t == NULL)
+        return p;
+    simbolo_t *s = novo_simbolo_de_nodo(t);
+    s->tipo = tipo;
+    p = adiciona_simbolo(p, s);
+    while((t->tipo == identificador && t->num_filhos > 0) ||
+          (t->tipo == acesso_vetor  && t->num_filhos > 2)) {
+        t = t->filhos[t->num_filhos - 1];
+        s = novo_simbolo_de_nodo(t);
+        s->tipo = tipo;
+        p = adiciona_simbolo(p, s);
+    }
+    return p;   
+}
+
 //Usar essa ideia aqui para procurar por variaveis em diferentes escopos
 // void percorre_escopos(pilha *pilha){
 //     int tamanho_original = pilha->tamanho_atual;

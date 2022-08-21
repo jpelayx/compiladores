@@ -25,15 +25,16 @@ pilha_t *escopo = NULL;
 %union {
 	valor_token_t *valor_lexico;
 	ast_t *nodo;
+	tipos_semanticos_t tipo;
 }
 
 %define parse.error verbose
 
-%token TK_PR_INT
-%token TK_PR_FLOAT
-%token TK_PR_BOOL
-%token TK_PR_CHAR
-%token TK_PR_STRING
+%token<tipo> TK_PR_INT
+%token<tipo> TK_PR_FLOAT
+%token<tipo> TK_PR_BOOL
+%token<tipo> TK_PR_CHAR
+%token<tipo> TK_PR_STRING
 %token TK_PR_IF
 %token TK_PR_THEN
 %token TK_PR_ELSE
@@ -91,8 +92,9 @@ pilha_t *escopo = NULL;
 
 %type<nodo> programa 
 %type<nodo> funcao
-%type<valor_lexico> vetor
-%type<valor_lexico> cabecalho
+%type<tipo> tipo
+%type<nodo> vetor
+%type<nodo> cabecalho
 %type<nodo> bloco_cmd
 %type<nodo> lista_comandos
 %type<nodo> comando
@@ -124,6 +126,9 @@ pilha_t *escopo = NULL;
 %type<nodo> literal_booleano
 %type<nodo> expressao
 
+// nodos temporarios 
+%type<nodo> lista_identificadores_g
+
 
 %precedence "ternario"
 %precedence "unario"
@@ -152,56 +157,56 @@ programa: programa var_global	{$$ = $1;}
 		{ $$ = insere_lista($1, $2);		} 
 	| 	{ $$ = NULL;};
 
-tipo: TK_PR_INT | TK_PR_FLOAT | TK_PR_CHAR | TK_PR_BOOL | TK_PR_STRING;
+tipo: TK_PR_INT {$$ = $1;} | TK_PR_FLOAT {$$ = $1;} | TK_PR_CHAR {$$ = $1;} | TK_PR_BOOL {$$ = $1;} | TK_PR_STRING {$$ = $1;};
 estatico: TK_PR_STATIC | ;
 constante: TK_PR_CONST | ;
-vetor: '[' TK_LIT_INT ']' {$$ = $2;}
+vetor: '[' TK_LIT_INT ']' {$$ = cria_nodo(literal, $2);}
      | {$$ = NULL;};
 
 var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';' 
 	{simbolo_t *s = novo_simbolo();
 	 s->valor_lexico = $3;
+	 s->tipo = $2;
 	 if($4 == NULL)
 		s->natureza = simbolo_variavel;
 	 else {
 		s->natureza = simbolo_vetor;
-		s->tamanho = $4->valor.inteiro;
-		libera_tk($4);
+		s->tamanho = $4->valor_lexico->valor.inteiro;
+		libera($4);
 	 }
-	 escopo = adiciona_simbolo(escopo, s); };
+	 escopo = adiciona_simbolo(escopo, s); 
+	 escopo = adiciona_lista_simbolos(escopo, $5, $2); // adiciona as variaveis em lista_identificadores_g
+	 //libera($5); // tem que liberar a arvore temporaria mas ai caga tudo :(
+	};
 lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor  
-	{simbolo_t *s = novo_simbolo();
-	 s->valor_lexico = $3;
-	 if($4 == NULL)
-		s->natureza = simbolo_variavel;
-	 else {
-		s->natureza = simbolo_vetor;
-		s->tamanho = $4->valor.inteiro;
-		libera_tk($4);
-	 }
-	 escopo = adiciona_simbolo(escopo, s); } 
-	| ;
+	{// cria uma arvore temporaria que guarda as variaveis 
+	 ast_t *n = cria_nodo_vetor($3, $4);
+	 $$ = insere_lista($1, n); }
+	| {$$ = NULL;} ;
 
 funcao: cabecalho bloco_cmd
 	{
-		ast_t *n = cria_nodo(funcao, $1); // valor lexico eh o identificador em cabecalho
-		insere_filho(n, $2);
-		$$ = n;
+		insere_filho($1, $2);
+		$$ = $1;
 		printf("ESCOPO DA FUNCAO \n");
 		print_tabela(topo(escopo));
 		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
 		simbolo_t *s = novo_simbolo();
-		s->valor_lexico = $1;
+		s->valor_lexico = $1->valor_lexico;
 		s->natureza = simbolo_funcao;
+		s->tipo = $1->tipo_sem;
 		escopo = adiciona_simbolo(escopo, s); // adicionando a funcao ao escopo global
 	}	
 
 cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')' 
-	{$$ = $3;};	
+	{ast_t *n = cria_nodo(funcao, $3);
+	 n->tipo_sem = $2;
+	 $$ = n; };	
 parametros: constante tipo TK_IDENTIFICADOR lista_parametros 
 	{simbolo_t *s = novo_simbolo();
 	 s->valor_lexico = $3;
 	 s->natureza = simbolo_variavel;
+	 s->tipo = $2;
 	 escopo = adiciona_simbolo(escopo, s); }
 	| 
 	{// primeira redução que vai ocorrer, inicio do escopo local da funcao s/ parametros
