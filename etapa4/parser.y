@@ -247,7 +247,8 @@ comando:
 
 declaracao_variavel: estatico constante tipo inicializa_variavel lista_identificadores_l
 	{ $$ = insere_inicio_lista($4, $5);
-	  escopo = adiciona_lista_simbolos(escopo, $$, $3);};
+	  escopo = adiciona_lista_simbolos(escopo, $$, $3);
+	  $$ = remove_nodos_inuteis($$);};
 lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel
 		{$$ = insere_fim_lista($3, $1); } 	
 	|   {$$ = NULL;}

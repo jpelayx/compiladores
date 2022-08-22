@@ -92,31 +92,44 @@ ast_t *fim_da_lista(ast_t *t)
 
 ast_t *remove_nodos_inuteis(ast_t *t)
 {
-	ast_t *pai = NULL;
-	ast_t *n = t;
+	printf("CUUUUUUUUUUUUUUUUU \n");
+	// pula nodos inuteis até achar a nova raiz 
+	ast_t *root = t;
+	while(root != NULL && root->tipo == identificador)
+	{
+		// TODO: desalocar nodo
+		root = root->filhos[root->num_filhos-1];
+	}
+	if(root == NULL)
+		return root;
 
+	// poda nodos inuteis a partir da nova raiz
+	ast_t *n = root, *next;
 	do
 	{
-		if(n->tipo == identificador && (pai == NULL || pai->tipo != declaracao))
+		if(n != NULL && n->num_filhos > 0)
+			next = n->filhos[n->num_filhos-1];
+		else 
+			next = NULL;
+		if(next != NULL && next->tipo == identificador)
 		{
-			if(n->num_filhos > 0)
-				n = n->filhos[0];
-			if(pai != NULL)
-			{
-				pai->filhos[0] = n; 			
-			}
-		}
+			// pula o nodo
+			// TODO: desalocar nodo  
+			if(next->num_filhos > 0)
+				n->filhos[n->num_filhos-1] = next->filhos[next->num_filhos-1];	
+			else 
+				n->filhos[n->num_filhos-1] = NULL;
+		}	
 		else 
 		{
-			pai = n;
-			if(n->num_filhos > 2 && n->filhos[2] != NULL)
-				n = n->filhos[2];
-			
-		}
-	} while(n->num_filhos == 0 || n->filhos[n->num_filhos-1] == NULL);
-
-	return t;
-	
+			n = next;
+			if(n != NULL && n->num_filhos > 0)
+				next = n->filhos[n->num_filhos-1];
+			else 
+				next = NULL;
+		}	
+	} while(next != NULL);		
+	return root;
 }
 
 void imprime_nodo(ast_t *nodo){
