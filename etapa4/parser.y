@@ -266,29 +266,32 @@ inicializa_variavel:
 			$$ = n;
 		}	
 	
-literal: TK_LIT_TRUE   {$$ = cria_nodo(literal, $1);} 		
-	   | TK_LIT_FALSE  {$$ = cria_nodo(literal, $1);}	
-	   | TK_LIT_INT    {$$ = cria_nodo(literal, $1);}	
-	   | TK_LIT_FLOAT  {$$ = cria_nodo(literal, $1);}
-	   | TK_LIT_STRING {$$ = cria_nodo(literal, $1);}
-	   | TK_LIT_CHAR   {$$ = cria_nodo(literal, $1);};
+literal: TK_LIT_TRUE   {$$ = cria_nodo(literal, $1); $$->tipo_sem = bool_sem;} 		
+	   | TK_LIT_FALSE  {$$ = cria_nodo(literal, $1); $$->tipo_sem = bool_sem;}	
+	   | TK_LIT_INT    {$$ = cria_nodo(literal, $1); $$->tipo_sem = int_sem;}	
+	   | TK_LIT_FLOAT  {$$ = cria_nodo(literal, $1); $$->tipo_sem = float_sem;}
+	   | TK_LIT_STRING {$$ = cria_nodo(literal, $1); $$->tipo_sem = string_sem;}
+	   | TK_LIT_CHAR   {$$ = cria_nodo(literal, $1); $$->tipo_sem = char_sem;};
 
 identificador_ou_literal: 
 	literal {$$ = $1;}
 	|TK_IDENTIFICADOR {
-		verifica_erros(escopo, $1, simbolo_variavel);
+		simbolo_t *s = referencia(escopo, $1, simbolo_variavel);
 		$$ = cria_nodo(identificador, $1);
+		$$->tipo_sem = s->tipo;
 	};	
 
-acesso_vetor: '[' expressao ']' {$$ = $2;} 
+acesso_vetor: '[' expressao ']' {verifica_tipos($2, int_sem); $$ = $2;} 
 		    | {$$ = NULL;};
 
 atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao 
 	{
+		simbolo_t *s;
 		if($2 == NULL)
-			verifica_erros(escopo, $1, simbolo_variavel);
+			s = referencia(escopo, $1, simbolo_variavel);
 		else 
-			verifica_erros(escopo, $1, simbolo_vetor);
+			s = referencia(escopo, $1, simbolo_vetor);
+		verifica_tipos($4, s->tipo);
 		ast_t *n = cria_nodo(atribuicao, NULL);
 		insere_filho(n, cria_nodo_vetor($1, $2));
 		insere_filho(n, $4);
@@ -299,9 +302,10 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 
 entrada: TK_PR_INPUT TK_IDENTIFICADOR 
 	{
-		verifica_erros(escopo, $2, simbolo_variavel);
+		simbolo_t *s = referencia(escopo, $2, simbolo_variavel);
 		ast_t *n = cria_nodo(entrada, NULL);
 		insere_filho(n, cria_nodo(identificador, $2));
+		n->tipo_sem = s->tipo;
 		$$ = n;
 	};
 saida: TK_PR_OUTPUT identificador_ou_literal
@@ -319,22 +323,25 @@ mais_parametros_chamada_funcao: mais_parametros_chamada_funcao ',' expressao
 	| {$$ = NULL;};
 chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 	{
-		verifica_erros(escopo, $1, simbolo_funcao);
+		simbolo_t *s = referencia(escopo, $1, simbolo_funcao);
 		ast_t *n = cria_nodo(chamada_funcao, $1);
 		if($3 != NULL)
 			insere_filho(n, $3);
+		n->tipo_sem = s->tipo;
 		$$ = n;
 	};
 
 shift: TK_IDENTIFICADOR acesso_vetor token_shift TK_LIT_INT
 	{
+		simbolo_t *s;
 		if($2 == NULL)
-			verifica_erros(escopo, $1, simbolo_variavel);
+			s = referencia(escopo, $1, simbolo_variavel);
 		else 
-			verifica_erros(escopo, $1, simbolo_vetor);
+			s = referencia(escopo, $1, simbolo_vetor);
 		ast_t *n = cria_nodo(cmd_shift, $3);
 		insere_filho(n, cria_nodo_vetor($1, $2));
 		insere_filho(n, cria_nodo(literal, $4));
+		n->tipo_sem = s->tipo;
 		$$ = n;
 	};
 token_shift: TK_OC_SL {$$ = $1;}  // passando direto o valor_lexico 
@@ -344,6 +351,7 @@ retorno: TK_PR_RETURN expressao
 	{
 		ast_t *n = cria_nodo(cmd_return, NULL);
 		insere_filho(n, $2);
+		n->tipo_sem = $2->tipo_sem;
 		$$ = n;
 	};
 
@@ -353,6 +361,7 @@ controle_fluxo: cf_if    {$$ = $1;}
 
 cf_if: TK_PR_IF '(' expressao ')' bloco_cmd cf_else 
 	{
+		verifica_tipos($3, bool_sem);
 		ast_t *n = cria_nodo(cmd_if, NULL);
 		insere_filho(n, $3);
 		insere_filho(n, $5);
@@ -365,6 +374,7 @@ cf_else: TK_PR_ELSE bloco_cmd {$$ = $2;}
 
 cf_for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd
 	{
+		verifica_tipos($5, bool_sem);
 		ast_t *n = cria_nodo(cmd_for, NULL);
 		insere_filho(n, $3);
 		insere_filho(n, $5);
@@ -375,6 +385,7 @@ cf_for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd
 
 cf_while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd
 	{
+		verifica_tipos($3, bool_sem);
 		ast_t *n = cria_nodo(cmd_while, NULL);
 		insere_filho(n, $3);
 		insere_filho(n, $6);
@@ -382,73 +393,164 @@ cf_while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd
 	};
 
   /* Expressoes */
-literal_numerico: TK_LIT_INT   {$$ = cria_nodo(literal, $1);}
-	            | TK_LIT_FLOAT {$$ = cria_nodo(literal, $1);} ;
+literal_numerico: TK_LIT_INT   {$$ = cria_nodo(literal, $1); $$->tipo_sem = int_sem;}
+	            | TK_LIT_FLOAT {$$ = cria_nodo(literal, $1); $$->tipo_sem = float_sem;} ;
   
 operandos_aritmeticos: 
 	literal_numerico                {$$ = $1;}
 	| chamada_de_funcao             {$$ = $1;} 
 	| TK_IDENTIFICADOR acesso_vetor {
+		simbolo_t *s;
 		if($2 == NULL)
-			verifica_erros(escopo, $1, simbolo_variavel);
+			s = referencia(escopo, $1, simbolo_variavel);
 		else 
-			verifica_erros(escopo, $1, simbolo_vetor);
-		$$ = cria_nodo_vetor($1, $2);}
+			s = referencia(escopo, $1, simbolo_vetor);
+		$$ = cria_nodo_vetor($1, $2);
+		$$->tipo_sem = s->tipo; }
 	| expressao_aritmetica          {$$ = $1;}
 	| '(' expressao_aritmetica ')'  {$$ = $2;}
 	
 expressao_aritmetica: 
-	 '+' operandos_aritmeticos                          { $$ = cria_nodo_unario(($1), $2); }
-	| '-' operandos_aritmeticos %prec inverte_sinal     { $$ = cria_nodo_unario(($1), $2); }
-	| '&' operandos_aritmeticos %prec endereco_variavel { $$ = cria_nodo_unario(($1), $2); }
-	| '*' operandos_aritmeticos %prec valor_ponteiro    { $$ = cria_nodo_unario(($1), $2); }
-	| '#' operandos_aritmeticos                         { $$ = cria_nodo_unario(($1), $2); }
-	| operandos_aritmeticos '+' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
-	| operandos_aritmeticos '-' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
-	| operandos_aritmeticos '^' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
-	| operandos_aritmeticos '*' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
-	| operandos_aritmeticos '/' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
-	| operandos_aritmeticos '%' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
+	 '+' operandos_aritmeticos                          
+	{ verifica_tipos($2, numerico_sem);
+	  $$ = cria_nodo_unario(($1), $2);
+	  $$->tipo_sem = $2->tipo_sem; }
+	| '-' operandos_aritmeticos %prec inverte_sinal     
+	{ verifica_tipos($2, numerico_sem);
+	  $$ = cria_nodo_unario(($1), $2);
+	  $$->tipo_sem = $2->tipo_sem; }
+	| '&' operandos_aritmeticos %prec endereco_variavel 
+	{ verifica_tipos($2, numerico_sem);
+	  $$ = cria_nodo_unario(($1), $2);
+	  $$->tipo_sem = $2->tipo_sem; }
+	| '*' operandos_aritmeticos %prec valor_ponteiro    
+	{ verifica_tipos($2, numerico_sem);
+	  $$ = cria_nodo_unario(($1), $2);
+	  $$->tipo_sem = $2->tipo_sem; }
+	| '#' operandos_aritmeticos                         
+	{ verifica_tipos($2, numerico_sem);
+	  $$ = cria_nodo_unario(($1), $2);
+	  $$->tipo_sem = $2->tipo_sem; }
+	| operandos_aritmeticos '+' operandos_aritmeticos   
+	{ verifica_tipos($1, numerico_sem);
+	  verifica_tipos($3, numerico_sem);
+	  $$ = cria_nodo_binario(($2), $1, $3);
+	  $$->tipo_sem = infere_tipo($1, $3); }
+	| operandos_aritmeticos '-' operandos_aritmeticos   
+	{ verifica_tipos($1, numerico_sem);
+	  verifica_tipos($3, numerico_sem);
+	  $$ = cria_nodo_binario(($2), $1, $3);
+	  $$->tipo_sem = infere_tipo($1, $3); }
+	| operandos_aritmeticos '^' operandos_aritmeticos   
+	{ verifica_tipos($1, numerico_sem);
+	  verifica_tipos($3, numerico_sem);
+	  $$ = cria_nodo_binario(($2), $1, $3);
+	  $$->tipo_sem = infere_tipo($1, $3); }
+	| operandos_aritmeticos '*' operandos_aritmeticos   
+	{ verifica_tipos($1, numerico_sem);
+	  verifica_tipos($3, numerico_sem);
+	  $$ = cria_nodo_binario(($2), $1, $3);
+	  $$->tipo_sem = infere_tipo($1, $3); }
+	| operandos_aritmeticos '/' operandos_aritmeticos   
+	{ verifica_tipos($1, numerico_sem);
+	  verifica_tipos($3, numerico_sem);
+	  $$ = cria_nodo_binario(($2), $1, $3);
+	  $$->tipo_sem = infere_tipo($1, $3); }
+	| operandos_aritmeticos '%' operandos_aritmeticos   
+	{ verifica_tipos($1, numerico_sem);
+	  verifica_tipos($3, numerico_sem);
+	  $$ = cria_nodo_binario(($2), $1, $3);
+	  $$->tipo_sem = infere_tipo($1, $3); }
 	//bitwise and
-	| operandos_aritmeticos '&' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos '&' operandos_aritmeticos   
+	{ verifica_tipos($1, numerico_sem);
+	  verifica_tipos($3, numerico_sem);
+	  $$ = cria_nodo_binario(($2), $1, $3);
+	  $$->tipo_sem = infere_tipo($1, $3); }
 	//bitwise or
-	| operandos_aritmeticos '|' operandos_aritmeticos   { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos '|' operandos_aritmeticos   
+	{ verifica_tipos($1, numerico_sem);
+	  verifica_tipos($3, numerico_sem);
+	  $$ = cria_nodo_binario(($2), $1, $3);
+	  $$->tipo_sem = infere_tipo($1, $3); }
 	
-literal_booleano: TK_LIT_TRUE  {$$ = cria_nodo(literal, ($1));} 
-                | TK_LIT_FALSE {$$ = cria_nodo(literal, ($1));}
+literal_booleano: TK_LIT_TRUE  {$$ = cria_nodo(literal, ($1)); $$->tipo_sem = bool_sem;} 
+                | TK_LIT_FALSE {$$ = cria_nodo(literal, ($1)); $$->tipo_sem = bool_sem;}
 
 operandos_booleanos: 
 	  TK_IDENTIFICADOR acesso_vetor	{ 
+		simbolo_t *s;
 		if($2 == NULL)
-			verifica_erros(escopo, $1, simbolo_variavel);
+			s = referencia(escopo, $1, simbolo_variavel);
 		else
-			verifica_erros(escopo, $1, simbolo_vetor);
-		$$ = cria_nodo_vetor($1, $2);}
+			s = referencia(escopo, $1, simbolo_vetor);
+		$$ = cria_nodo_vetor($1, $2);
+		$$->tipo_sem = s->tipo; }
 	| literal_booleano {$$ = $1;}
 	| expressao_booleana {$$ = $1;}
 	| '(' expressao_booleana ')' {$$ = $2;}
 
 expressao_booleana:
-	 '!' operandos_booleanos	{ $$ = cria_nodo_unario(($1), $2); }
-	|'?' operandos_booleanos  %prec avaliacao_logica { $$ = cria_nodo_unario(($1), $2); }
+	 '!' operandos_booleanos
+	 	{ verifica_tipos($2, bool_sem); 
+		  $$ = cria_nodo_unario($1, $2);
+		  $$->tipo_sem = bool_sem; }
+	|'?' operandos_booleanos  %prec avaliacao_logica 
+		{ verifica_tipos($2, bool_sem); 
+		  $$ = cria_nodo_unario($1, $2); 
+		  $$->tipo_sem = bool_sem; }
 	//comparadores logicos	
-	| operandos_aritmeticos '<' operandos_aritmeticos  { $$ = cria_nodo_binario(($2), $1, $3); }
-	| operandos_aritmeticos '>' operandos_aritmeticos  { $$ = cria_nodo_binario(($2), $1, $3); }
-	| operandos_aritmeticos TK_OC_EQ operandos_aritmeticos  { $$ = cria_nodo_binario(($2), $1, $3); }
-	| operandos_aritmeticos TK_OC_NE operandos_aritmeticos  { $$ = cria_nodo_binario(($2), $1, $3); }
-	| operandos_aritmeticos TK_OC_GE operandos_aritmeticos  { $$ = cria_nodo_binario(($2), $1, $3); }
-	| operandos_aritmeticos TK_OC_LE operandos_aritmeticos  { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_aritmeticos '<' operandos_aritmeticos  
+		{ verifica_tipos($1, numerico_sem);
+		  verifica_tipos($3, numerico_sem);
+		  $$ = cria_nodo_binario($2, $1, $3);
+		  $$->tipo_sem = bool_sem; }
+	| operandos_aritmeticos '>' operandos_aritmeticos  
+		{ verifica_tipos($1, numerico_sem);
+		  verifica_tipos($3, numerico_sem);
+		  $$ = cria_nodo_binario($2, $1, $3); 
+		  $$->tipo_sem = bool_sem; }
+	| operandos_aritmeticos TK_OC_EQ operandos_aritmeticos  
+		{ verifica_tipos($1, numerico_sem);
+		  verifica_tipos($3, numerico_sem);
+		  $$ = cria_nodo_binario($2, $1, $3); 
+		  $$->tipo_sem = bool_sem; }
+	| operandos_aritmeticos TK_OC_NE operandos_aritmeticos  
+		{ verifica_tipos($1, numerico_sem);
+		  verifica_tipos($3, numerico_sem);
+		  $$ = cria_nodo_binario($2, $1, $3); 
+		  $$->tipo_sem = bool_sem; }
+	| operandos_aritmeticos TK_OC_GE operandos_aritmeticos  
+		{ verifica_tipos($1, numerico_sem);
+		  verifica_tipos($3, numerico_sem);
+		  $$ = cria_nodo_binario($2, $1, $3); 
+		  $$->tipo_sem = bool_sem; }
+	| operandos_aritmeticos TK_OC_LE operandos_aritmeticos  
+		{ verifica_tipos($1, numerico_sem);
+		  verifica_tipos($3, numerico_sem);
+		  $$ = cria_nodo_binario($2, $1, $3); 
+		  $$->tipo_sem = bool_sem; }
 	//operadores logicos	
-	| operandos_booleanos TK_OC_AND operandos_booleanos { $$ = cria_nodo_binario(($2), $1, $3); }
-	| operandos_booleanos TK_OC_OR operandos_booleanos  { $$ = cria_nodo_binario(($2), $1, $3); }
+	| operandos_booleanos TK_OC_AND operandos_booleanos 
+		{ verifica_tipos($1, bool_sem);
+		  verifica_tipos($3, bool_sem);
+		  $$ = cria_nodo_binario($2, $1, $3); 
+		  $$->tipo_sem = bool_sem; }
+	| operandos_booleanos TK_OC_OR operandos_booleanos  
+		{ verifica_tipos($1, bool_sem);
+		  verifica_tipos($3, bool_sem);
+		  $$ = cria_nodo_binario($2, $1, $3);
+ 		  $$->tipo_sem = bool_sem; }
 	
 expressao:
 	TK_IDENTIFICADOR acesso_vetor	{
+		simbolo_t *s;
 		if($2 == NULL)
-			verifica_erros(escopo, $1, simbolo_variavel);
+			s = referencia(escopo, $1, simbolo_variavel);
 		else
-			verifica_erros(escopo, $1, simbolo_vetor);
-		$$ = cria_nodo_vetor(($1), $2);
+			s = referencia(escopo, $1, simbolo_vetor);
+		$$ = cria_nodo_vetor($1, $2);
+		$$->tipo_sem = s->tipo;
 	}
 	| chamada_de_funcao             {$$ = $1;}
 	| literal_numerico              {$$ = $1;}
@@ -456,10 +558,14 @@ expressao:
 	| expressao_booleana			{$$ = $1;}
 	// ternario
 	| expressao '?' expressao ':' expressao	{
+		verifica_tipos($1, bool_sem);
+		verifica_tipos($3, numerico_sem);
+		verifica_tipos($5, numerico_sem);
 		ast_t *n = cria_nodo(ternario, NULL);
 		insere_filho(n, $1);
 		insere_filho(n, $3);
 		insere_filho(n, $5);
+		n->tipo_sem = infere_tipo($3, $5);
 		libera_tk($2);
 		$$ = n;	}
 	

@@ -5,10 +5,11 @@
 
 typedef enum tipo_semantico
 {
-	nda,
+	nda, // para debug
 	int_sem,
 	float_sem, 
 	bool_sem, 
+	numerico_sem, // int, float ou bool
 	char_sem, 
 	void_sem,
 	string_sem

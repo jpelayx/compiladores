@@ -75,6 +75,16 @@ pilha_t *adiciona_lista_simbolos(pilha_t *p, ast_t *t, tipos_semanticos_t tipo)
     return p;   
 }
 
+simbolo_t *referencia(pilha_t *p, valor_token_t *v, tipos_simbolos_t natureza)
+{
+    simbolo_t *s = procura_nome_em_todas_tabelas(p, v->valor.cadeia_caracteres);
+    if(s == NULL)
+        erro_nao_declaracao(v->valor.cadeia_caracteres, v->linha);
+    if(s->natureza != natureza)
+        erro_uso_incorreto(v->valor.cadeia_caracteres, v->linha, natureza, s->natureza);
+    return s;
+}
+
 //Usar essa ideia aqui para procurar por variaveis em diferentes escopos
 // void percorre_escopos(pilha *pilha){
 //     int tamanho_original = pilha->tamanho_atual;
@@ -96,16 +106,6 @@ simbolo_t *procura_nome_em_todas_tabelas(pilha_t *p, char *nome){
         p = p->anterior;
     }
     return s;
-}
-
-void verifica_erros(pilha_t *p, valor_token_t *v, tipos_simbolos_t tipo)
-{
-    simbolo_t *s = procura_nome_em_todas_tabelas(p, v->valor.cadeia_caracteres);
-    if(s == NULL)
-        erro_nao_declaracao(v->valor.cadeia_caracteres, v->linha);
-    if(s->natureza != tipo)
-        erro_uso_incorreto(v->valor.cadeia_caracteres, v->linha, tipo, s->natureza);
-
 }
 
 void erro_redeclaracao(char *nome, int linha_redeclaracao, int linha_original){
@@ -136,5 +136,65 @@ void erro_uso_incorreto(char *nome, int linha, tipos_simbolos_t tipo, tipos_simb
         exit(ERR_VECTOR);
     case simbolo_funcao:
         exit(ERR_FUNCTION);
+    }
+}
+
+void verifica_tipos(ast_t *t, tipos_semanticos_t s)
+{
+    switch (t->tipo_sem)
+    {
+    case float_sem:
+    case int_sem:
+    case bool_sem:
+        switch (s)
+        {
+        case float_sem:
+        case int_sem:
+        case bool_sem:
+        case numerico_sem:
+            return; // ok, TODO: conversão pra definir o tamanho etc 
+            break;
+        case char_sem:
+            printf("error: tryng to convert char on line %d\n", t->valor_lexico->linha);
+            exit(ERR_CHAR_TO_X);
+        case string_sem:
+            printf("error: tryng to convert string on line %d\n", t->valor_lexico->linha);
+            exit(ERR_STRING_TO_X);
+        default:
+            break;
+        }
+        break;
+    case char_sem:
+        if(s != char_sem){
+            printf("error: tryng to convert string on line %d\n", t->valor_lexico->linha);
+            exit(ERR_CHAR_TO_X);
+        }
+        break; // ok
+    case string_sem:
+        if(s != string_sem){
+            printf("error: tryng to convert string on line %d\n", t->valor_lexico->linha);
+            exit(ERR_STRING_TO_X);
+        }
+        break; // ok
+    default:
+        break;
+    }
+}
+
+tipos_semanticos_t infere_tipo(ast_t *t1, ast_t *t2)
+{
+    switch (t1->tipo_sem)
+    {
+    case bool_sem:
+        return t2->tipo_sem;
+    case int_sem:
+        if(t2->tipo_sem == float_sem)
+            return float_sem;
+        else 
+            return int_sem;
+    case float_sem:
+        return float_sem; 
+    default:
+        return nda;
     }
 }
