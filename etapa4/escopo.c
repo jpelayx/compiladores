@@ -64,7 +64,9 @@ pilha_t *adiciona_lista_simbolos(pilha_t *p, ast_t *t, tipos_semanticos_t tipo)
     simbolo_t *s;
     do
     {   
-        s = novo_simbolo_de_nodo(t);
+        s = novo_simbolo_de_nodo(t, tipo);
+        if(s->tipo != nda)
+            verifica_tipos(s->tipo, tipo, s->valor_lexico->linha);
         s->tipo = tipo;
         p = adiciona_simbolo(p, s);   
         if(t->num_filhos > 0)
@@ -139,9 +141,9 @@ void erro_uso_incorreto(char *nome, int linha, tipos_simbolos_t tipo, tipos_simb
     }
 }
 
-void verifica_tipos(ast_t *t, tipos_semanticos_t s)
+void verifica_tipos(tipos_semanticos_t t, tipos_semanticos_t s, int linha)
 {
-    switch (t->tipo_sem)
+    switch (t)
     {
     case float_sem:
     case int_sem:
@@ -155,10 +157,10 @@ void verifica_tipos(ast_t *t, tipos_semanticos_t s)
             return; // ok, TODO: conversão pra definir o tamanho etc 
             break;
         case char_sem:
-            printf("error: tryng to convert char on line %d\n", t->valor_lexico->linha);
+            printf("error: tryng to convert char on line %d\n", linha);
             exit(ERR_CHAR_TO_X);
         case string_sem:
-            printf("error: tryng to convert string on line %d\n", t->valor_lexico->linha);
+            printf("error: tryng to convert string on line %d\n", linha);
             exit(ERR_STRING_TO_X);
         default:
             break;
@@ -166,13 +168,13 @@ void verifica_tipos(ast_t *t, tipos_semanticos_t s)
         break;
     case char_sem:
         if(s != char_sem){
-            printf("error: tryng to convert string on line %d\n", t->valor_lexico->linha);
+            printf("error: tryng to convert char on line %d\n", linha);
             exit(ERR_CHAR_TO_X);
         }
         break; // ok
     case string_sem:
         if(s != string_sem){
-            printf("error: tryng to convert string on line %d\n", t->valor_lexico->linha);
+            printf("error: tryng to convert string on line %d\n", linha);
             exit(ERR_STRING_TO_X);
         }
         break; // ok
@@ -180,6 +182,8 @@ void verifica_tipos(ast_t *t, tipos_semanticos_t s)
         break;
     }
 }
+
+
 
 tipos_semanticos_t infere_tipo(ast_t *t1, ast_t *t2)
 {

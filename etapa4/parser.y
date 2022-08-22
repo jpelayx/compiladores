@@ -259,6 +259,7 @@ inicializa_variavel:
 		} //ignora declaracao de variavel sem inicialização
 	| TK_IDENTIFICADOR TK_OC_LE identificador_ou_literal
 		{
+
 			ast_t *n = cria_nodo(declaracao, NULL);
 			insere_filho(n, cria_nodo(identificador, $1));
 			insere_filho(n, $3);
@@ -281,7 +282,7 @@ identificador_ou_literal:
 		$$->tipo_sem = s->tipo;
 	};	
 
-acesso_vetor: '[' expressao ']' {verifica_tipos($2, int_sem); $$ = $2;} 
+acesso_vetor: '[' expressao ']' {verifica_tipos($2->tipo_sem, int_sem, $2->valor_lexico->linha); $$ = $2;} 
 		    | {$$ = NULL;};
 
 atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao 
@@ -291,7 +292,7 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 			s = referencia(escopo, $1, simbolo_variavel);
 		else 
 			s = referencia(escopo, $1, simbolo_vetor);
-		verifica_tipos($4, s->tipo);
+		verifica_tipos($4->tipo_sem, s->tipo, $4->valor_lexico->linha);
 		ast_t *n = cria_nodo(atribuicao, NULL);
 		insere_filho(n, cria_nodo_vetor($1, $2));
 		insere_filho(n, $4);
@@ -361,7 +362,7 @@ controle_fluxo: cf_if    {$$ = $1;}
 
 cf_if: TK_PR_IF '(' expressao ')' bloco_cmd cf_else 
 	{
-		verifica_tipos($3, bool_sem);
+		verifica_tipos($3->tipo_sem, bool_sem, $3->valor_lexico->linha);
 		ast_t *n = cria_nodo(cmd_if, NULL);
 		insere_filho(n, $3);
 		insere_filho(n, $5);
@@ -374,7 +375,7 @@ cf_else: TK_PR_ELSE bloco_cmd {$$ = $2;}
 
 cf_for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd
 	{
-		verifica_tipos($5, bool_sem);
+		verifica_tipos($5->tipo_sem, bool_sem, $5->valor_lexico->linha);
 		ast_t *n = cria_nodo(cmd_for, NULL);
 		insere_filho(n, $3);
 		insere_filho(n, $5);
@@ -385,7 +386,7 @@ cf_for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd
 
 cf_while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd
 	{
-		verifica_tipos($3, bool_sem);
+		verifica_tipos($3->tipo_sem, bool_sem, $3->valor_lexico->linha);
 		ast_t *n = cria_nodo(cmd_while, NULL);
 		insere_filho(n, $3);
 		insere_filho(n, $6);
@@ -412,65 +413,65 @@ operandos_aritmeticos:
 	
 expressao_aritmetica: 
 	 '+' operandos_aritmeticos                          
-	{ verifica_tipos($2, numerico_sem);
+	{ verifica_tipos($2->tipo_sem, numerico_sem, $2->valor_lexico->linha);
 	  $$ = cria_nodo_unario(($1), $2);
 	  $$->tipo_sem = $2->tipo_sem; }
 	| '-' operandos_aritmeticos %prec inverte_sinal     
-	{ verifica_tipos($2, numerico_sem);
+	{ verifica_tipos($2->tipo_sem, numerico_sem, $2->valor_lexico->linha);
 	  $$ = cria_nodo_unario(($1), $2);
 	  $$->tipo_sem = $2->tipo_sem; }
 	| '&' operandos_aritmeticos %prec endereco_variavel 
-	{ verifica_tipos($2, numerico_sem);
+	{ verifica_tipos($2->tipo_sem, numerico_sem, $2->valor_lexico->linha);
 	  $$ = cria_nodo_unario(($1), $2);
 	  $$->tipo_sem = $2->tipo_sem; }
 	| '*' operandos_aritmeticos %prec valor_ponteiro    
-	{ verifica_tipos($2, numerico_sem);
+	{ verifica_tipos($2->tipo_sem, numerico_sem, $2->valor_lexico->linha);
 	  $$ = cria_nodo_unario(($1), $2);
 	  $$->tipo_sem = $2->tipo_sem; }
 	| '#' operandos_aritmeticos                         
-	{ verifica_tipos($2, numerico_sem);
+	{ verifica_tipos($2->tipo_sem, numerico_sem, $2->valor_lexico->linha);
 	  $$ = cria_nodo_unario(($1), $2);
 	  $$->tipo_sem = $2->tipo_sem; }
 	| operandos_aritmeticos '+' operandos_aritmeticos   
-	{ verifica_tipos($1, numerico_sem);
-	  verifica_tipos($3, numerico_sem);
+	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 	  $$ = cria_nodo_binario(($2), $1, $3);
 	  $$->tipo_sem = infere_tipo($1, $3); }
 	| operandos_aritmeticos '-' operandos_aritmeticos   
-	{ verifica_tipos($1, numerico_sem);
-	  verifica_tipos($3, numerico_sem);
+	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 	  $$ = cria_nodo_binario(($2), $1, $3);
 	  $$->tipo_sem = infere_tipo($1, $3); }
 	| operandos_aritmeticos '^' operandos_aritmeticos   
-	{ verifica_tipos($1, numerico_sem);
-	  verifica_tipos($3, numerico_sem);
+	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 	  $$ = cria_nodo_binario(($2), $1, $3);
 	  $$->tipo_sem = infere_tipo($1, $3); }
 	| operandos_aritmeticos '*' operandos_aritmeticos   
-	{ verifica_tipos($1, numerico_sem);
-	  verifica_tipos($3, numerico_sem);
+	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 	  $$ = cria_nodo_binario(($2), $1, $3);
 	  $$->tipo_sem = infere_tipo($1, $3); }
 	| operandos_aritmeticos '/' operandos_aritmeticos   
-	{ verifica_tipos($1, numerico_sem);
-	  verifica_tipos($3, numerico_sem);
+	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 	  $$ = cria_nodo_binario(($2), $1, $3);
 	  $$->tipo_sem = infere_tipo($1, $3); }
 	| operandos_aritmeticos '%' operandos_aritmeticos   
-	{ verifica_tipos($1, numerico_sem);
-	  verifica_tipos($3, numerico_sem);
+	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 	  $$ = cria_nodo_binario(($2), $1, $3);
 	  $$->tipo_sem = infere_tipo($1, $3); }
 	//bitwise and
 	| operandos_aritmeticos '&' operandos_aritmeticos   
-	{ verifica_tipos($1, numerico_sem);
-	  verifica_tipos($3, numerico_sem);
+	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 	  $$ = cria_nodo_binario(($2), $1, $3);
 	  $$->tipo_sem = infere_tipo($1, $3); }
 	//bitwise or
 	| operandos_aritmeticos '|' operandos_aritmeticos   
-	{ verifica_tipos($1, numerico_sem);
-	  verifica_tipos($3, numerico_sem);
+	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 	  $$ = cria_nodo_binario(($2), $1, $3);
 	  $$->tipo_sem = infere_tipo($1, $3); }
 	
@@ -492,53 +493,53 @@ operandos_booleanos:
 
 expressao_booleana:
 	 '!' operandos_booleanos
-	 	{ verifica_tipos($2, bool_sem); 
+	 	{ verifica_tipos($2->tipo_sem, bool_sem, $2->valor_lexico->linha); 
 		  $$ = cria_nodo_unario($1, $2);
 		  $$->tipo_sem = bool_sem; }
 	|'?' operandos_booleanos  %prec avaliacao_logica 
-		{ verifica_tipos($2, bool_sem); 
+		{ verifica_tipos($2->tipo_sem, bool_sem, $2->valor_lexico->linha); 
 		  $$ = cria_nodo_unario($1, $2); 
 		  $$->tipo_sem = bool_sem; }
 	//comparadores logicos	
 	| operandos_aritmeticos '<' operandos_aritmeticos  
-		{ verifica_tipos($1, numerico_sem);
-		  verifica_tipos($3, numerico_sem);
+		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos '>' operandos_aritmeticos  
-		{ verifica_tipos($1, numerico_sem);
-		  verifica_tipos($3, numerico_sem);
+		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_EQ operandos_aritmeticos  
-		{ verifica_tipos($1, numerico_sem);
-		  verifica_tipos($3, numerico_sem);
+		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_NE operandos_aritmeticos  
-		{ verifica_tipos($1, numerico_sem);
-		  verifica_tipos($3, numerico_sem);
+		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_GE operandos_aritmeticos  
-		{ verifica_tipos($1, numerico_sem);
-		  verifica_tipos($3, numerico_sem);
+		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_LE operandos_aritmeticos  
-		{ verifica_tipos($1, numerico_sem);
-		  verifica_tipos($3, numerico_sem);
+		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
+		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
 		  $$->tipo_sem = bool_sem; }
 	//operadores logicos	
 	| operandos_booleanos TK_OC_AND operandos_booleanos 
-		{ verifica_tipos($1, bool_sem);
-		  verifica_tipos($3, bool_sem);
+		{ verifica_tipos($1->tipo_sem, bool_sem, $1->valor_lexico->linha);
+		  verifica_tipos($3->tipo_sem, bool_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
 		  $$->tipo_sem = bool_sem; }
 	| operandos_booleanos TK_OC_OR operandos_booleanos  
-		{ verifica_tipos($1, bool_sem);
-		  verifica_tipos($3, bool_sem);
+		{ verifica_tipos($1->tipo_sem, bool_sem, $1->valor_lexico->linha);
+		  verifica_tipos($3->tipo_sem, bool_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3);
  		  $$->tipo_sem = bool_sem; }
 	
@@ -558,9 +559,9 @@ expressao:
 	| expressao_booleana			{$$ = $1;}
 	// ternario
 	| expressao '?' expressao ':' expressao	{
-		verifica_tipos($1, bool_sem);
-		verifica_tipos($3, numerico_sem);
-		verifica_tipos($5, numerico_sem);
+		verifica_tipos($1->tipo_sem, bool_sem, $1->valor_lexico->linha);
+		verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
+		verifica_tipos($5->tipo_sem, numerico_sem, $5->valor_lexico->linha);
 		ast_t *n = cria_nodo(ternario, NULL);
 		insere_filho(n, $1);
 		insere_filho(n, $3);

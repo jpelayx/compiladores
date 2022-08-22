@@ -7,7 +7,7 @@ simbolo_t *novo_simbolo()
     return s;
 }
 
-simbolo_t *novo_simbolo_de_nodo(ast_t *n)
+simbolo_t *novo_simbolo_de_nodo(ast_t *n, tipos_semanticos_t tipo)
 {
     simbolo_t *s = novo_simbolo();
     switch (n->tipo)
@@ -17,20 +17,24 @@ simbolo_t *novo_simbolo_de_nodo(ast_t *n)
         s->tamanho = 0;
         s->valor_lexico = calloc(1,sizeof(valor_token_t));
         memcpy(s->valor_lexico, n->valor_lexico, sizeof(valor_token_t));
+        s->tipo = nda;
         break;
     case acesso_vetor:
         s->natureza = simbolo_vetor;
         s->tamanho = n->filhos[1]->valor_lexico->valor.inteiro;
         s->valor_lexico = calloc(1,sizeof(valor_token_t));
         memcpy(s->valor_lexico, n->filhos[0]->valor_lexico, sizeof(valor_token_t));
+        s->tipo = nda;
         break;
     case declaracao:
         s->natureza = simbolo_variavel;
         s->tamanho = 0;
         s->valor_lexico = calloc(1,sizeof(valor_token_t));
         memcpy(s->valor_lexico, n->filhos[0]->valor_lexico, sizeof(valor_token_t));
+        s->tipo = n->filhos[1]->tipo_sem;
         break;
     default:
+        s->tipo = nda;
         break;
     }
     return s;

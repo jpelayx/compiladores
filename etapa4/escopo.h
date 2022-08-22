@@ -56,7 +56,7 @@ void erro_redeclaracao(char *nome, int linha_redeclaracao, int linha_original);
 void erro_uso_incorreto(char *nome, int linha, tipos_simbolos_t tipo, tipos_simbolos_t tipo_original);
 
 // verifica que o tipo da arvore t é compativel com o tipo esperado s
-void verifica_tipos(ast_t *t, tipos_semanticos_t s);
+void verifica_tipos(tipos_semanticos_t t, tipos_semanticos_t s, int linha);
 
 // infere o tipo a partir da combinação dos tipos de t1 e t2 
 tipos_semanticos_t infere_tipo(ast_t *t1, ast_t *t2);
