@@ -68,9 +68,18 @@ tabela_simbolos_t *init_tabela_simbolos()
     return t;
 }
 
-int func_hash(tabela_simbolos_t *t, int id)
+int func_hash(tabela_simbolos_t *t, char *id)
 {
-    return id % t->tamanho; 
+    // https://en.wikipedia.org/wiki/PJW_hash_function
+    unsigned long h = 0, high;
+    while(*id)
+    {
+        h = (h << 4) + *id++;
+        if ((high = h & 0xF0000000))
+            h ^= high >> 24;
+        h &= ~high;
+    }
+    return h % t->tamanho;
 }
 
 tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s)
@@ -80,7 +89,7 @@ tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s)
 
     s->id = t->proximo_id;
     t->proximo_id++;
-    int idx = func_hash(t, s->id);
+    int idx = func_hash(t, s->valor_lexico->valor.cadeia_caracteres);
     lista_simbolos_t *l = t->dados[idx];
     if(l->simbolo == NULL)
     {
@@ -178,20 +187,18 @@ bool compara_nome_simbolo(simbolo_t *s, char *nome){
 }
 
 simbolo_t * busca(tabela_simbolos_t *t, char *nome){
-    for(int i=0; i<t->tamanho; i++)
+    int i = func_hash(t, nome);
+    lista_simbolos_t *l = t->dados[i];
+    if(l->simbolo != NULL)
     {
-        lista_simbolos_t *l = t->dados[i];
-        if(l->simbolo != NULL)
+        if(compara_nome_simbolo(l->simbolo, nome)){
+            return l->simbolo;
+        }
+        while(l->next != NULL)
         {
+            l = l->next;
             if(compara_nome_simbolo(l->simbolo, nome)){
                 return l->simbolo;
-            }
-            while(l->next != NULL)
-            {
-                l = l->next;
-                if(compara_nome_simbolo(l->simbolo, nome)){
-                    return l->simbolo;
-                }
             }
         }
     }

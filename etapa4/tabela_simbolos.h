@@ -75,7 +75,7 @@ bool compara_nome_simbolo(simbolo_t *s, char *nome);
 // e NULL se não achou
 simbolo_t *busca(tabela_simbolos_t *t, char *nome);
 
-int func_hash(tabela_simbolos_t *t, int id);
+int func_hash(tabela_simbolos_t *t, char* id);
 
 // p/ debug
 void print_tabela(tabela_simbolos_t *t);
