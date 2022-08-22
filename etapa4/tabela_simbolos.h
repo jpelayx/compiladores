@@ -30,8 +30,10 @@ typedef struct simbolo {
 // cria novo simbolo vazio
 simbolo_t *novo_simbolo();
 
+void adiciona_valor_lexico(simbolo_t *s, valor_token_t *v);
+
 // cria novo simbolo a partir de nodo da ast.
-simbolo_t *novo_simbolo_de_nodo(ast_t *n, tipos_semanticos_t tipo);
+simbolo_t *novo_simbolo_de_nodo(ast_t *n);
 
 // libera a memoria alocada pelo simbolo 
 void libera_simbolo(simbolo_t *s);

@@ -4,13 +4,6 @@
 //Implementar o escopo como uma pilha.
 #include "tabela_simbolos.h"
 
-//Declarei tamanho arbitrario
-#define TAMANHO_MAX 13
-
-// typedef struct{
-//     int tamanho_atual;
-//     tabela_simbolos_t tabelas[TAMANHO_MAX];
-// } pilha;
 
 typedef struct pilha_escopo
 {

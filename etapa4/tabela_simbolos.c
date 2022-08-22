@@ -7,30 +7,48 @@ simbolo_t *novo_simbolo()
     return s;
 }
 
-simbolo_t *novo_simbolo_de_nodo(ast_t *n, tipos_semanticos_t tipo)
+void adiciona_valor_lexico(simbolo_t *s, valor_token_t *v)
+{
+    s->valor_lexico = (valor_token_t*)malloc(sizeof(valor_token_t));
+    memcpy(s->valor_lexico, v, sizeof(valor_token_t));
+    if(v->tipo == tk_identificador)
+        s->valor_lexico->valor.cadeia_caracteres = strdup(v->valor.cadeia_caracteres);
+}
+
+simbolo_t *novo_simbolo_de_nodo(ast_t *n)
 {
     simbolo_t *s = novo_simbolo();
+    valor_token_t *v;
     switch (n->tipo)
     {
     case identificador:
         s->natureza = simbolo_variavel;
         s->tamanho = 0;
-        s->valor_lexico = calloc(1,sizeof(valor_token_t));
-        memcpy(s->valor_lexico, n->valor_lexico, sizeof(valor_token_t));
+        s->valor_lexico = (valor_token_t*)malloc(sizeof(valor_token_t));
+        v = n->valor_lexico;
+        s->valor_lexico->linha = v->linha;
+        s->valor_lexico->tipo = v->tipo;
+        s->valor_lexico->valor.cadeia_caracteres = strdup(v->valor.cadeia_caracteres); 
         s->tipo = nda;
         break;
     case acesso_vetor:
         s->natureza = simbolo_vetor;
         s->tamanho = n->filhos[1]->valor_lexico->valor.inteiro;
-        s->valor_lexico = calloc(1,sizeof(valor_token_t));
-        memcpy(s->valor_lexico, n->filhos[0]->valor_lexico, sizeof(valor_token_t));
+        s->valor_lexico = (valor_token_t*)malloc(sizeof(valor_token_t));
+        v = n->filhos[0]->valor_lexico;
+        s->valor_lexico->linha = v->linha;
+        s->valor_lexico->tipo = v->tipo;
+        s->valor_lexico->valor.cadeia_caracteres = strdup(v->valor.cadeia_caracteres); 
         s->tipo = nda;
         break;
     case declaracao:
         s->natureza = simbolo_variavel;
         s->tamanho = 0;
-        s->valor_lexico = calloc(1,sizeof(valor_token_t));
-        memcpy(s->valor_lexico, n->filhos[0]->valor_lexico, sizeof(valor_token_t));
+        s->valor_lexico = (valor_token_t*)malloc(sizeof(valor_token_t));
+        v = n->filhos[0]->valor_lexico;
+        s->valor_lexico->linha = v->linha;
+        s->valor_lexico->tipo = v->tipo;
+        s->valor_lexico->valor.cadeia_caracteres = strdup(v->valor.cadeia_caracteres); 
         s->tipo = n->filhos[1]->tipo_sem;
         break;
     default:
@@ -42,6 +60,8 @@ simbolo_t *novo_simbolo_de_nodo(ast_t *n, tipos_semanticos_t tipo)
 
 void libera_simbolo(simbolo_t *s)
 {
+    if(s!=NULL && s->valor_lexico!=NULL)
+        libera_tk(s->valor_lexico);
     free(s);
 }
 

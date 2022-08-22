@@ -64,7 +64,7 @@ pilha_t *adiciona_lista_simbolos(pilha_t *p, ast_t *t, tipos_semanticos_t tipo)
     simbolo_t *s;
     do
     {   
-        s = novo_simbolo_de_nodo(t, tipo);
+        s = novo_simbolo_de_nodo(t);
         if(s->tipo != nda)
             verifica_tipos(s->tipo, tipo, s->valor_lexico->linha);
         s->tipo = tipo;
@@ -86,17 +86,6 @@ simbolo_t *referencia(pilha_t *p, valor_token_t *v, tipos_simbolos_t natureza)
         erro_uso_incorreto(v->valor.cadeia_caracteres, v->linha, natureza, s->natureza);
     return s;
 }
-
-//Usar essa ideia aqui para procurar por variaveis em diferentes escopos
-// void percorre_escopos(pilha *pilha){
-//     int tamanho_original = pilha->tamanho_atual;
-//     while (pilha->tamanho_atual > 0){
-//         retorna_topo_pilha(pilha);
-//         pilha->tamanho_atual--;
-//     }
-
-//     pilha->tamanho_atual = tamanho_original;
-// }
 
 simbolo_t *procura_nome_em_todas_tabelas(pilha_t *p, char *nome){
     simbolo_t *s;
@@ -154,7 +143,7 @@ void verifica_tipos(tipos_semanticos_t t, tipos_semanticos_t s, int linha)
         case int_sem:
         case bool_sem:
         case numerico_sem:
-            return; // ok, TODO: conversão pra definir o tamanho etc 
+            return; // ok
             break;
         case char_sem:
             printf("error: tryng to convert char on line %d\n", linha);
@@ -182,8 +171,6 @@ void verifica_tipos(tipos_semanticos_t t, tipos_semanticos_t s, int linha)
         break;
     }
 }
-
-
 
 tipos_semanticos_t infere_tipo(ast_t *t1, ast_t *t2)
 {

@@ -93,11 +93,17 @@ ast_t *fim_da_lista(ast_t *t)
 ast_t *remove_nodos_inuteis(ast_t *t)
 {
 	// pula nodos inuteis até achar a nova raiz 
-	ast_t *root = t;
+	ast_t *root = t, *temp;
 	while(root != NULL && root->tipo == identificador)
 	{
-		// TODO: desalocar nodo
+		temp = root;
 		root = root->filhos[root->num_filhos-1];
+		libera_tk(temp->valor_lexico);
+		if(temp->num_filhos > 1)
+			for(int i=0; i<temp->num_filhos-1; i++)
+				libera(temp->filhos[i]);
+		free(temp->filhos);
+		free(temp);
 	}
 	if(root == NULL)
 		return root;
@@ -113,11 +119,17 @@ ast_t *remove_nodos_inuteis(ast_t *t)
 		if(next != NULL && next->tipo == identificador)
 		{
 			// pula o nodo
-			// TODO: desalocar nodo  
+			temp = next;
 			if(next->num_filhos > 0)
 				n->filhos[n->num_filhos-1] = next->filhos[next->num_filhos-1];	
 			else 
 				n->filhos[n->num_filhos-1] = NULL;
+			libera_tk(temp->valor_lexico);
+			if(temp->num_filhos > 1)
+				for(int i=0; i<temp->num_filhos-1; i++)
+					libera(temp->filhos[i]);
+			free(temp->filhos);
+			free(temp);
 		}	
 		else 
 		{
@@ -291,6 +303,7 @@ extern void exporta (void *arvore)
 		imprime_nodos(arvore);	
 	}
 }
+
 
 extern void libera (void *arvore)
 {

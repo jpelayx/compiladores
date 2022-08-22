@@ -1,4 +1,7 @@
 %{
+
+// Eduardo Rhoden e Julia Rodrigues :)
+
 #include <stdio.h>
 #include <stdbool.h>
 #include "ast.h"
@@ -150,7 +153,7 @@ pilha_t *escopo = NULL;
 
 %%
 
-input: programa {arvore = $1; print_tabela(topo(escopo)); sai_escopo(escopo); };
+input: programa {arvore = $1; sai_escopo(escopo); };
 
 programa: programa var_global	{$$ = $1;} 
 	| programa funcao 
@@ -165,7 +168,8 @@ vetor: '[' TK_LIT_INT ']' {$$ = cria_nodo(literal, $2);}
 
 var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';' 
 	{simbolo_t *s = novo_simbolo();
-	 s->valor_lexico = $3;
+	 adiciona_valor_lexico(s, $3);
+	 libera_tk($3);
 	 s->tipo = $2;
 	 if($4 == NULL)
 		s->natureza = simbolo_variavel;
@@ -176,7 +180,7 @@ var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';'
 	 }
 	 escopo = adiciona_simbolo(escopo, s); 
 	 escopo = adiciona_lista_simbolos(escopo, $5, $2); // adiciona as variaveis em lista_identificadores_g
-	 //libera($5); // tem que liberar a arvore temporaria mas ai caga tudo :(
+	 libera($5); // libera arvore temporaria 
 	};
 lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor  
 	{// cria uma arvore temporaria que guarda as variaveis 
@@ -188,11 +192,9 @@ funcao: cabecalho bloco_cmd
 	{
 		insere_filho($1, $2);
 		$$ = $1;
-		printf("ESCOPO DA FUNCAO \n");
-		print_tabela(topo(escopo));
 		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
 		simbolo_t *s = novo_simbolo();
-		s->valor_lexico = $1->valor_lexico;
+		adiciona_valor_lexico(s, $1->valor_lexico);
 		s->natureza = simbolo_funcao;
 		s->tipo = $1->tipo_sem;
 		escopo = adiciona_simbolo(escopo, s); // adicionando a funcao ao escopo global
@@ -204,7 +206,8 @@ cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')'
 	 $$ = n; };	
 parametros: constante tipo TK_IDENTIFICADOR lista_parametros 
 	{simbolo_t *s = novo_simbolo();
-	 s->valor_lexico = $3;
+	 adiciona_valor_lexico(s, $3);
+	 libera_tk($3);
 	 s->natureza = simbolo_variavel;
 	 s->tipo = $2;
 	 escopo = adiciona_simbolo(escopo, s);  }
@@ -213,7 +216,8 @@ parametros: constante tipo TK_IDENTIFICADOR lista_parametros
 	 escopo = novo_escopo(escopo);};
 lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR 
 	{simbolo_t *s = novo_simbolo();
-	 s->valor_lexico = $5;
+	 adiciona_valor_lexico(s, $5);
+	 libera_tk($5);
 	 s->natureza = simbolo_variavel;
 	 s->tipo = $4;
 	 escopo = adiciona_simbolo(escopo, s); }
@@ -223,8 +227,6 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR
 
 bloco_cmd: '{' lista_comandos '}' 	
 	{$$ = $2; 
-	 printf("ESCOPO BLOCO \n");
-	 print_tabela(topo(escopo));
 	 escopo = sai_escopo(escopo); }
 lista_comandos: lista_comandos comando 
 		{$$ = insere_fim_lista($2, $1);}
@@ -259,7 +261,6 @@ inicializa_variavel:
 		} //ignora declaracao de variavel sem inicialização
 	| TK_IDENTIFICADOR TK_OC_LE identificador_ou_literal
 		{
-
 			ast_t *n = cria_nodo(declaracao, NULL);
 			insere_filho(n, cria_nodo(identificador, $1));
 			insere_filho(n, $3);
