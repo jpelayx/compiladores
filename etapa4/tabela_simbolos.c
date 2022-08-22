@@ -4,6 +4,7 @@
 simbolo_t *novo_simbolo()
 {
     simbolo_t *s = calloc(1, sizeof(simbolo_t));
+    s->tamanho = 1;
     return s;
 }
 
@@ -23,7 +24,6 @@ simbolo_t *novo_simbolo_de_nodo(ast_t *n)
     {
     case identificador:
         s->natureza = simbolo_variavel;
-        s->tamanho = 0;
         s->valor_lexico = (valor_token_t*)malloc(sizeof(valor_token_t));
         v = n->valor_lexico;
         s->valor_lexico->linha = v->linha;
@@ -43,7 +43,6 @@ simbolo_t *novo_simbolo_de_nodo(ast_t *n)
         break;
     case declaracao:
         s->natureza = simbolo_variavel;
-        s->tamanho = 0;
         s->valor_lexico = (valor_token_t*)malloc(sizeof(valor_token_t));
         v = n->filhos[0]->valor_lexico;
         s->valor_lexico->linha = v->linha;
