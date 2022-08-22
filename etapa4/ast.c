@@ -92,7 +92,6 @@ ast_t *fim_da_lista(ast_t *t)
 
 ast_t *remove_nodos_inuteis(ast_t *t)
 {
-	printf("CUUUUUUUUUUUUUUUUU \n");
 	// pula nodos inuteis até achar a nova raiz 
 	ast_t *root = t;
 	while(root != NULL && root->tipo == identificador)
