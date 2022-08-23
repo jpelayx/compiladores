@@ -18,8 +18,6 @@ extern void *arvore;
 
 pilha_t *escopo = NULL;
 
-bool abre_escopo = true;
-
 %}
 
 %code requires { #include "ast.h" }
@@ -203,9 +201,7 @@ funcao: cabecalho bloco_cmd
 	}	
 
 cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')' 
-	{
-	 abre_escopo = false;
-	 ast_t *n = cria_nodo(funcao, $3);
+	{ast_t *n = cria_nodo(funcao, $3);
 	 n->tipo_sem = $2;
 	 $$ = n; };	
 parametros: constante tipo TK_IDENTIFICADOR lista_parametros 
@@ -230,14 +226,12 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR
 	 escopo = novo_escopo(escopo); };
 
 bloco_cmd: '{' lista_comandos '}' 	
-	{$$ = $2;
-	 if(abre_escopo)
-	 	escopo = sai_escopo(escopo); }
+	{$$ = $2; 
+	 escopo = sai_escopo(escopo); }
 lista_comandos: lista_comandos comando 
 		{$$ = insere_fim_lista($2, $1);}
 	|   {$$ = NULL; 
-	     if(abre_escopo)
-	     	escopo = novo_escopo(escopo);};
+	     escopo = novo_escopo(escopo);};
 comando: 
 	bloco_cmd ';' 				{$$ = $1;}
 	| declaracao_variavel ';' 	{$$ = $1;}
