@@ -192,8 +192,6 @@ lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor
 
 funcao: cabecalho bloco_cmd
 	{
-		printf("ESCOPO FUNCAO;\n");
-		print_tabela(topo(escopo));
 		insere_filho($1, $2);
 		$$ = $1;
 		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
@@ -202,7 +200,6 @@ funcao: cabecalho bloco_cmd
 		s->natureza = simbolo_funcao;
 		s->tipo = $1->tipo_sem;
 		escopo = adiciona_simbolo(escopo, s); // adicionando a funcao ao escopo global
-		abre_escopo = true;
 	}	
 
 cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')' 
@@ -234,8 +231,6 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR
 
 bloco_cmd: '{' lista_comandos '}' 	
 	{$$ = $2;
-     printf("ESCOPO BLOCO;\n");
-	 print_tabela(topo(escopo));
 	 if(abre_escopo)
 	 	escopo = sai_escopo(escopo); }
 lista_comandos: lista_comandos comando 
