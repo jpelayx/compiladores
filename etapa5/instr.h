@@ -12,10 +12,10 @@ typedef struct operando_instr
 void libera_operando_instr(operando_instr_t *op);
 
 // gera um id novo de registrador nao usado ainda
-int novo_registrador();
+unsigned int novo_registrador();
 
 // gera um label novo nao usado ainda
-int novo_label();
+unsigned int novo_label();
 
 // estrutura instr para instruções ILOC
 typedef struct instr
@@ -26,6 +26,8 @@ typedef struct instr
     
 } instr_t ;
 
+void libera_instr(instr_t *i);
+
 typedef struct lista_instr
 {
     instr_t *i;
@@ -33,6 +35,13 @@ typedef struct lista_instr
     
 } lista_instr_t;
 
+void libera_lista_instr(lista_instr_t *l);
 
+lista_instr_t * insere_lista_instr(lista_instr_t *l, instr_t *i);
+
+
+lista_instr_t * concatena_lista_instr(lista_instr_t *head, lista_instr_t *tail);
+
+lista_instr_t * primeiro_item(lista_instr_t *l);
 
 #endif // _INSTR_H_
