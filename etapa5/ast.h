@@ -2,6 +2,7 @@
 #define _AST_H_
 
 #include "valor_token.h"
+#include "instr.h"
 
 typedef enum tipo_semantico
 {
@@ -46,6 +47,7 @@ typedef struct ast {
 	tipos_nodo_t tipo;           // tipo de nodo ast (literal, identificador, op binaria/unaria, etc)
 	tipos_semanticos_t tipo_sem; // tipo semantico (float, int, bool, char ou string)
 	valor_token_t *valor_lexico; 
+	code_t codigo;
     int num_filhos;
     struct ast **filhos;    
 } ast_t;

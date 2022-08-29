@@ -72,3 +72,68 @@ lista_instr_t * primeiro_item(lista_instr_t *l)
         l = l->prev;
     return l;
 }
+
+void remenda_true(operando_instr_t *r, code_t* c)
+{
+    operando_instr_t *b;
+    lista_operando_t *l = c->tl;
+    if (l == NULL)
+        return;
+    do
+    {
+        b = l->op;
+        *(l->op) = *r;
+        libera_operando_instr(b);       
+    } while (l != NULL );
+    free(c->tl);
+}
+
+void remenda_false(operando_instr_t *r, code_t* c)
+{
+    operando_instr_t *b;
+    lista_operando_t *l = c->fl;
+    if (l == NULL)
+        return;
+    do
+    {
+        b = l->op;
+        *(l->op) = *r;
+        libera_operando_instr(b);       
+    } while (l != NULL );
+    free(c->fl);
+}
+
+void insere_buraco_true(code_t *c, operando_instr_t *b)
+{
+    lista_operando_t *n = (lista_operando_t *)malloc(sizeof(lista_operando_t));
+    n->op = b;
+    n->prev = c->tl;
+    c->tl = n;
+}
+
+void insere_buraco_false(code_t *c, operando_instr_t *b)
+{
+    lista_operando_t *n = (lista_operando_t *)malloc(sizeof(lista_operando_t));
+    n->op = b;
+    n->prev = c->fl;
+    c->fl = n;
+}
+
+void insere_lista_buracos_true(code_t *c, lista_operando_t *bl)
+{
+    lista_operando_t *bs = bl;
+    while(bs != NULL && bs->prev != NULL)
+        bs = bs->prev;
+    bs->prev = c->tl;
+    c->tl = bl;
+}
+void insere_lista_buracos_false(code_t *c, lista_operando_t *bl)
+{
+    lista_operando_t *bs = bl;
+    while(bs != NULL && bs->prev != NULL)
+        bs = bs->prev;
+    bs->prev = c->fl;
+    c->fl = bl;
+}
+
+// void imprime_codigo(code_t *c)
