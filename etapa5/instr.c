@@ -26,6 +26,17 @@ unsigned int novo_label()
     return new_l;
 }
 
+instr_t  *cria_instr(ILOC_op opcode, operando_instr_t *arg0, operando_instr_t *arg1, operando_instr_t *arg2){
+    instr_t *instr = (instr_t *)malloc(sizeof(instr_t));
+
+    instr->opcode = opcode;
+    instr->op0 = arg0;
+    instr->op1 = arg1;
+    instr->op2 = arg2;
+    //label aqui?
+    instr->label = -1;
+}
+
 void libera_instr(instr_t *i)
 {
     if (i == NULL)

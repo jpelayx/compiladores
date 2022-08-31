@@ -75,6 +75,8 @@ typedef struct instr
 
 void libera_instr(instr_t *i);
  
+instr_t * cria_instr(ILOC_op opcode, operando_instr_t *arg0, operando_instr_t *arg1, operando_instr_t *arg2);
+
 typedef struct lista_instr
 {
     instr_t *i;
