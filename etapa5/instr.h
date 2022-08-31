@@ -1,6 +1,46 @@
 #ifndef _INSTR_H_
 #define _INSTR_H_
 
+typedef enum ILOC_opcode{
+    ILOC_nop,
+    //Aritmeticas  
+    ILOC_add,
+    ILOC_sub,
+    ILOC_mult,
+    ILOC_div,
+    ILOC_addI,
+    ILOC_subI,
+    ILOC_rsubI,
+    ILOC_multI,
+    ILOC_divI,
+    //Shifts
+    ILOC_lshift,
+    ILOC_lshiftI,
+    ILOC_rshift,
+    ILOC_rshiftI,
+    //Loads
+    ILOC_load,
+    ILOC_loadAI,
+    ILOC_loadA0,
+    //Stores
+    ILOC_store,
+    ILOC_storeAI,
+    ILOC_storeAO,
+    //Copy
+    ILOC_i2i,
+    //Fluxo de controle
+    ILOC_cmp_LT,
+    ILOC_cmp_LE,
+    ILOC_cmp_EQ,
+    ILOC_cmp_GE,
+    ILOC_cmp_GT,
+    ILOC_cmp_NE,
+    ILOC_cbr,
+    //Jumps
+    jumpI,
+    jump
+} ILOC_op;
+
 // operandos de instruções ILOC
 typedef struct operando_instr 
 {
@@ -27,14 +67,14 @@ typedef struct lista_operando
 // estrutura instr para instruções ILOC
 typedef struct instr
 {
-    char *opcode;
+    ILOC_op opcode;
     operando_instr_t *op0, *op1, *op2;
     unsigned int label;
     
 } instr_t ;
 
 void libera_instr(instr_t *i);
-
+ 
 typedef struct lista_instr
 {
     instr_t *i;
