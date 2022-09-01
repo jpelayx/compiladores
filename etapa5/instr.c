@@ -10,20 +10,55 @@ void libera_operando_instr(operando_instr_t *op)
 }
 
 
-unsigned int novo_registrador()
+operando_instr_t* novo_registrador()
 {
     static unsigned int r = 0;
-    unsigned int new_r = r;
+
+    operando_instr_t *new_r = (operando_instr_t*)malloc(sizeof(operando_instr_t));
+    new_r->tipo = registrador;
+    new_r->id = r;
     r++;
     return new_r;
 }
 
-unsigned int novo_label()
+operando_instr_t* novo_label()
 {
     static unsigned int l = 0;
-    unsigned int new_l = l;
+    operando_instr_t *new_l = (operando_instr_t*)malloc(sizeof(operando_instr_t));
+    new_l->tipo = label;
+    new_l->id = l;
     l++;
     return new_l;
+}
+
+void print_operando(operando_instr_t *op)
+{
+    switch (op->tipo)
+    {
+    case registrador:
+        printf("r%d", op->id);
+        break;
+    case label:
+        printf("L%d", op->id);
+        break;
+    case imediato:
+        printf("%d", op->val);
+        break;
+    case rfp:
+        printf("rfp");
+        break;
+    case rsp:
+        printf("rsp");
+        break;
+    case rbss:
+        printf("rbss");
+        break;
+    case rpc:
+        printf("rpc");
+        break;
+    default:
+        break;
+    }
 }
 
 instr_t  *cria_instr(ILOC_op opcode, operando_instr_t *arg0, operando_instr_t *arg1, operando_instr_t *arg2){
@@ -33,8 +68,9 @@ instr_t  *cria_instr(ILOC_op opcode, operando_instr_t *arg0, operando_instr_t *a
     instr->op0 = arg0;
     instr->op1 = arg1;
     instr->op2 = arg2;
-    //label aqui?
-    instr->label = -1;
+    instr->label = NULL;
+
+    return instr;
 }
 
 void libera_instr(instr_t *i)
@@ -44,7 +80,6 @@ void libera_instr(instr_t *i)
     libera_operando_instr(i->op0);
     libera_operando_instr(i->op1);
     libera_operando_instr(i->op2);
-    free(i->opcode);
     free(i);
 }
 
@@ -56,7 +91,7 @@ void libera_lista_instr(lista_instr_t *l)
     do
     {
         aux = l->prev;
-        libera_instr(l);
+        libera_instr(l->i);
         free(l);
         l = aux;
     } while (l != NULL);
@@ -147,4 +182,116 @@ void insere_lista_buracos_false(code_t *c, lista_operando_t *bl)
     c->fl = bl;
 }
 
-// void imprime_codigo(code_t *c)
+code_t *concatena_codigo(code_t *head, code_t *tail)
+{
+    code_t *c = (code_t*)malloc(sizeof(code_t));
+    c->tl = NULL;
+    c->fl = NULL;
+    c->codigo = concatena_lista_instr(head->codigo, tail->codigo);
+    return c;
+}
+
+void imprime_codigo(code_t *c)
+{
+    instr_t *i = c->codigo->i;
+
+    if(i->label != NULL){
+        print_operando(i->label);
+        printf(": ");
+    }
+    printf("opcode %d ", i->opcode);
+    if(i->op2 != NULL)
+    {
+        print_operando(i->op0);
+        printf(", ");
+        print_operando(i->op1);
+        printf(" => ");
+        print_operando(i->op2);
+        printf("\n");
+        return;
+    }
+    if(i->op1 != NULL)
+    {
+        print_operando(i->op0);
+        printf(" => ");
+        print_operando(i->op1);
+        printf("\n");
+        return;
+    }
+    if(i->op0 != NULL)
+    {
+        print_operando(i->op0);
+        printf("\n");
+        return;
+    }
+    printf("\n");
+}
+
+code_t *cod_load_literal(operando_instr_t *r, int n)
+{
+    // loadI n => r
+    code_t *c = calloc(1, sizeof(code_t));
+    c->codigo = calloc(1, sizeof(lista_instr_t));
+    c->codigo->prev = NULL;
+    c->codigo->i = calloc(1, sizeof(instr_t));
+    c->codigo->i->opcode = ILOC_loadI;
+    operando_instr_t *lit = calloc(1, sizeof(operando_instr_t));
+    lit->tipo = imediato;
+    lit->val = n;
+    c->codigo->i->op0 = lit;
+    c->codigo->i->op1 = r;
+
+    return c;
+}
+
+code_t *cod_load_variavel(operando_instr_t *r, int offset)
+{
+    // loadAI rfp, offset => r
+    code_t *c = calloc(1, sizeof(code_t));
+    c->codigo = calloc(1, sizeof(lista_instr_t));
+    c->codigo->prev = NULL;
+    c->codigo->i = calloc(1, sizeof(instr_t));
+    c->codigo->i->opcode = ILOC_loadAI;
+    operando_instr_t *off = calloc(1, sizeof(operando_instr_t)), 
+                     *frame = calloc(1, sizeof(operando_instr_t));
+    off->tipo = imediato;
+    off->val = offset;
+    frame->tipo = rfp;
+    c->codigo->i->op0 = frame;
+    c->codigo->i->op1 = off;
+    c->codigo->i->op2 = r;
+
+    return c;
+
+}
+
+code_t *cod_op_bin_aritmetica(operando_instr_t *src1, operando_instr_t *src2, operando_instr_t *dst, char op)
+{
+    // OP src1, src2  => dst
+    code_t *c = calloc(1, sizeof(code_t));
+    c->codigo = calloc(1, sizeof(lista_instr_t));
+    c->codigo->prev = NULL;
+    c->codigo->i = calloc(1, sizeof(instr_t));
+    switch (op)
+    {
+    case '+':
+        c->codigo->i->opcode = ILOC_add;
+        break;
+    case '-':
+        c->codigo->i->opcode = ILOC_sub;
+        break;
+    case '*':
+        c->codigo->i->opcode = ILOC_mult;
+        break;
+    case '/':
+        c->codigo->i->opcode = ILOC_div;
+        break;
+    default:
+        break;
+    }
+    c->codigo->i->op0 = src1;
+    c->codigo->i->op1 = src2;
+    c->codigo->i->op2 = dst;
+
+    return c;
+}

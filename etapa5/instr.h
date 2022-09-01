@@ -1,6 +1,8 @@
 #ifndef _INSTR_H_
 #define _INSTR_H_
 
+#include <stdio.h>
+
 typedef enum ILOC_opcode{
     ILOC_nop,
     //Aritmeticas  
@@ -22,6 +24,7 @@ typedef enum ILOC_opcode{
     ILOC_load,
     ILOC_loadAI,
     ILOC_loadA0,
+    ILOC_loadI,
     //Stores
     ILOC_store,
     ILOC_storeAI,
@@ -44,18 +47,21 @@ typedef enum ILOC_opcode{
 // operandos de instruções ILOC
 typedef struct operando_instr 
 {
-    enum tipo_operando {registrador, imediato, rfp, rsp, rbss, rpc, buraco};
+    enum tipo_operando {registrador, label, imediato, rfp, rsp, rbss, rpc, buraco} tipo;
     unsigned int id;
+    int val;
 } operando_instr_t;
 
 // libera a memoria alocada para um operando 
 void libera_operando_instr(operando_instr_t *op);
 
 // gera um id novo de registrador nao usado ainda
-unsigned int novo_registrador();
+operando_instr_t* novo_registrador();
 
 // gera um label novo nao usado ainda
-unsigned int novo_label();
+operando_instr_t* novo_label();
+
+void print_operando(operando_instr_t *op);
 
 typedef struct lista_operando
 {
@@ -68,8 +74,7 @@ typedef struct lista_operando
 typedef struct instr
 {
     ILOC_op opcode;
-    operando_instr_t *op0, *op1, *op2;
-    unsigned int label;
+    operando_instr_t *op0, *op1, *op2, *label;
     
 } instr_t ;
 
@@ -111,6 +116,15 @@ void insere_buraco_false(code_t *c, operando_instr_t *b);
 void insere_lista_buracos_true(code_t *c, lista_operando_t *bl);
 void insere_lista_buracos_false(code_t *c, lista_operando_t *bl);
 
+code_t *concatena_codigo(code_t *head, code_t *tail);
+
 void imprime_codigo(code_t *c);
 
+code_t *cod_load_literal(operando_instr_t *r, int n);
+
+code_t *cod_load_variavel(operando_instr_t *r, int offset);
+
+code_t *cod_inverte_sinal(operando_instr_t *src, operando_instr_t *dst);
+
+code_t *cod_op_bin_aritmetica(operando_instr_t *src1, operando_instr_t *src2, operando_instr_t *dst, char op);
 #endif // _INSTR_H_

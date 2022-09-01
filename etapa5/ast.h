@@ -47,7 +47,8 @@ typedef struct ast {
 	tipos_nodo_t tipo;           // tipo de nodo ast (literal, identificador, op binaria/unaria, etc)
 	tipos_semanticos_t tipo_sem; // tipo semantico (float, int, bool, char ou string)
 	valor_token_t *valor_lexico; 
-	code_t codigo;
+	code_t *codigo;
+	operando_instr_t* temp;
     int num_filhos;
     struct ast **filhos;    
 } ast_t;

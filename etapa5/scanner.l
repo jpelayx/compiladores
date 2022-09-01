@@ -121,7 +121,7 @@ default { return TK_PR_DEFAULT; }
 	yylval.valor_lexico->tipo_literal = tipo_inteiro;
 	yylval.valor_lexico->valor.inteiro = atoi(yytext);
 	return TK_LIT_INT; }
--?{real} {
+{real} {
 	yylval.valor_lexico = calloc(1, sizeof(valor_token_t));
 	yylval.valor_lexico->linha = get_line_number();
 	yylval.valor_lexico->tipo = tk_literal;

@@ -8,6 +8,7 @@
 #include "valor_token.h"
 #include "tabela_simbolos.h"
 #include "escopo.h"
+#include "instr.h"
 
 int yylex(void);
 void yyerror (char const *s);
@@ -24,6 +25,7 @@ pilha_t *escopo = NULL;
 %code requires { #include "valor_token.h" }
 %code requires { #include "tabela_simbolos.h" }
 %code requires { #include "escopo.h" }
+%code requires { #include "instr.h" }
 
 %union {
 	valor_token_t *valor_lexico;
@@ -395,28 +397,42 @@ cf_while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd
 	};
 
   /* Expressoes */
-literal_numerico: TK_LIT_INT   {$$ = cria_nodo(literal, $1); $$->tipo_sem = int_sem;}
-	            | TK_LIT_FLOAT {$$ = cria_nodo(literal, $1); $$->tipo_sem = float_sem;} ;
+literal_numerico: TK_LIT_INT   
+	{ $$ = cria_nodo(literal, $1); 
+	  $$->tipo_sem = int_sem;
+	  $$->temp = novo_registrador();
+	  $$->codigo = cod_load_literal($$->temp, $1->valor.inteiro);
+	  imprime_codigo($$->codigo); }
+	| TK_LIT_FLOAT // FORA DA ETAPA 5 
+	{ $$ = cria_nodo(literal, $1);
+	  $$->tipo_sem = float_sem;} ;
   
 operandos_aritmeticos: 
 	literal_numerico                {$$ = $1;}
 	| chamada_de_funcao             {$$ = $1;} 
-	| TK_IDENTIFICADOR acesso_vetor {
+	| TK_IDENTIFICADOR acesso_vetor { 
 		simbolo_t *s;
 		if($2 == NULL)
 			s = referencia(escopo, $1, simbolo_variavel);
 		else 
 			s = referencia(escopo, $1, simbolo_vetor);
 		$$ = cria_nodo_vetor($1, $2);
-		$$->tipo_sem = s->tipo; }
+		$$->tipo_sem = s->tipo; 
+		// assumindo que nao vao haver vetores na etapa 5
+	  	$$->temp = novo_registrador();
+		$$->codigo = cod_load_variavel($$->temp, 0);
+		imprime_codigo($$->codigo);  }
 	| expressao_aritmetica          {$$ = $1;}
 	| '(' expressao_aritmetica ')'  {$$ = $2;}
 	
 expressao_aritmetica: 
+	// ETAPA 5: APENAS BINARIAS
 	 '+' operandos_aritmeticos                          
 	{ verifica_tipos($2->tipo_sem, numerico_sem, $2->valor_lexico->linha);
 	  $$ = cria_nodo_unario(($1), $2);
-	  $$->tipo_sem = $2->tipo_sem; }
+	  $$->tipo_sem = $2->tipo_sem; 
+	  $$->temp = $2->temp;
+	  $$->codigo = $2->codigo;}
 	| '-' operandos_aritmeticos %prec inverte_sinal     
 	{ verifica_tipos($2->tipo_sem, numerico_sem, $2->valor_lexico->linha);
 	  $$ = cria_nodo_unario(($1), $2);
@@ -433,16 +449,25 @@ expressao_aritmetica:
 	{ verifica_tipos($2->tipo_sem, numerico_sem, $2->valor_lexico->linha);
 	  $$ = cria_nodo_unario(($1), $2);
 	  $$->tipo_sem = $2->tipo_sem; }
+	  // OPERAÇÕES BINARIAS
 	| operandos_aritmeticos '+' operandos_aritmeticos   
 	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 	  $$ = cria_nodo_binario(($2), $1, $3);
-	  $$->tipo_sem = infere_tipo($1, $3); }
+	  $$->tipo_sem = infere_tipo($1, $3);
+	  $$->temp = novo_registrador();
+	  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
+	  $$->codigo = concatena_codigo($$->codigo, cod_op_bin_aritmetica($1->temp, $3->temp, $$->temp, '+'));  
+	  imprime_codigo($$->codigo);}
 	| operandos_aritmeticos '-' operandos_aritmeticos   
 	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 	  $$ = cria_nodo_binario(($2), $1, $3);
-	  $$->tipo_sem = infere_tipo($1, $3); }
+	  $$->tipo_sem = infere_tipo($1, $3); 
+	  $$->temp = novo_registrador();
+	  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
+	  $$->codigo = concatena_codigo($$->codigo, cod_op_bin_aritmetica($1->temp, $3->temp, $$->temp, '-'));  
+	  imprime_codigo($$->codigo);}
 	| operandos_aritmeticos '^' operandos_aritmeticos   
 	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
@@ -452,12 +477,22 @@ expressao_aritmetica:
 	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 	  $$ = cria_nodo_binario(($2), $1, $3);
-	  $$->tipo_sem = infere_tipo($1, $3); }
+	  $$->tipo_sem = infere_tipo($1, $3); 
+	  $$->temp = novo_registrador();
+	  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
+	  $$->codigo = concatena_codigo($$->codigo, cod_op_bin_aritmetica($1->temp, $3->temp, $$->temp, '*'));  
+	  imprime_codigo($$->codigo);}
+	// divisao
 	| operandos_aritmeticos '/' operandos_aritmeticos   
 	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 	  $$ = cria_nodo_binario(($2), $1, $3);
-	  $$->tipo_sem = infere_tipo($1, $3); }
+	  $$->tipo_sem = infere_tipo($1, $3); 
+	  $$->temp = novo_registrador();
+	  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
+	  $$->codigo = concatena_codigo($$->codigo, cod_op_bin_aritmetica($1->temp, $3->temp, $$->temp, '/')); 
+	  imprime_codigo($$->codigo);}
+	// modulo
 	| operandos_aritmeticos '%' operandos_aritmeticos   
 	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
@@ -476,18 +511,32 @@ expressao_aritmetica:
 	  $$ = cria_nodo_binario(($2), $1, $3);
 	  $$->tipo_sem = infere_tipo($1, $3); }
 	
-literal_booleano: TK_LIT_TRUE  {$$ = cria_nodo(literal, ($1)); $$->tipo_sem = bool_sem;} 
-                | TK_LIT_FALSE {$$ = cria_nodo(literal, ($1)); $$->tipo_sem = bool_sem;}
+literal_booleano: TK_LIT_TRUE  
+	{ $$ = cria_nodo(literal, ($1));
+	  $$->tipo_sem = bool_sem;
+	  $$->temp = novo_registrador();
+	  $$->codigo = cod_load_literal($$->temp, 1);
+	  imprime_codigo($$->codigo);  } 
+    | TK_LIT_FALSE 
+	{ $$ = cria_nodo(literal, ($1)); 
+	  $$->tipo_sem = bool_sem;
+	  $$->temp = novo_registrador();
+	  $$->codigo = cod_load_literal($$->temp, 0);
+	  imprime_codigo($$->codigo);  }
 
 operandos_booleanos: 
 	  TK_IDENTIFICADOR acesso_vetor	{ 
 		simbolo_t *s;
 		if($2 == NULL)
-			s = referencia(escopo, $1, simbolo_variavel);
+			s = referencia(escopo, $1, simbolo_variavel); 
 		else
 			s = referencia(escopo, $1, simbolo_vetor);
 		$$ = cria_nodo_vetor($1, $2);
-		$$->tipo_sem = s->tipo; }
+		$$->tipo_sem = s->tipo; 
+		// assumindo que nao vao haver vetores na etapa 5
+	  	$$->temp = novo_registrador();
+		$$->codigo = cod_load_variavel($$->temp, 0);
+		imprime_codigo($$->codigo);  }
 	| literal_booleano {$$ = $1;}
 	| expressao_booleana {$$ = $1;}
 	| '(' expressao_booleana ')' {$$ = $2;}
@@ -553,7 +602,9 @@ expressao:
 			s = referencia(escopo, $1, simbolo_vetor);
 		$$ = cria_nodo_vetor($1, $2);
 		$$->tipo_sem = s->tipo;
-	}
+	  	$$->temp = novo_registrador();
+		$$->codigo = cod_load_variavel($$->temp, 0);
+		imprime_codigo($$->codigo);  }
 	| chamada_de_funcao             {$$ = $1;}
 	| literal_numerico              {$$ = $1;}
 	| expressao_aritmetica			{$$ = $1;}
