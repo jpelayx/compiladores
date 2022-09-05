@@ -4,11 +4,18 @@
 //Implementar o escopo como uma pilha.
 #include "tabela_simbolos.h"
 
+typedef enum tipo_escopo{
+    escopo_global,
+    escopo_funcao,
+    escopo_interno
+} tipo_escopo_t;
+
 
 typedef struct pilha_escopo
 {
     tabela_simbolos_t *t;
     struct pilha_escopo *anterior;
+    tipo_escopo_t tipo_escopo;
 } pilha_t;
 
 
@@ -20,7 +27,7 @@ tabela_simbolos_t * topo(pilha_t *p);
 //Push
 pilha_t* entra_escopo( pilha_t* pilha, tabela_simbolos_t* tabela);
 
-pilha_t* novo_escopo(pilha_t *p);
+pilha_t* novo_escopo(pilha_t *p, tipo_escopo_t tipo_escopo, int offset);
 
 //Pop
 pilha_t* sai_escopo();
@@ -53,5 +60,12 @@ void verifica_tipos(tipos_semanticos_t t, tipos_semanticos_t s, int linha);
 
 // infere o tipo a partir da combinação dos tipos de t1 e t2 
 tipos_semanticos_t infere_tipo(ast_t *t1, ast_t *t2);
+
+
+// adicionar uma variavel em um bloco interno da função aumenta
+// o deslocamento do escopo de toda a funcao
+int retorna_proximo_id_do_escopo_da_funcao(pilha_t *p);
+
+pilha_t* retorna_escopo_da_funcao_atual(pilha_t *p);
 
 #endif // _PILHA_H_

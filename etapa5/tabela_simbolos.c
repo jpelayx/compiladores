@@ -4,7 +4,8 @@
 simbolo_t *novo_simbolo()
 {
     simbolo_t *s = calloc(1, sizeof(simbolo_t));
-    s->tamanho = 1;
+    //int tem tamanho 4 e todos os tipos são int para etapa 5  
+    s->tamanho = 4;
     return s;
 }
 
@@ -72,10 +73,10 @@ void libera_lista_simbolos(lista_simbolos_t *l)
     free(l);
 }
 
-tabela_simbolos_t *init_tabela_simbolos()
+tabela_simbolos_t *init_tabela_simbolos(int offset)
 {
     tabela_simbolos_t *t = calloc(1, sizeof(tabela_simbolos_t));
-    t->proximo_id = 0;
+    t->proximo_id = offset;
     t->tamanho = INITIAL_SIZE;
     t->dados = calloc(INITIAL_SIZE, sizeof(lista_simbolos_t*));
     for(int i=0; i<INITIAL_SIZE; i++)
@@ -104,10 +105,36 @@ int func_hash(tabela_simbolos_t *t, char *id)
 tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s)
 {
     if(t == NULL)
-        t = init_tabela_simbolos();
+        t = init_tabela_simbolos(0);
 
     s->id = t->proximo_id;
-    t->proximo_id++;
+    t->proximo_id = t->proximo_id + s->tamanho;
+    int idx = func_hash(t, s->valor_lexico->valor.cadeia_caracteres);
+    lista_simbolos_t *l = t->dados[idx];
+    if(l->simbolo == NULL)
+    {
+        l->simbolo = s;
+        return t;
+    }
+
+    while(l->next != NULL)
+        l = l->next;
+    l->next = calloc(1, sizeof(lista_simbolos_t));
+    l->next->simbolo = s;
+    l->next->next = NULL;
+
+    // TODO: checar ocupação pra ver redimensionamento.
+
+    return t;
+}
+
+tabela_simbolos_t *insere_simbolo_com_offset(tabela_simbolos_t *t, simbolo_t *s, int offset)
+{
+    if(t == NULL)
+        t = init_tabela_simbolos(0);
+
+    s->id = offset;
+    t->proximo_id = offset + s->tamanho;
     int idx = func_hash(t, s->valor_lexico->valor.cadeia_caracteres);
     lista_simbolos_t *l = t->dados[idx];
     if(l->simbolo == NULL)
@@ -164,6 +191,7 @@ void print_simbolo(simbolo_t *s)
             print_natureza(s->natureza);
             printf(") : ");
             imprime_tipo_semantico(s->tipo);
+            printf(" - id: %d", s->id);
             printf("\n");
         }
         else

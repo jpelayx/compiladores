@@ -61,7 +61,7 @@ typedef struct tabela_simbolos
 } tabela_simbolos_t;
 
 // inicia a tabela com o tamanho inicial padrao INITIAL_SIZE
-tabela_simbolos_t *init_tabela_simbolos();
+tabela_simbolos_t *init_tabela_simbolos(int offset);
 
 void libera_tabela_simbolos(tabela_simbolos_t *t);
 
@@ -69,6 +69,8 @@ void libera_tabela_simbolos(tabela_simbolos_t *t);
  * retorna t ou um ponteiro novo em caso de redimensionamento
  * da tabela hash. */
 tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s);
+
+tabela_simbolos_t *insere_simbolo_com_offset(tabela_simbolos_t *t, simbolo_t *s, int offset);
 
 bool compara_nome_simbolo(simbolo_t *s, char *nome);
 

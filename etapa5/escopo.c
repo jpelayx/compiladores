@@ -4,9 +4,10 @@
 pilha_t* inicializa_pilha()
 {
     pilha_t *p = calloc(1, sizeof(pilha_t));
-    tabela_simbolos_t *escopo_global = init_tabela_simbolos();
-    p->anterior = NULL; // fundo da pilha 
-    p->t = escopo_global;
+    tabela_simbolos_t *tabela_global = init_tabela_simbolos(0);
+    p->anterior = NULL; // fundo da pilha
+    p->tipo_escopo = escopo_global; 
+    p->t = tabela_global;
     return p;
 }
 
@@ -23,11 +24,13 @@ pilha_t* entra_escopo(pilha_t *p, tabela_simbolos_t *t){
     return nt;    
 }
 
-pilha_t *novo_escopo(pilha_t *p)
+pilha_t *novo_escopo(pilha_t *p, tipo_escopo_t tipo_escopo, int offset)
 {
     pilha_t *nt = calloc(1, sizeof(pilha_t));
     nt->anterior = p;
-    nt->t = init_tabela_simbolos();
+    nt->tipo_escopo = tipo_escopo;
+    nt->t = init_tabela_simbolos(offset);
+
     return nt;
 }
 
@@ -35,6 +38,8 @@ pilha_t *novo_escopo(pilha_t *p)
 pilha_t* sai_escopo(pilha_t *p)
 {
     pilha_t *nt = p->anterior;
+    print_tabela(p->t);
+    printf("\n");
     libera_tabela_simbolos(p->t);
     free(p);
     return nt;
@@ -44,6 +49,7 @@ pilha_t * adiciona_simbolo(pilha_t *p, simbolo_t *s)
 {
     if(p == NULL)
         p = inicializa_pilha();
+    
     simbolo_t *os = busca(topo(p), s->valor_lexico->valor.cadeia_caracteres);
     if(os != NULL){
         //Já existe esse simbolo na tabela!
@@ -51,8 +57,25 @@ pilha_t * adiciona_simbolo(pilha_t *p, simbolo_t *s)
             s->valor_lexico->valor.cadeia_caracteres,
             s->valor_lexico->linha,
             os->valor_lexico->linha);
-    } else{
-        insere_simbolo(topo(p), s);
+    } else{ 
+        //Se é um escopo interno, tem que aumentar o descolamento da função!
+        switch(p->tipo_escopo){
+            case escopo_global:
+                insere_simbolo(topo(p), s);
+                break;
+            case escopo_funcao:
+                insere_simbolo(topo(p), s);
+                break;
+            case escopo_interno: ;
+                //Precisa considerar o descolamento em relação à tabela da função para saber a posição  
+                int offset = retorna_proximo_id_do_escopo_da_funcao(p);
+                insere_simbolo_com_offset(topo(p), s, offset);
+                //Aumenta o deslocamento do offset da função.
+                //Incrementa o descolamento da tabela da função
+                pilha_t *escopo_funcao_atual = retorna_escopo_da_funcao_atual(p);
+                escopo_funcao_atual->t->proximo_id = escopo_funcao_atual->t->proximo_id + s->tamanho;
+                break;
+        }
     }
     return p;
 }
@@ -188,4 +211,18 @@ tipos_semanticos_t infere_tipo(ast_t *t1, ast_t *t2)
     default:
         return nda;
     }
+}
+
+int retorna_proximo_id_do_escopo_da_funcao(pilha_t *p){
+    while(p->tipo_escopo != escopo_funcao){
+        p = p->anterior;
+    }
+    return p->t->proximo_id;
+}
+
+pilha_t* retorna_escopo_da_funcao_atual(pilha_t *p){
+    while(p->tipo_escopo != escopo_funcao){
+        p = p->anterior;
+    }
+    return p;
 }
