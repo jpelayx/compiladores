@@ -1,0 +1,22 @@
+int main(int a_0){
+	int b_0;
+	int c_0;
+	int d_0;
+	{
+		int a_1;
+		{
+			int a_2;
+			int b_2;
+			int c_2;
+		};
+		int b_1;
+		int c_1;
+	};
+	int e_0;
+	int f_0;
+}
+
+int bruh(){
+	int x_0;
+	int y_0;
+}
