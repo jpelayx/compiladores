@@ -16,7 +16,7 @@ int main(int a_0){
 	int f_0;
 }
 
-int bruh(){
+int test(){
 	int x_0;
 	int y_0;
 }
