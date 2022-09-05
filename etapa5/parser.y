@@ -101,6 +101,7 @@ pilha_t *escopo = NULL;
 %type<nodo> vetor
 %type<nodo> cabecalho
 %type<nodo> bloco_cmd
+%type<nodo> corpo_funcao
 %type<nodo> lista_comandos
 %type<nodo> comando
 %type<nodo> chamada_de_funcao
@@ -190,9 +191,9 @@ lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor
 	 $$ = insere_fim_lista(n, $1); }
 	| {$$ = NULL;} ;
 
-funcao: cabecalho bloco_cmd
+funcao: cabecalho '{' corpo_funcao '}'
 	{
-		insere_filho($1, $2);
+		insere_filho($1, $3);
 		$$ = $1;
 		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
 		simbolo_t *s = novo_simbolo();
@@ -200,7 +201,17 @@ funcao: cabecalho bloco_cmd
 		s->natureza = simbolo_funcao;
 		s->tipo = $1->tipo_sem;
 		escopo = adiciona_simbolo(escopo, s); // adicionando a funcao ao escopo global
-	}	
+	}
+
+bloco_cmd_inicio: '{' { 
+						escopo = novo_escopo(escopo, escopo_interno, retorna_proximo_id_do_escopo_da_funcao(escopo));
+					  };
+bloco_cmd_fim: '}' { escopo = sai_escopo(escopo); };
+
+corpo_funcao: 
+	//NÃO ABRE ESCOPO PRÓPRIO!!!
+	lista_comandos {$$ = $1;}
+
 
 cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')' 
 	{ast_t *n = cria_nodo(funcao, $3);
@@ -215,7 +226,7 @@ parametros: constante tipo TK_IDENTIFICADOR lista_parametros
 	 escopo = adiciona_simbolo(escopo, s);  }
 	| 
 	{// primeira redução que vai ocorrer, inicio do escopo local da funcao s/ parametros
-	 escopo = novo_escopo(escopo);};
+	 escopo = novo_escopo(escopo, escopo_funcao, 0);};
 lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR 
 	{simbolo_t *s = novo_simbolo();
 	 adiciona_valor_lexico(s, $5);
@@ -225,15 +236,13 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR
 	 escopo = adiciona_simbolo(escopo, s); }
 	| 
 	{//primeira redução que vai ocorrer, inicio do escopo local da funcao c/ paramentros
-	 escopo = novo_escopo(escopo); };
+	 escopo = novo_escopo(escopo, escopo_funcao, 0);};
 
-bloco_cmd: '{' lista_comandos '}' 	
-	{$$ = $2; 
-	 escopo = sai_escopo(escopo); }
+bloco_cmd: bloco_cmd_inicio lista_comandos bloco_cmd_fim {$$ = $2;}
+
 lista_comandos: lista_comandos comando 
 		{$$ = insere_fim_lista($2, $1);}
-	|   {$$ = NULL; 
-	     escopo = novo_escopo(escopo);};
+	|   {$$ = NULL; }
 comando: 
 	bloco_cmd ';' 				{$$ = $1;}
 	| declaracao_variavel ';' 	{$$ = $1;}
