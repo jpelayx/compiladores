@@ -159,18 +159,25 @@ pilha_t *escopo = NULL;
 input: programa {arvore = $1; sai_escopo(escopo); };
 
 programa: programa var_global	{$$ = $1;} 
-	| programa funcao 
-		{ $$ = insere_fim_lista($2, $1);		} 
-	| 	{ $$ = NULL;};
+	| programa funcao           { $$ = insere_fim_lista($2, $1);} 
+	| 	                        { $$ = NULL;};
 
-tipo: TK_PR_INT {$$ = $1;} | TK_PR_FLOAT {$$ = $1;} | TK_PR_CHAR {$$ = $1;} | TK_PR_BOOL {$$ = $1;} | TK_PR_STRING {$$ = $1;};
+tipo: TK_PR_INT    {$$ = $1;} 
+	| TK_PR_FLOAT  {$$ = $1;} 
+	| TK_PR_CHAR   {$$ = $1;} 
+	| TK_PR_BOOL   {$$ = $1;} 
+	| TK_PR_STRING {$$ = $1;};
+
 estatico: TK_PR_STATIC | ;
+
 constante: TK_PR_CONST | ;
+
 vetor: '[' TK_LIT_INT ']' {$$ = cria_nodo(literal, $2);}
      | {$$ = NULL;};
 
 var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';' 
-	{simbolo_t *s = novo_simbolo();
+	{
+	 simbolo_t *s = novo_simbolo();
 	 adiciona_valor_lexico(s, $3);
 	 libera_tk($3);
 	 s->tipo = $2;
@@ -310,7 +317,6 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 		insere_filho(n, $4);
 		libera_tk($3);
 		$$ = n;
-		
 	}
 
 entrada: TK_PR_INPUT TK_IDENTIFICADOR 

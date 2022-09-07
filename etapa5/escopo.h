@@ -25,7 +25,7 @@ pilha_t* inicializa_pilha();
 tabela_simbolos_t * topo(pilha_t *p);
 
 //Push
-pilha_t* entra_escopo( pilha_t* pilha, tabela_simbolos_t* tabela);
+pilha_t* entra_escopo(pilha_t* pilha, tabela_simbolos_t* tabela);
 
 pilha_t* novo_escopo(pilha_t *p, tipo_escopo_t tipo_escopo, int offset);
 
