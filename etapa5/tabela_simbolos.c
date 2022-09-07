@@ -107,8 +107,13 @@ tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s)
     if(t == NULL)
         t = init_tabela_simbolos(0);
 
-    s->id = t->proximo_id;
-    t->proximo_id = t->proximo_id + s->tamanho;
+    if(s->natureza == simbolo_funcao)
+        s->id = -1;
+    else
+    {
+        s->id = t->proximo_id;
+        t->proximo_id = t->proximo_id + s->tamanho;
+    }
     int idx = func_hash(t, s->valor_lexico->valor.cadeia_caracteres);
     lista_simbolos_t *l = t->dados[idx];
     if(l->simbolo == NULL)
