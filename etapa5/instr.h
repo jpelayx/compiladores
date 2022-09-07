@@ -44,6 +44,8 @@ typedef enum ILOC_opcode{
     jump
 } ILOC_op;
 
+void imprime_opcode(ILOC_op op);
+
 // operandos de instruções ILOC
 typedef struct operando_instr 
 {
@@ -60,6 +62,9 @@ operando_instr_t* novo_registrador();
 
 // gera um label novo nao usado ainda
 operando_instr_t* novo_label();
+
+// gera novo buraco
+operando_instr_t* novo_buraco();
 
 void print_operando(operando_instr_t *op);
 
@@ -100,6 +105,8 @@ lista_instr_t * concatena_lista_instr(lista_instr_t *head, lista_instr_t *tail);
 // retorna o primeiro item da lista l
 lista_instr_t * primeiro_item(lista_instr_t *l);
 
+void imprime_lista_intrucao(lista_instr_t *li);
+
 typedef struct code
 {
     lista_instr_t *codigo;
@@ -107,7 +114,6 @@ typedef struct code
 } code_t ;
 
 void remenda_true(operando_instr_t *r, code_t* c);
-
 void remenda_false(operando_instr_t *r, code_t* c);
 
 void insere_buraco_true(code_t *c, operando_instr_t *b);
@@ -115,6 +121,8 @@ void insere_buraco_false(code_t *c, operando_instr_t *b);
 
 void insere_lista_buracos_true(code_t *c, lista_operando_t *bl);
 void insere_lista_buracos_false(code_t *c, lista_operando_t *bl);
+
+void adiciona_label(operando_instr_t *l, code_t *c);
 
 code_t *concatena_codigo(code_t *head, code_t *tail);
 
@@ -127,4 +135,19 @@ code_t *cod_load_variavel(operando_instr_t *r, int offset);
 code_t *cod_inverte_sinal(operando_instr_t *src, operando_instr_t *dst);
 
 code_t *cod_op_bin_aritmetica(operando_instr_t *src1, operando_instr_t *src2, operando_instr_t *dst, char op);
+
+
+/* op: 
+ * 1: LT
+ * 2: LE
+ * 3: GT
+ * 4: GE
+ * 5: EQ
+ * 6: NE  */
+code_t *cod_op_rel_logica(operando_instr_t *src1, operando_instr_t *src2, operando_instr_t *dst, char op);
+
+code_t *cod_op_bin_lit(char op);
+
+code_t *cod_op_bin_logica(operando_instr_t *src1, operando_instr_t *src2, operando_instr_t *dst, char op);
+
 #endif // _INSTR_H_

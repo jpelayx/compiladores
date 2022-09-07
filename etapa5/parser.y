@@ -523,14 +523,12 @@ expressao_aritmetica:
 literal_booleano: TK_LIT_TRUE  
 	{ $$ = cria_nodo(literal, ($1));
 	  $$->tipo_sem = bool_sem;
-	  $$->temp = novo_registrador();
-	  $$->codigo = cod_load_literal($$->temp, 1);
+	  $$->codigo = cod_op_bin_lit('t');
 	  imprime_codigo($$->codigo);  } 
     | TK_LIT_FALSE 
 	{ $$ = cria_nodo(literal, ($1)); 
 	  $$->tipo_sem = bool_sem;
-	  $$->temp = novo_registrador();
-	  $$->codigo = cod_load_literal($$->temp, 0);
+	  $$->codigo = cod_op_bin_lit('f');
 	  imprime_codigo($$->codigo);  }
 
 operandos_booleanos: 
@@ -564,42 +562,82 @@ expressao_booleana:
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3);
+		  $$->temp = novo_registrador();
+		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
+		  $$->codigo = concatena_codigo($$->codigo, cod_op_rel_logica($1->temp, $3->temp, $$->temp, 1));
+		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos '>' operandos_aritmeticos  
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
+		  $$->temp = novo_registrador();
+		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
+		  $$->codigo = concatena_codigo($$->codigo, cod_op_rel_logica($1->temp, $3->temp, $$->temp, 3));
+		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_EQ operandos_aritmeticos  
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
+		  $$->temp = novo_registrador();
+		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
+		  $$->codigo = concatena_codigo($$->codigo, cod_op_rel_logica($1->temp, $3->temp, $$->temp, 5));
+		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_NE operandos_aritmeticos  
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
+		  $$->temp = novo_registrador();
+		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
+		  $$->codigo = concatena_codigo($$->codigo, cod_op_rel_logica($1->temp, $3->temp, $$->temp, 6));
+		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_GE operandos_aritmeticos  
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
+		  $$->temp = novo_registrador();
+		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
+		  $$->codigo = concatena_codigo($$->codigo, cod_op_rel_logica($1->temp, $3->temp, $$->temp, 4));
+		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_LE operandos_aritmeticos  
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
+		  $$->temp = novo_registrador();
+		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
+		  $$->codigo = concatena_codigo($$->codigo, cod_op_rel_logica($1->temp, $3->temp, $$->temp, 2));
+		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	//operadores logicos	
 	| operandos_booleanos TK_OC_AND operandos_booleanos 
 		{ verifica_tipos($1->tipo_sem, bool_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, bool_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
+		  operando_instr_t *l = novo_label();
+		  remenda_true(l, $1->codigo);
+		  adiciona_label(l, $3->codigo);
+		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
+		  $$->codigo->tl = $3->codigo->tl;
+		  insere_lista_buracos_false($$->codigo, $1->codigo->fl);
+		  insere_lista_buracos_false($$->codigo, $3->codigo->fl);
+		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_booleanos TK_OC_OR operandos_booleanos  
 		{ verifica_tipos($1->tipo_sem, bool_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, bool_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3);
+		  operando_instr_t *l = novo_label();
+		  remenda_false(l, $1->codigo);
+		  adiciona_label(l, $3->codigo);
+		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
+		  $$->codigo->fl = $3->codigo->fl;
+		  insere_lista_buracos_true($$->codigo, $1->codigo->tl);
+		  insere_lista_buracos_true($$->codigo, $3->codigo->tl);
+		  imprime_codigo($$->codigo);
  		  $$->tipo_sem = bool_sem; }
 	
 expressao:
