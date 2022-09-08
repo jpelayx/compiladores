@@ -564,7 +564,10 @@ expressao_booleana:
 		  $$ = cria_nodo_binario($2, $1, $3);
 		  $$->temp = novo_registrador();
 		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
-		  $$->codigo = concatena_codigo($$->codigo, cod_op_rel_logica($1->temp, $3->temp, $$->temp, 1));
+		  code_t *op_rel = cod_op_rel_logica($1->temp, $3->temp, $$->temp, 1);
+		  $$->codigo = concatena_codigo($$->codigo, op_rel);
+		  $$->codigo->tl = op_rel->tl;
+		  $$->codigo->fl = op_rel->fl;
 		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos '>' operandos_aritmeticos  
@@ -573,7 +576,10 @@ expressao_booleana:
 		  $$ = cria_nodo_binario($2, $1, $3); 
 		  $$->temp = novo_registrador();
 		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
-		  $$->codigo = concatena_codigo($$->codigo, cod_op_rel_logica($1->temp, $3->temp, $$->temp, 3));
+		  code_t *op_rel = cod_op_rel_logica($1->temp, $3->temp, $$->temp, 3);
+		  $$->codigo = concatena_codigo($$->codigo, op_rel);
+		  $$->codigo->tl = op_rel->tl;
+		  $$->codigo->fl = op_rel->fl;
 		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_EQ operandos_aritmeticos  
@@ -582,7 +588,10 @@ expressao_booleana:
 		  $$ = cria_nodo_binario($2, $1, $3); 
 		  $$->temp = novo_registrador();
 		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
-		  $$->codigo = concatena_codigo($$->codigo, cod_op_rel_logica($1->temp, $3->temp, $$->temp, 5));
+		  code_t *op_rel = cod_op_rel_logica($1->temp, $3->temp, $$->temp, 5);
+		  $$->codigo = concatena_codigo($$->codigo, op_rel);
+		  $$->codigo->tl = op_rel->tl;
+		  $$->codigo->fl = op_rel->fl;
 		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_NE operandos_aritmeticos  
@@ -591,7 +600,10 @@ expressao_booleana:
 		  $$ = cria_nodo_binario($2, $1, $3); 
 		  $$->temp = novo_registrador();
 		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
-		  $$->codigo = concatena_codigo($$->codigo, cod_op_rel_logica($1->temp, $3->temp, $$->temp, 6));
+		  code_t *op_rel = cod_op_rel_logica($1->temp, $3->temp, $$->temp, 6);
+		  $$->codigo = concatena_codigo($$->codigo, op_rel);
+		  $$->codigo->tl = op_rel->tl;
+		  $$->codigo->fl = op_rel->fl;
 		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_GE operandos_aritmeticos  
@@ -600,7 +612,10 @@ expressao_booleana:
 		  $$ = cria_nodo_binario($2, $1, $3); 
 		  $$->temp = novo_registrador();
 		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
-		  $$->codigo = concatena_codigo($$->codigo, cod_op_rel_logica($1->temp, $3->temp, $$->temp, 4));
+		  code_t *op_rel = cod_op_rel_logica($1->temp, $3->temp, $$->temp, 4);
+		  $$->codigo = concatena_codigo($$->codigo, op_rel);
+		  $$->codigo->tl = op_rel->tl;
+		  $$->codigo->fl = op_rel->fl;
 		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_LE operandos_aritmeticos  
@@ -609,7 +624,10 @@ expressao_booleana:
 		  $$ = cria_nodo_binario($2, $1, $3); 
 		  $$->temp = novo_registrador();
 		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
-		  $$->codigo = concatena_codigo($$->codigo, cod_op_rel_logica($1->temp, $3->temp, $$->temp, 2));
+		  code_t *op_rel = cod_op_rel_logica($1->temp, $3->temp, $$->temp, 2);
+		  $$->codigo = concatena_codigo($$->codigo, op_rel);
+		  $$->codigo->tl = op_rel->tl;
+		  $$->codigo->fl = op_rel->fl;
 		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	//operadores logicos	
