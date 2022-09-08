@@ -106,9 +106,9 @@ tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s)
 {
     if(t == NULL)
         t = init_tabela_simbolos(0);
-
+    
     if(s->natureza == simbolo_funcao)
-        s->id = -1;
+        s->id = -1; // valor padrao 
     else
     {
         s->id = t->proximo_id;
