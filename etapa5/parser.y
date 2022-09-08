@@ -309,6 +309,7 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 		insere_filho(n, cria_nodo_vetor($1, $2));
 		insere_filho(n, $4);
 		libera_tk($3);
+		n->codigo = $4->codigo;
 		$$ = n;
 		
 	}
@@ -378,8 +379,32 @@ cf_if: TK_PR_IF '(' expressao ')' bloco_cmd cf_else
 		ast_t *n = cria_nodo(cmd_if, NULL);
 		insere_filho(n, $3);
 		insere_filho(n, $5);
+		code_t *cod_if, *cod_else, *cod_fim;
 		if($6 != NULL)
+		{
 			insere_filho(n, $6);
+			cod_else = $6->codigo;
+		}
+		else
+		{
+			// instrução vazia que recebe o label 
+			cod_else = cod_nop();
+		}
+		operando_instr_t *lt = novo_label(),
+						 *lf = novo_label(),
+						 *fim = novo_label();
+		adiciona_label(lt, $5->codigo);
+		adiciona_label(lf, cod_else);
+		remenda_true(lt, $3->codigo);
+		remenda_false(lf, $3->codigo);
+		cod_else = concatena_codigo(cod_else, cod_jump_incondicional(fim));
+		cod_if   = concatena_codigo($5->codigo, cod_jump_incondicional(fim));
+		cod_fim = cod_nop();
+		adiciona_label(fim, cod_fim);
+		n->codigo = concatena_codigo($3->codigo, cod_if);
+		n->codigo = concatena_codigo(n->codigo, cod_else);
+		n->codigo = concatena_codigo(n->codigo, cod_fim);
+		imprime_codigo(n->codigo);
 		$$ = n;
 	};
 cf_else: TK_PR_ELSE bloco_cmd {$$ = $2;}

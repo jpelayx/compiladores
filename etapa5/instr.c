@@ -299,7 +299,6 @@ code_t *cod_load_variavel(operando_instr_t *r, int offset)
     c->codigo->i->op2 = r;
 
     return c;
-
 }
 
 code_t *cod_op_bin_aritmetica(operando_instr_t *src1, operando_instr_t *src2, operando_instr_t *dst, char op)
@@ -399,6 +398,24 @@ code_t *cod_op_bin_lit(char op)
         insere_buraco_true(c, b);
     else
         insere_buraco_false(c, b);
+    return c;
+}
+
+code_t *cod_jump_incondicional(operando_instr_t *l)
+{
+    code_t *c = calloc(1, sizeof(code_t));
+    c->codigo = calloc(1, sizeof(lista_instr_t));
+    c->codigo->i = calloc(1, sizeof(instr_t));
+    c->codigo->i->opcode = jumpI;
+    c->codigo->i->op0 = l;
+    return c;
+}
+
+code_t *cod_nop()
+{
+    code_t *c = calloc(1, sizeof(code_t));
+    c->codigo = calloc(1, sizeof(lista_instr_t));
+    c->codigo->i = calloc(1, sizeof(instr_t));
     return c;
 }
 
