@@ -427,6 +427,19 @@ cf_while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd
 		ast_t *n = cria_nodo(cmd_while, NULL);
 		insere_filho(n, $3);
 		insere_filho(n, $6);
+		operando_instr_t *condicao = novo_label(),
+		                 *inicio = novo_label(),
+		                 *fim = novo_label();
+		code_t *cod_bloco = concatena_codigo($6->codigo, cod_jump_incondicional(condicao)),
+		       *cod_fim = cod_nop();
+		adiciona_label(condicao, $3->codigo);
+		adiciona_label(inicio, cod_bloco);
+		adiciona_label(fim, cod_fim);
+		remenda_true(inicio, $3->codigo);
+		remenda_false(fim, $3->codigo);
+		n->codigo = concatena_codigo($3->codigo, cod_bloco);
+		n->codigo = concatena_codigo(n->codigo, cod_fim);
+		imprime_codigo(n->codigo);
 		$$ = n;
 	};
 
