@@ -39,6 +39,14 @@ operando_instr_t* novo_buraco()
     return new_b;
 }
 
+operando_instr_t* gera_imediato(int val)
+{
+    operando_instr_t *new_i = (operando_instr_t*)malloc(sizeof(operando_instr_t));
+    new_i->tipo = imediato;
+    new_i->val = val;
+    return new_i;
+}
+
 void print_operando(operando_instr_t *op)
 {
     switch (op->tipo)
@@ -281,6 +289,27 @@ code_t *cod_load_literal(operando_instr_t *r, int n)
     return c;
 }
 
+code_t *cod_store_variavel(operando_instr_t *r, int offset)
+{
+    // storeAI r => rfp, offset 
+    code_t *c = calloc(1, sizeof(code_t));
+    c->codigo = calloc(1, sizeof(lista_instr_t));
+    c->codigo->prev = NULL;
+    c->codigo->i = calloc(1, sizeof(instr_t));
+    c->codigo->i->opcode = ILOC_storeAI;
+    operando_instr_t *off = calloc(1, sizeof(operando_instr_t)), 
+                     *frame = calloc(1, sizeof(operando_instr_t));
+    off->tipo = imediato;
+    off->val = offset;
+    frame->tipo = rfp;
+    c->codigo->i->op0 = r;
+    c->codigo->i->op1 = frame;
+    c->codigo->i->op2 = off;
+
+    return c;
+
+}
+
 code_t *cod_load_variavel(operando_instr_t *r, int offset)
 {
     // loadAI rfp, offset => r
@@ -298,6 +327,41 @@ code_t *cod_load_variavel(operando_instr_t *r, int offset)
     c->codigo->i->op1 = off;
     c->codigo->i->op2 = r;
 
+    return c;
+}
+
+code_t *cod_load_variavel_logica(int offset)
+{
+    // loadAI rfp, offset => temp
+    // cbr temp => t, f
+    code_t *c = calloc(1, sizeof(code_t));
+
+    lista_instr_t *load = calloc(1, sizeof(lista_instr_t));
+    load->i = calloc(1, sizeof(instr_t));
+    load->i->opcode = ILOC_loadAI;
+    operando_instr_t *off = calloc(1, sizeof(operando_instr_t)), 
+                     *frame = calloc(1, sizeof(operando_instr_t)),
+                     *temp = novo_registrador();
+    off->tipo = imediato;
+    off->val = offset;
+    frame->tipo = rfp;
+    load->i->op0 = frame;
+    load->i->op1 = off;
+    load->i->op2 = temp;
+
+    lista_instr_t *cbr = calloc(1, sizeof(lista_instr_t));
+    cbr->prev = load;
+    cbr->i = calloc(1, sizeof(instr_t));
+    cbr->i->opcode = ILOC_cbr;
+    cbr->i->op0 = temp;
+    operando_instr_t *t = novo_buraco(),
+                     *f = novo_buraco();
+    cbr->i->op1 = t; 
+    cbr->i->op2 = f; 
+
+    c->codigo = cbr;
+    insere_buraco_true(c, t);
+    insere_buraco_false(c, f);
     return c;
 }
 

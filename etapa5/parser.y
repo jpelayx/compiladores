@@ -316,7 +316,30 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 		insere_filho(n, cria_nodo_vetor($1, $2));
 		insere_filho(n, $4);
 		libera_tk($3);
-		n->codigo = $4->codigo;
+		if($4->codigo->tl != NULL || $4->codigo->fl != NULL) // atriuicao bool
+		{
+			operando_instr_t *lt = novo_label(),
+			                 *lf = novo_label(),
+							 *fim = novo_label();
+			code_t *cod_true = cod_store_variavel(gera_imediato(1), s->tamanho);
+			cod_true = concatena_codigo(cod_true, cod_jump_incondicional(fim));
+			adiciona_label(lt, cod_true);
+			code_t *cod_false = cod_store_variavel(gera_imediato(0), s->tamanho);
+			cod_false = concatena_codigo(cod_false, cod_jump_incondicional(fim));
+			adiciona_label(lf, cod_false);
+			code_t *cod_fim = cod_nop();
+			adiciona_label(fim, cod_fim);
+			remenda_true(lt, $4->codigo);
+			remenda_false(lf, $4->codigo);
+			n->codigo = concatena_codigo($4->codigo, cod_true);
+			n->codigo = concatena_codigo(n->codigo, cod_false);
+			n->codigo = concatena_codigo(n->codigo, cod_fim);
+		}
+		else // atribuicao int
+		{
+			n->codigo = cod_store_variavel($4->temp, s->tamanho);
+		}
+		imprime_codigo(n->codigo);
 		$$ = n;
 	}
 
@@ -585,8 +608,7 @@ operandos_booleanos:
 		$$ = cria_nodo_vetor($1, $2);
 		$$->tipo_sem = s->tipo; 
 		// assumindo que nao vao haver vetores na etapa 5
-	  	$$->temp = novo_registrador();
-		$$->codigo = cod_load_variavel($$->temp, 0);
+		$$->codigo = cod_load_variavel_logica(s->tamanho);
 		imprime_codigo($$->codigo);  }
 	| literal_booleano {$$ = $1;}
 	| expressao_booleana {$$ = $1;}

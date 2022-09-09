@@ -66,6 +66,8 @@ operando_instr_t* novo_label();
 // gera novo buraco
 operando_instr_t* novo_buraco();
 
+operando_instr_t* gera_imediato(int val);
+
 void print_operando(operando_instr_t *op);
 
 typedef struct lista_operando
@@ -128,9 +130,13 @@ code_t *concatena_codigo(code_t *head, code_t *tail);
 
 void imprime_codigo(code_t *c);
 
+code_t *cod_store_variavel(operando_instr_t *r, int offset);
+
 code_t *cod_load_literal(operando_instr_t *r, int n);
 
 code_t *cod_load_variavel(operando_instr_t *r, int offset);
+
+code_t *cod_load_variavel_logica(int offset);
 
 code_t *cod_inverte_sinal(operando_instr_t *src, operando_instr_t *dst);
 
