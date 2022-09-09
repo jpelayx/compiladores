@@ -496,7 +496,7 @@ operandos_aritmeticos:
 		$$->tipo_sem = s->tipo; 
 		// assumindo que nao vao haver vetores na etapa 5
 	  	$$->temp = novo_registrador();
-		$$->codigo = cod_load_variavel($$->temp, 0);
+		$$->codigo = cod_load_variavel($$->temp, s->tamanho);
 		imprime_codigo($$->codigo);  }
 	| expressao_aritmetica          {$$ = $1;}
 	| '(' expressao_aritmetica ')'  {$$ = $2;}
@@ -734,7 +734,7 @@ expressao:
 		$$ = cria_nodo_vetor($1, $2);
 		$$->tipo_sem = s->tipo;
 	  	$$->temp = novo_registrador();
-		$$->codigo = cod_load_variavel($$->temp, 0);
+		$$->codigo = cod_load_variavel($$->temp, s->tamanho);
 		imprime_codigo($$->codigo);  }
 	| chamada_de_funcao             {$$ = $1;}
 	| literal_numerico              {$$ = $1;}
