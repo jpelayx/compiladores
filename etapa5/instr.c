@@ -207,6 +207,12 @@ void adiciona_label(operando_instr_t *l, code_t *c)
 
 code_t *concatena_codigo(code_t *head, code_t *tail)
 {
+    if(head == NULL && tail == NULL)
+        return NULL;
+    if(head == NULL)
+        return tail;
+    if(tail == NULL)
+        return head;
     code_t *c = (code_t*)calloc(1,sizeof(code_t));
     c->codigo = concatena_lista_instr(head->codigo, tail->codigo);
     return c;

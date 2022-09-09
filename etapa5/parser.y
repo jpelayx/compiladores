@@ -248,7 +248,18 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR
 bloco_cmd: bloco_cmd_inicio lista_comandos bloco_cmd_fim {$$ = $2;}
 
 lista_comandos: lista_comandos comando 
-		{$$ = insere_fim_lista($2, $1);}
+		{
+			$$ = insere_fim_lista($2, $1);
+			if($1 != NULL && $2 != NULL)
+				$$->codigo = concatena_codigo($1->codigo, $2->codigo);
+			else
+			{
+				if($1 != NULL)
+					$$->codigo = $1->codigo;
+				if($2 != NULL)
+					$$->codigo = $2->codigo;
+			}
+		}
 	|   {$$ = NULL; }
 comando: 
 	bloco_cmd ';' 				{$$ = $1;}
@@ -337,7 +348,7 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 		}
 		else // atribuicao int
 		{
-			n->codigo = cod_store_variavel($4->temp, s->tamanho);
+			n->codigo = concatena_codigo($4->codigo, cod_store_variavel($4->temp, s->tamanho));
 		}
 		imprime_codigo(n->codigo);
 		$$ = n;
@@ -447,6 +458,25 @@ cf_for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd
 		insere_filho(n, $5);
 		insere_filho(n, $7);
 		insere_filho(n, $9);
+		operando_instr_t *condicao = novo_label(),
+		                 *inicio = novo_label(),
+		                 *fim = novo_label();
+		code_t *cod_bloco = concatena_codigo($9->codigo, $7->codigo);
+		cod_bloco = concatena_codigo(cod_bloco, cod_jump_incondicional(condicao));
+		adiciona_label(inicio, cod_bloco);
+
+		adiciona_label(condicao, $5->codigo);
+		remenda_true(inicio, $5->codigo);
+		remenda_false(fim, $5->codigo);
+		adiciona_label(inicio, $9->codigo);
+
+		code_t *cod_fim = cod_nop();
+		adiciona_label(fim, cod_fim);
+
+		n->codigo = concatena_codigo($3->codigo, $5->codigo);
+		n->codigo = concatena_codigo(n->codigo, cod_bloco);
+		n->codigo = concatena_codigo(n->codigo, cod_fim);
+		imprime_codigo(n->codigo);
 		$$ = n;
 	};
 
