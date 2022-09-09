@@ -332,10 +332,10 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 			operando_instr_t *lt = novo_label(),
 			                 *lf = novo_label(),
 							 *fim = novo_label();
-			code_t *cod_true = cod_store_variavel(gera_imediato(1), s->tamanho);
+			code_t *cod_true = cod_store_variavel(gera_imediato(1), s->id);
 			cod_true = concatena_codigo(cod_true, cod_jump_incondicional(fim));
 			adiciona_label(lt, cod_true);
-			code_t *cod_false = cod_store_variavel(gera_imediato(0), s->tamanho);
+			code_t *cod_false = cod_store_variavel(gera_imediato(0), s->id);
 			cod_false = concatena_codigo(cod_false, cod_jump_incondicional(fim));
 			adiciona_label(lf, cod_false);
 			code_t *cod_fim = cod_nop();
@@ -348,7 +348,7 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 		}
 		else // atribuicao int
 		{
-			n->codigo = concatena_codigo($4->codigo, cod_store_variavel($4->temp, s->tamanho));
+			n->codigo = concatena_codigo($4->codigo, cod_store_variavel($4->temp, s->id));
 		}
 		imprime_codigo(n->codigo);
 		$$ = n;
@@ -526,7 +526,7 @@ operandos_aritmeticos:
 		$$->tipo_sem = s->tipo; 
 		// assumindo que nao vao haver vetores na etapa 5
 	  	$$->temp = novo_registrador();
-		$$->codigo = cod_load_variavel($$->temp, s->tamanho);
+		$$->codigo = cod_load_variavel($$->temp, s->id);
 		imprime_codigo($$->codigo);  }
 	| expressao_aritmetica          {$$ = $1;}
 	| '(' expressao_aritmetica ')'  {$$ = $2;}
@@ -638,7 +638,7 @@ operandos_booleanos:
 		$$ = cria_nodo_vetor($1, $2);
 		$$->tipo_sem = s->tipo; 
 		// assumindo que nao vao haver vetores na etapa 5
-		$$->codigo = cod_load_variavel_logica(s->tamanho);
+		$$->codigo = cod_load_variavel_logica(s->id);
 		imprime_codigo($$->codigo);  }
 	| literal_booleano {$$ = $1;}
 	| expressao_booleana {$$ = $1;}
@@ -764,7 +764,7 @@ expressao:
 		$$ = cria_nodo_vetor($1, $2);
 		$$->tipo_sem = s->tipo;
 	  	$$->temp = novo_registrador();
-		$$->codigo = cod_load_variavel($$->temp, s->tamanho);
+		$$->codigo = cod_load_variavel($$->temp, s->id);
 		imprime_codigo($$->codigo);  }
 	| chamada_de_funcao             {$$ = $1;}
 	| literal_numerico              {$$ = $1;}
