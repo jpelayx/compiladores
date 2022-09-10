@@ -96,4 +96,11 @@ void imprime_arestas(ast_t *arvore);
 
 void imprime_tipo_semantico(tipos_semanticos_t t);
 
+//Não consegui mover para instr.h/instr.c, entao fica aqui por enquanto
+//Só concatena o código gerado pelos parametros e coloca no nodo de chamada de funcao.
+//Ainda falta fazer os jumps, inicializar rpf e etc.
+
+//Precisa fazer o store no escopo atual ainda!
+code_t *cod_prepara_chamada_funcao(ast_t *parametros);
+
 #endif //_AST_H_

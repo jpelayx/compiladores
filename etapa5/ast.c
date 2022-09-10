@@ -242,7 +242,37 @@ void imprime_nodo(ast_t *nodo){
 		}		
 		// Final comum para todos os labels	
 		printf("\"];\n");
+
+		/* Tava usando isso aqui pra debuggar, mas vou comentar pq fica mto poluído
+		printf("CÓDIGO DO NODO: \n");
+		if(nodo->codigo != NULL){
+			imprime_codigo(nodo->codigo);
+		}
+		printf("\nFIM DO CÓDIGO\n");
+		*/
 	}	
+}
+
+code_t *cod_prepara_chamada_funcao(ast_t *parametros){
+	if(parametros != NULL){
+		ast_t* filho = calloc(1,sizeof(ast_t));
+		//filhos[0] pq os parametros só tem um filho, que é o proximo parametro
+		filho = parametros->filhos[0];
+		if(filho != NULL){
+			code_t* result = calloc(1, sizeof(code_t));
+			result = parametros->codigo;
+			do{
+				result = concatena_codigo(result, filho->codigo);
+				filho = filho->filhos[0];
+			} while(filho != NULL);
+			return result;
+		} else {
+			return parametros->codigo;
+		}
+	}
+	else {
+		return NULL;
+	}
 }
 
 void imprime_nodos(ast_t *arvore){
