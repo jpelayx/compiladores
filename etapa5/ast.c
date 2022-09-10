@@ -243,7 +243,7 @@ void imprime_nodo(ast_t *nodo){
 		// Final comum para todos os labels	
 		printf("\"];\n");
 
-		/* Tava usando isso aqui pra debuggar, mas vou comentar pq fica mto poluído
+		/* Tava usando isso aqui pra debuggar, mas vou comentar pq fica mto po
 		printf("CÓDIGO DO NODO: \n");
 		if(nodo->codigo != NULL){
 			imprime_codigo(nodo->codigo);
