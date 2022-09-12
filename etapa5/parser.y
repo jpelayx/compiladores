@@ -208,6 +208,13 @@ funcao: cabecalho '{' corpo_funcao '}'
 		s->natureza = simbolo_funcao;
 		s->tipo = $1->tipo_sem;
 		escopo = adiciona_simbolo(escopo, s); // adicionando a funcao ao escopo global
+		if($3 != NULL)
+		{
+			$$->temp = novo_label();
+			$$->codigo = $3->codigo;
+			adiciona_label($$->temp, $$->codigo);
+			imprime_codigo($$->codigo);
+		}
 	}
 
 bloco_cmd_inicio: '{' { 

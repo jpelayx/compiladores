@@ -255,11 +255,13 @@ void imprime_nodo(ast_t *nodo){
 
 code_t *cod_prepara_chamada_funcao(ast_t *parametros){
 	if(parametros != NULL){
-		ast_t* filho = calloc(1,sizeof(ast_t));
+		// ast_t* filho = calloc(1,sizeof(ast_t)); 
+		ast_t* filho; //nao precisa alocar 
 		//filhos[0] pq os parametros só tem um filho, que é o proximo parametro
 		filho = parametros->filhos[0];
 		if(filho != NULL){
-			code_t* result = calloc(1, sizeof(code_t));
+			// code_t* result = calloc(1, sizeof(code_t)); 
+			code_t* result;
 			result = parametros->codigo;
 			do{
 				result = concatena_codigo(result, filho->codigo);

@@ -138,8 +138,6 @@ code_t *cod_load_variavel(operando_instr_t *r, int offset);
 
 code_t *cod_load_variavel_logica(int offset);
 
-code_t *cod_inverte_sinal(operando_instr_t *src, operando_instr_t *dst);
-
 code_t *cod_op_bin_aritmetica(operando_instr_t *src1, operando_instr_t *src2, operando_instr_t *dst, char op);
 
 
