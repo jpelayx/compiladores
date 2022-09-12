@@ -386,17 +386,31 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 	{
 		simbolo_t *s = referencia(escopo, $1, simbolo_funcao);
 		ast_t *n = cria_nodo(chamada_funcao, $1);
-		//NÃO insere parametros como filhos da chamada de funcao		
-		//if($3 != NULL)
-			//insere_filho(n, $3);
 		n->tipo_sem = s->tipo;
-		$$ = n;
 		printf("ISSO AQUI É O CODIGO DO NODO DA CHAMADA DE FUNCAO\n");
-		n->codigo = cod_prepara_chamada_funcao($3);
-		if(n->codigo != NULL){
-			imprime_codigo(n->codigo);
+		// n->codigo = cod_prepara_chamada_funcao($3);
+		// if(n->codigo != NULL){
+			// imprime_codigo(n->codigo);
+		// }
+		n->codigo = cod_nop(); // depois sai
+		ast_t *ps = $3;
+		int param_offset = 12; // primeiro parametro salvo em rsp + 12
+		while(ps != NULL)
+		{
+			if(ps->codigo != NULL)
+			{
+				n->codigo = concatena_codigo(n->codigo, ps->codigo);
+				n->codigo = concatena_codigo(n->codigo, cod_load_parametro(ps->temp, param_offset));
+				param_offset += 4;
+			}
+			if(ps->num_filhos > 0)
+				ps = ps->filhos[ps->num_filhos-1];
+			else 
+				ps = NULL;
 		}
+		imprime_codigo(n->codigo);
 		printf("FIM DO CODIGO DO NODO DA CHAMADA DE FUNCAO\n");
+		$$ = n;
 	};
 
 shift: TK_IDENTIFICADOR acesso_vetor token_shift TK_LIT_INT

@@ -154,6 +154,8 @@ code_t *cod_op_bin_lit(char op);
 
 code_t *cod_op_bin_logica(operando_instr_t *src1, operando_instr_t *src2, operando_instr_t *dst, char op);
 
+code_t *cod_load_parametro(operando_instr_t *r, int offset);
+
 code_t *cod_jump_incondicional(operando_instr_t *l);
 
 code_t *cod_nop();

@@ -471,6 +471,24 @@ code_t *cod_op_bin_lit(char op)
     return c;
 }
 
+code_t *cod_load_parametro(operando_instr_t *r, int offset)
+{
+    // storeAI r => rsp, offset
+    code_t *c = calloc(1, sizeof(code_t));
+    c->codigo = calloc(1, sizeof(lista_instr_t));
+    c->codigo->i = calloc(1, sizeof(instr_t));
+    c->codigo->i->opcode = ILOC_storeAI;
+    operando_instr_t *sp = calloc(1, sizeof(operando_instr_t)),
+                     *of = calloc(1, sizeof(operando_instr_t));
+    sp->tipo = rsp;
+    of->tipo = imediato;
+    of->val = offset;
+    c->codigo->i->op0 = r;
+    c->codigo->i->op1 = sp;
+    c->codigo->i->op2 = of;
+    return c;
+}
+
 code_t *cod_jump_incondicional(operando_instr_t *l)
 {
     code_t *c = calloc(1, sizeof(code_t));
