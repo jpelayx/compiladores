@@ -388,26 +388,34 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 		ast_t *n = cria_nodo(chamada_funcao, $1);
 		n->tipo_sem = s->tipo;
 		printf("ISSO AQUI É O CODIGO DO NODO DA CHAMADA DE FUNCAO\n");
-		// n->codigo = cod_prepara_chamada_funcao($3);
-		// if(n->codigo != NULL){
-			// imprime_codigo(n->codigo);
-		// }
-		n->codigo = cod_nop(); // depois sai
-		ast_t *ps = $3;
-		int param_offset = 12; // primeiro parametro salvo em rsp + 12
+		/* rsp + 0: endereco de retorno 
+		 *     + 4: rsp 
+		 *     + 8: rfp 
+		 *     + 12: numero de parametros 
+		 *     + 16: valor de retorno 
+		 *     + ... 16 + num_params * 4: parametros 
+		 *     + ...: vars locais                     */
+		code_t *cod_params = NULL;
+		ast_t  *ps = $3;
+		int param_offset = 16; // primeiro parametro salvo em rsp + 20
 		while(ps != NULL)
 		{
+			param_offset += 4;
 			if(ps->codigo != NULL)
 			{
-				n->codigo = concatena_codigo(n->codigo, ps->codigo);
-				n->codigo = concatena_codigo(n->codigo, cod_load_parametro(ps->temp, param_offset));
-				param_offset += 4;
+				cod_params = concatena_codigo(cod_params, ps->codigo);
+				cod_params = concatena_codigo(cod_params, cod_load_parametro(ps->temp, param_offset));
 			}
 			if(ps->num_filhos > 0)
 				ps = ps->filhos[ps->num_filhos-1];
 			else 
 				ps = NULL;
 		}
+		n->temp = n12ovo_registrador();
+		n->codigo = cod_chamada_func_antes(num_linhas(cod_params) + 6,
+		                                   param_offset/4-4);
+	    n->codigo = concatena_codigo(n->codigo, cod_params);
+		n->codigo = concatena_codigo(n->codigo, cod_load_parametro(n->temp, 16));
 		imprime_codigo(n->codigo);
 		printf("FIM DO CODIGO DO NODO DA CHAMADA DE FUNCAO\n");
 		$$ = n;

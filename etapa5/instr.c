@@ -138,6 +138,20 @@ lista_instr_t * primeiro_item(lista_instr_t *l)
     return l;
 }
 
+int num_linhas(code_t *c)
+{
+    int n = 0;
+    if (c == NULL)
+        return n;
+    lista_instr_t *l = c->codigo;
+    while(l != NULL)
+    {
+        n++;
+        l = l->prev;
+    }
+    return n;
+}
+
 void remenda_true(operando_instr_t *r, code_t* c)
 {
     lista_operando_t *l = c->tl;
@@ -468,6 +482,93 @@ code_t *cod_op_bin_lit(char op)
         insere_buraco_true(c, b);
     else
         insere_buraco_false(c, b);
+    return c;
+}
+
+code_t *cod_chamada_func_antes(int retorno, int num_parametros)
+{
+    // addI rpc, ret => t0  
+    // storeAI t0 => rsp, 0
+    // storeAI rsp => rsp, 4
+    // storeAI rfp => rsp, 8
+    // loadI num_params => t0 
+    // storeAI t0 => rsp, 12
+    code_t *c = calloc(1, sizeof(code_t));
+
+    lista_instr_t *calc_ret = calloc(1, sizeof(lista_instr_t));
+	calc_ret->i = calloc(1, sizeof(instr_t));
+    calc_ret->i->opcode = ILOC_addI;
+    operando_instr_t *pc = calloc(1, sizeof(operando_instr_t)),
+                     *ret = calloc(1, sizeof(operando_instr_t)),
+                     *t0 = novo_registrador();
+    pc->tipo = rpc;
+    ret->tipo = imediato;
+    ret->val = retorno;
+    calc_ret->i->op0 = pc;
+    calc_ret->i->op1 = ret;
+    calc_ret->i->op2 = t0;
+    calc_ret->prev = NULL;
+
+    lista_instr_t *store_ret = calloc(1, sizeof(lista_instr_t));
+	store_ret->i = calloc(1, sizeof(instr_t));
+    store_ret->i->opcode = ILOC_storeAI;
+    operando_instr_t *sp = calloc(1, sizeof(operando_instr_t)), 
+                     *i0 = calloc(1, sizeof(instr_t));
+    sp->tipo = rsp;
+    i0->tipo = imediato;
+    i0->val = 0;
+    store_ret->i->op0 = t0;
+    store_ret->i->op1 = sp;
+    store_ret->i->op2 = i0;
+    store_ret->prev = calc_ret;
+
+    lista_instr_t *store_rsp = calloc(1, sizeof(lista_instr_t));
+	store_rsp->i = calloc(1, sizeof(instr_t));
+    store_rsp->i->opcode = ILOC_storeAI;
+    operando_instr_t *i4 = calloc(1, sizeof(instr_t));
+    i4->tipo = imediato;
+    i4->val = 4;
+    store_rsp->i->op0 = sp;
+    store_rsp->i->op1 = sp;
+    store_rsp->i->op2 = i4;
+    store_rsp->prev = store_ret;
+    
+    lista_instr_t *store_rfp = calloc(1, sizeof(lista_instr_t));
+	store_rfp->i = calloc(1, sizeof(instr_t));
+    store_rfp->i->opcode = ILOC_storeAI;
+    operando_instr_t *fp = calloc(1, sizeof(operando_instr_t)), 
+                     *i8 = calloc(1, sizeof(instr_t));
+    fp->tipo = rfp;
+    i8->tipo = imediato;
+    i8->val = 8;
+    store_rfp->i->op0 = fp;
+    store_rfp->i->op1 = sp;
+    store_rfp->i->op2 = i8;
+    store_rfp->prev = store_rsp;
+
+    lista_instr_t *load_num_params = calloc(1, sizeof(lista_instr_t));
+	load_num_params->i = calloc(1, sizeof(instr_t));
+    load_num_params->i->opcode = ILOC_loadI;
+    operando_instr_t *num_params = calloc(1, sizeof(operando_instr_t));
+    num_params->tipo = imediato;
+    num_params->val = num_parametros;
+    load_num_params->i->op0 = num_params;
+    load_num_params->i->op1 = t0;
+    load_num_params->prev = store_rfp;
+
+    lista_instr_t *store_num_params = calloc(1, sizeof(lista_instr_t));
+	store_num_params->i = calloc(1, sizeof(instr_t));
+    store_num_params->i->opcode = ILOC_storeAI;
+    operando_instr_t *i12 = calloc(1, sizeof(operando_instr_t));
+    sp->tipo = rsp;
+    i12->tipo = imediato;
+    i12->val = 12;
+    store_num_params->i->op0 = t0;
+    store_num_params->i->op1 = sp;
+    store_num_params->i->op2 = i12;
+    store_num_params->prev = load_num_params;
+
+    c->codigo = store_num_params;
     return c;
 }
 

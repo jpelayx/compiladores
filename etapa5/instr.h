@@ -115,6 +115,8 @@ typedef struct code
     lista_operando_t *tl, *fl; 
 } code_t ;
 
+int num_linhas(code_t *c);
+
 void remenda_true(operando_instr_t *r, code_t* c);
 void remenda_false(operando_instr_t *r, code_t* c);
 
@@ -155,6 +157,8 @@ code_t *cod_op_bin_lit(char op);
 code_t *cod_op_bin_logica(operando_instr_t *src1, operando_instr_t *src2, operando_instr_t *dst, char op);
 
 code_t *cod_load_parametro(operando_instr_t *r, int offset);
+
+code_t *cod_chamada_func_antes(int retorno, int num_parametros);
 
 code_t *cod_jump_incondicional(operando_instr_t *l);
 
