@@ -73,10 +73,10 @@ void libera_lista_simbolos(lista_simbolos_t *l)
     free(l);
 }
 
-tabela_simbolos_t *init_tabela_simbolos(int offset)
+tabela_simbolos_t *init_tabela_simbolos()
 {
     tabela_simbolos_t *t = calloc(1, sizeof(tabela_simbolos_t));
-    t->proximo_id = offset;
+    t->proximo_id = REGISTRO_ATIVACAO_OFFSET + 4;
     t->tamanho = INITIAL_SIZE;
     t->dados = calloc(INITIAL_SIZE, sizeof(lista_simbolos_t*));
     for(int i=0; i<INITIAL_SIZE; i++)
@@ -105,7 +105,7 @@ int func_hash(tabela_simbolos_t *t, char *id)
 tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s)
 {
     if(t == NULL)
-        t = init_tabela_simbolos(0);
+        t = init_tabela_simbolos();
     
     if(s->natureza == simbolo_funcao)
         s->id = -1; // valor padrao 
@@ -136,7 +136,7 @@ tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s)
 tabela_simbolos_t *insere_simbolo_com_offset(tabela_simbolos_t *t, simbolo_t *s, int offset)
 {
     if(t == NULL)
-        t = init_tabela_simbolos(0);
+        t = init_tabela_simbolos();
 
     s->id = offset;
     t->proximo_id = offset + s->tamanho;
@@ -157,6 +157,23 @@ tabela_simbolos_t *insere_simbolo_com_offset(tabela_simbolos_t *t, simbolo_t *s,
     // TODO: checar ocupação pra ver redimensionamento.
 
     return t;
+}
+
+int numero_parametros(tabela_simbolos_t *t)
+{
+    lista_simbolos_t *l;
+    int num_parametros = 0;
+    for(int i=0; i<t->tamanho; i++)
+    {
+        l = t->dados[i];
+        while (l != NULL)
+        {
+            if(l->simbolo != NULL && l->simbolo->natureza == simbolo_parametro)
+                num_parametros++;
+            l = l->next;
+        }
+    }
+    return num_parametros;
 }
 
 void libera_tabela_simbolos(tabela_simbolos_t *t)
@@ -213,6 +230,8 @@ void print_natureza(tipos_simbolos_t n)
     switch (n)
     {
     case simbolo_parametro:
+        printf("parameter");
+        break;
     case simbolo_variavel:
         printf("variable");
         break;

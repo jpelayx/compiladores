@@ -330,9 +330,29 @@ code_t *cod_store_variavel(operando_instr_t *r, int offset)
 
 }
 
+code_t *cod_load_pilha(operando_instr_t *r, int offset)
+{
+    // loadAI (rfp | rsp), offset => r
+    code_t *c = calloc(1, sizeof(code_t));
+    c->codigo = calloc(1, sizeof(lista_instr_t));
+    c->codigo->prev = NULL;
+    c->codigo->i = calloc(1, sizeof(instr_t));
+    c->codigo->i->opcode = ILOC_loadAI;
+    operando_instr_t *off = calloc(1, sizeof(operando_instr_t)), 
+                     *frame = calloc(1, sizeof(operando_instr_t));
+    off->tipo = imediato;
+    off->val = offset;
+    frame->tipo = rsp;
+    c->codigo->i->op0 = frame;
+    c->codigo->i->op1 = off;
+    c->codigo->i->op2 = r;
+
+    return c;
+}
+
 code_t *cod_load_variavel(operando_instr_t *r, int offset)
 {
-    // loadAI rfp, offset => r
+    // loadAI (rfp | rsp), offset => r
     code_t *c = calloc(1, sizeof(code_t));
     c->codigo = calloc(1, sizeof(lista_instr_t));
     c->codigo->prev = NULL;
@@ -485,14 +505,123 @@ code_t *cod_op_bin_lit(char op)
     return c;
 }
 
+code_t *cod_funcao_prologo(int num_parametros)
+{
+    // i2i rsp => rfp 
+    // addI rsp, n => rsp // n depende do numero de parametros 
+    code_t *c = calloc(1, sizeof(code_t));
+
+    lista_instr_t *i2i = calloc(1, sizeof(lista_instr_t));
+    i2i->i = calloc(1, sizeof(instr_t));
+    i2i->i->opcode = ILOC_i2i;
+    operando_instr_t *sp = calloc(1, sizeof(operando_instr_t)),
+                     *fp = calloc(1, sizeof(operando_instr_t));
+    sp->tipo = rsp;
+    fp->tipo = rfp;
+    i2i->i->op0 = sp;
+    i2i->i->op1 = fp;
+    i2i->prev = NULL;
+
+    lista_instr_t *addI = calloc(1, sizeof(lista_instr_t));
+    addI->i = calloc(1, sizeof(instr_t));
+    addI->i->opcode = ILOC_addI;
+    operando_instr_t *n = calloc(1, sizeof(operando_instr_t));
+    n->tipo = imediato;
+    n->val = REGISTRO_ATIVACAO_OFFSET + num_parametros*4 + 4;
+    addI->i->op0 = sp;
+    addI->i->op1 = n;
+    addI->i->op2 = sp;
+    addI->prev = i2i;
+
+    c->codigo = addI;
+    return c;
+}
+
+code_t *cod_funcao_epilogo(operando_instr_t *ret)
+{
+    // storeAI ret => rfp, 12 // se ret == NULL
+    // loadAI rfp, 0 => t0 // endereco de retorno  
+    // loadAI rfp, 4 => t1 // rsp
+    // loadAI rfp, 8 => t2 // rfp
+    // i2i t1 => rsp 
+    // i2i t2 => rfp
+    // jump => t0
+
+    code_t *c = calloc(1, sizeof(code_t));
+
+    lista_instr_t *str_ret = calloc(1, sizeof(lista_instr_t));
+	str_ret->i = calloc(1, sizeof(instr_t));
+    str_ret->i->opcode = ILOC_storeAI;
+    operando_instr_t *fp = calloc(1, sizeof(operando_instr_t)),
+                     *i12 = gera_imediato(12);
+    fp->tipo = rfp;
+    str_ret->i->op0 = ret;
+    str_ret->i->op1 = fp;
+    str_ret->i->op2 = i12;
+    str_ret->prev = NULL;
+
+    lista_instr_t *ld_end = calloc(1, sizeof(lista_instr_t));
+	ld_end->i = calloc(1, sizeof(instr_t));
+    ld_end->i->opcode = ILOC_loadAI;
+    operando_instr_t *t0 = novo_registrador(),
+                     *i0 = gera_imediato(0);
+    ld_end->i->op0 = fp;
+    ld_end->i->op1 = i0;
+    ld_end->i->op2 = t0;
+    ld_end->prev = (ret == NULL)? NULL : str_ret;
+
+    lista_instr_t *ld_rsp = calloc(1, sizeof(lista_instr_t));
+	ld_rsp->i = calloc(1, sizeof(instr_t));
+    ld_rsp->i->opcode = ILOC_loadAI;
+    operando_instr_t *t1 = novo_registrador(),
+                     *i4 = gera_imediato(4);
+    ld_rsp->i->op0 = fp;
+    ld_rsp->i->op1 = i4;
+    ld_rsp->i->op2 = t1;
+    ld_rsp->prev = ld_end;
+
+    lista_instr_t *ld_rfp = calloc(1, sizeof(lista_instr_t));
+	ld_rfp->i = calloc(1, sizeof(instr_t));
+    ld_rfp->i->opcode = ILOC_loadAI;
+    operando_instr_t *t2 = novo_registrador(),
+                     *i8 = gera_imediato(8);
+    ld_rfp->i->op0 = fp;
+    ld_rfp->i->op1 = i8;
+    ld_rfp->i->op2 = t2;
+    ld_rfp->prev = ld_rsp;
+
+    lista_instr_t *i2_rsp = calloc(1, sizeof(lista_instr_t));
+	i2_rsp->i = calloc(1, sizeof(instr_t));
+    i2_rsp->i->opcode = ILOC_i2i;
+    operando_instr_t *sp = calloc(1, sizeof(operando_instr_t));
+    sp->tipo = rsp;
+    i2_rsp->i->op0 = t1;
+    i2_rsp->i->op1 = sp;
+    i2_rsp->prev = ld_rfp;
+
+    lista_instr_t *i2_rfp = calloc(1, sizeof(lista_instr_t));
+	i2_rfp->i = calloc(1, sizeof(instr_t));
+    i2_rfp->i->opcode = ILOC_i2i;
+    i2_rfp->i->op0 = t2;
+    i2_rfp->i->op1 = fp;
+    i2_rfp->prev = i2_rsp;
+
+    lista_instr_t *jump_end = calloc(1, sizeof(lista_instr_t));
+	jump_end->i = calloc(1, sizeof(instr_t));
+    jump_end->i->opcode = jump;
+    jump_end->i->op0 = t0;
+    jump_end->prev = i2_rfp;
+
+    c->codigo = jump_end;
+    return c;
+}
+
 code_t *cod_chamada_func_antes(int retorno, int num_parametros)
 {
     // addI rpc, ret => t0  
     // storeAI t0 => rsp, 0
     // storeAI rsp => rsp, 4
     // storeAI rfp => rsp, 8
-    // loadI num_params => t0 
-    // storeAI t0 => rsp, 12
     code_t *c = calloc(1, sizeof(code_t));
 
     lista_instr_t *calc_ret = calloc(1, sizeof(lista_instr_t));
@@ -546,29 +675,7 @@ code_t *cod_chamada_func_antes(int retorno, int num_parametros)
     store_rfp->i->op2 = i8;
     store_rfp->prev = store_rsp;
 
-    lista_instr_t *load_num_params = calloc(1, sizeof(lista_instr_t));
-	load_num_params->i = calloc(1, sizeof(instr_t));
-    load_num_params->i->opcode = ILOC_loadI;
-    operando_instr_t *num_params = calloc(1, sizeof(operando_instr_t));
-    num_params->tipo = imediato;
-    num_params->val = num_parametros;
-    load_num_params->i->op0 = num_params;
-    load_num_params->i->op1 = t0;
-    load_num_params->prev = store_rfp;
-
-    lista_instr_t *store_num_params = calloc(1, sizeof(lista_instr_t));
-	store_num_params->i = calloc(1, sizeof(instr_t));
-    store_num_params->i->opcode = ILOC_storeAI;
-    operando_instr_t *i12 = calloc(1, sizeof(operando_instr_t));
-    sp->tipo = rsp;
-    i12->tipo = imediato;
-    i12->val = 12;
-    store_num_params->i->op0 = t0;
-    store_num_params->i->op1 = sp;
-    store_num_params->i->op2 = i12;
-    store_num_params->prev = load_num_params;
-
-    c->codigo = store_num_params;
+    c->codigo = store_rsp;
     return c;
 }
 

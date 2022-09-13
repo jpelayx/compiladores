@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#define REGISTRO_ATIVACAO_OFFSET 12
+
 typedef enum ILOC_opcode{
     ILOC_nop,
     //Aritmeticas  
@@ -136,6 +138,8 @@ code_t *cod_store_variavel(operando_instr_t *r, int offset);
 
 code_t *cod_load_literal(operando_instr_t *r, int n);
 
+code_t *cod_load_pilha(operando_instr_t *r, int offset);
+
 code_t *cod_load_variavel(operando_instr_t *r, int offset);
 
 code_t *cod_load_variavel_logica(int offset);
@@ -159,6 +163,10 @@ code_t *cod_op_bin_logica(operando_instr_t *src1, operando_instr_t *src2, operan
 code_t *cod_load_parametro(operando_instr_t *r, int offset);
 
 code_t *cod_chamada_func_antes(int retorno, int num_parametros);
+
+code_t *cod_funcao_prologo(int num_parametros);
+
+code_t *cod_funcao_epilogo(operando_instr_t *ret);
 
 code_t *cod_jump_incondicional(operando_instr_t *l);
 

@@ -25,6 +25,7 @@ typedef struct simbolo {
     tipos_simbolos_t natureza;
     int tamanho;
     valor_token_t *valor_lexico;
+    operando_instr_t *label;
 } simbolo_t;
 
 // cria novo simbolo vazio
@@ -61,7 +62,7 @@ typedef struct tabela_simbolos
 } tabela_simbolos_t;
 
 // inicia a tabela com o tamanho inicial padrao INITIAL_SIZE
-tabela_simbolos_t *init_tabela_simbolos(int offset);
+tabela_simbolos_t *init_tabela_simbolos();
 
 void libera_tabela_simbolos(tabela_simbolos_t *t);
 
@@ -80,6 +81,9 @@ bool compara_nome_simbolo(simbolo_t *s, char *nome);
 simbolo_t *busca(tabela_simbolos_t *t, char *nome);
 
 int func_hash(tabela_simbolos_t *t, char* id);
+
+// retorna o numero de parametros no escopo
+int numero_parametros(tabela_simbolos_t *t);
 
 // p/ debug
 void print_tabela(tabela_simbolos_t *t);

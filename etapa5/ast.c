@@ -253,6 +253,18 @@ void imprime_nodo(ast_t *nodo){
 	}	
 }
 
+operando_instr_t *retorno(ast_t *t)
+{
+	while (t != NULL )
+	{
+		if(t->tipo == cmd_return)
+			return t->temp;
+		t = t->filhos[t->num_filhos-1];
+	}
+	return NULL;	
+}
+
+
 code_t *cod_prepara_chamada_funcao(ast_t *parametros){
 	if(parametros != NULL){
 		// ast_t* filho = calloc(1,sizeof(ast_t)); 

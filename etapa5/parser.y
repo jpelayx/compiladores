@@ -202,19 +202,25 @@ funcao: cabecalho '{' corpo_funcao '}'
 	{
 		insere_filho($1, $3);
 		$$ = $1;
+		$$->codigo = cod_funcao_prologo(numero_parametros(escopo->t)); // adiciona o prologo antes de fechar o escopo local
 		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
 		simbolo_t *s = novo_simbolo();
 		adiciona_valor_lexico(s, $1->valor_lexico);
 		s->natureza = simbolo_funcao;
 		s->tipo = $1->tipo_sem;
+		s->label = novo_label();
 		escopo = adiciona_simbolo(escopo, s); // adicionando a funcao ao escopo global
+		operando_instr_t *ret;
 		if($3 != NULL)
 		{
-			$$->temp = novo_label();
-			$$->codigo = $3->codigo;
-			adiciona_label($$->temp, $$->codigo);
-			imprime_codigo($$->codigo);
+			$$->codigo = concatena_codigo($$->codigo, $3->codigo);
+		    ret = retorno($3);
 		}
+		else 
+			ret = NULL;
+		$$->codigo = concatena_codigo($$->codigo, cod_funcao_epilogo(ret));
+		adiciona_label(s->label, $$->codigo);
+		imprime_codigo($$->codigo);
 	}
 
 bloco_cmd_inicio: '{' { 
@@ -235,7 +241,7 @@ parametros: constante tipo TK_IDENTIFICADOR lista_parametros
 	{simbolo_t *s = novo_simbolo();
 	 adiciona_valor_lexico(s, $3);
 	 libera_tk($3);
-	 s->natureza = simbolo_variavel;
+	 s->natureza = simbolo_parametro;
 	 s->tipo = $2;
 	 escopo = adiciona_simbolo(escopo, s);  }
 	| 
@@ -245,7 +251,7 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR
 	{simbolo_t *s = novo_simbolo();
 	 adiciona_valor_lexico(s, $5);
 	 libera_tk($5);
-	 s->natureza = simbolo_variavel;
+	 s->natureza = simbolo_parametro;
 	 s->tipo = $4;
 	 escopo = adiciona_simbolo(escopo, s); }
 	| 
@@ -391,13 +397,12 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 		/* rsp + 0: endereco de retorno 
 		 *     + 4: rsp 
 		 *     + 8: rfp 
-		 *     + 12: numero de parametros 
-		 *     + 16: valor de retorno 
-		 *     + ... 16 + num_params * 4: parametros 
+		 *     + 12: valor de retorno 
+		 *     + ... 12 + num_params * 4: parametros 
 		 *     + ...: vars locais                     */
 		code_t *cod_params = NULL;
 		ast_t  *ps = $3;
-		int param_offset = 16; // primeiro parametro salvo em rsp + 20
+		int param_offset = REGISTRO_ATIVACAO_OFFSET; // primeiro parametro salvo em rsp + 16
 		while(ps != NULL)
 		{
 			param_offset += 4;
@@ -411,11 +416,12 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 			else 
 				ps = NULL;
 		}
-		n->temp = n12ovo_registrador();
-		n->codigo = cod_chamada_func_antes(num_linhas(cod_params) + 6,
-		                                   param_offset/4-4);
+		n->temp = novo_registrador();
+		n->codigo = cod_chamada_func_antes(num_linhas(cod_params) + 4,
+		                                   param_offset/4-REGISTRO_ATIVACAO_OFFSET/4);
 	    n->codigo = concatena_codigo(n->codigo, cod_params);
-		n->codigo = concatena_codigo(n->codigo, cod_load_parametro(n->temp, 16));
+	    n->codigo = concatena_codigo(n->codigo, cod_jump_incondicional(s->label));
+		n->codigo = concatena_codigo(n->codigo, cod_load_pilha(n->temp, 12));
 		imprime_codigo(n->codigo);
 		printf("FIM DO CODIGO DO NODO DA CHAMADA DE FUNCAO\n");
 		$$ = n;
@@ -442,6 +448,7 @@ retorno: TK_PR_RETURN expressao
 		ast_t *n = cria_nodo(cmd_return, NULL);
 		insere_filho(n, $2);
 		n->tipo_sem = $2->tipo_sem;
+		n->temp = novo_registrador();
 		$$ = n;
 	};
 
