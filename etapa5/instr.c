@@ -308,7 +308,7 @@ code_t *cod_load_literal(operando_instr_t *r, int n)
     return c;
 }
 
-code_t *cod_store_variavel(operando_instr_t *r, int offset)
+code_t *cod_store_variavel(operando_instr_t *r, int offset, bool global)
 {
     // storeAI r => rfp, offset 
     code_t *c = calloc(1, sizeof(code_t));
@@ -320,7 +320,7 @@ code_t *cod_store_variavel(operando_instr_t *r, int offset)
                      *frame = calloc(1, sizeof(operando_instr_t));
     off->tipo = imediato;
     off->val = offset;
-    frame->tipo = rfp;
+    frame->tipo = global ? rbss : rfp;
     c->codigo->i->op0 = r;
     c->codigo->i->op1 = frame;
     c->codigo->i->op2 = off;
@@ -349,7 +349,7 @@ code_t *cod_load_pilha(operando_instr_t *r, int offset)
     return c;
 }
 
-code_t *cod_load_variavel(operando_instr_t *r, int offset)
+code_t *cod_load_variavel(operando_instr_t *r, int offset, bool global)
 {
     // loadAI (rfp | rsp), offset => r
     code_t *c = calloc(1, sizeof(code_t));
@@ -361,7 +361,7 @@ code_t *cod_load_variavel(operando_instr_t *r, int offset)
                      *frame = calloc(1, sizeof(operando_instr_t));
     off->tipo = imediato;
     off->val = offset;
-    frame->tipo = rfp;
+    frame->tipo = global ? rbss : rfp;
     c->codigo->i->op0 = frame;
     c->codigo->i->op1 = off;
     c->codigo->i->op2 = r;
@@ -369,7 +369,7 @@ code_t *cod_load_variavel(operando_instr_t *r, int offset)
     return c;
 }
 
-code_t *cod_load_variavel_logica(int offset)
+code_t *cod_load_variavel_logica(int offset, bool global)
 {
     // loadAI rfp, offset => temp
     // cbr temp => t, f
@@ -383,7 +383,7 @@ code_t *cod_load_variavel_logica(int offset)
                      *temp = novo_registrador();
     off->tipo = imediato;
     off->val = offset;
-    frame->tipo = rfp;
+    frame->tipo = global ? rbss : rfp;
     load->i->op0 = frame;
     load->i->op1 = off;
     load->i->op2 = temp;
@@ -504,7 +504,7 @@ code_t *cod_op_bin_lit(char op)
     return c;
 }
 
-code_t *cod_atribuicao_logica_var(int offset, code_t *cod_expr)
+code_t *cod_atribuicao_logica_var(int offset, code_t *cod_expr, bool global)
 {
     operando_instr_t *lt = novo_label(),
                      *lf = novo_label(),
@@ -512,11 +512,11 @@ code_t *cod_atribuicao_logica_var(int offset, code_t *cod_expr)
                      *temp = novo_registrador();
     
     code_t *cod_true = cod_load_literal(temp, 1);
-    cod_true = concatena_codigo(cod_true, cod_store_variavel(temp, offset));
+    cod_true = concatena_codigo(cod_true, cod_store_variavel(temp, offset, global));
     cod_true = concatena_codigo(cod_true, cod_jump_incondicional(fim));
     adiciona_label(lt, cod_true);
     code_t *cod_false = cod_load_literal(temp, 0);
-    cod_false = concatena_codigo(cod_false, cod_store_variavel(temp, offset));
+    cod_false = concatena_codigo(cod_false, cod_store_variavel(temp, offset, global));
     cod_false = concatena_codigo(cod_false, cod_jump_incondicional(fim));
     adiciona_label(lf, cod_false);
     code_t *cod_fim = cod_nop();

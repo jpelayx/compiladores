@@ -388,11 +388,11 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 		libera_tk($3);
 		if(eh_booleana($4)) // atriuicao bool
 		{
-			n->codigo = cod_atribuicao_logica_var(s->id, $4->codigo);
+			n->codigo = cod_atribuicao_logica_var(s->id, $4->codigo, s->global);
 		}
 		else // atribuicao int
 		{
-			n->codigo = concatena_codigo($4->codigo, cod_store_variavel($4->temp, s->id));
+			n->codigo = concatena_codigo($4->codigo, cod_store_variavel($4->temp, s->id, s->global));
 		}
 		$$ = n;
 	}
@@ -608,7 +608,7 @@ operandos_aritmeticos:
 		$$->tipo_sem = s->tipo; 
 		// assumindo que nao vao haver vetores na etapa 5
 	  	$$->temp = novo_registrador();
-		$$->codigo = cod_load_variavel($$->temp, s->id);
+		$$->codigo = cod_load_variavel($$->temp, s->id, s->global);
 		  }
 	| expressao_aritmetica          {$$ = $1;}
 	| '(' expressao_aritmetica ')'  {$$ = $2;}
@@ -720,7 +720,7 @@ operandos_booleanos:
 		$$ = cria_nodo_vetor($1, $2);
 		$$->tipo_sem = s->tipo; 
 		// assumindo que nao vao haver vetores na etapa 5
-		$$->codigo = cod_load_variavel_logica(s->id);
+		$$->codigo = cod_load_variavel_logica(s->id, s->global);
 		  }
 	| literal_booleano {$$ = $1;}
 	| expressao_booleana {$$ = $1;}
@@ -840,7 +840,7 @@ expressao:
 		$$ = cria_nodo_vetor($1, $2);
 		$$->tipo_sem = s->tipo;
 	  	$$->temp = novo_registrador();
-		$$->codigo = cod_load_variavel($$->temp, s->id);
+		$$->codigo = cod_load_variavel($$->temp, s->id, s->global);
 		  }
 	| chamada_de_funcao             {$$ = $1;}
 	| literal_numerico              {$$ = $1;}

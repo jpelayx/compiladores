@@ -26,6 +26,7 @@ typedef struct simbolo {
     int tamanho;
     valor_token_t *valor_lexico;
     operando_instr_t *label;
+    bool global;
 } simbolo_t;
 
 // cria novo simbolo vazio

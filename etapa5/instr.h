@@ -2,6 +2,7 @@
 #define _INSTR_H_
 
 #include <stdio.h>
+#include <stdbool.h>
 
 #define REGISTRO_ATIVACAO_OFFSET 12
 
@@ -135,15 +136,15 @@ code_t *concatena_codigo(code_t *head, code_t *tail);
 
 void imprime_codigo(code_t *c);
 
-code_t *cod_store_variavel(operando_instr_t *r, int offset);
+code_t *cod_store_variavel(operando_instr_t *r, int offset, bool global);
 
 code_t *cod_load_literal(operando_instr_t *r, int n);
 
 code_t *cod_load_pilha(operando_instr_t *r, int offset);
 
-code_t *cod_load_variavel(operando_instr_t *r, int offset);
+code_t *cod_load_variavel(operando_instr_t *r, int offset, bool global);
 
-code_t *cod_load_variavel_logica(int offset);
+code_t *cod_load_variavel_logica(int offset, bool global);
 
 code_t *cod_op_bin_aritmetica(operando_instr_t *src1, operando_instr_t *src2, operando_instr_t *dst, char op);
 
@@ -161,7 +162,7 @@ code_t *cod_op_bin_lit(char op);
 
 code_t *cod_op_bin_logica(operando_instr_t *src1, operando_instr_t *src2, operando_instr_t *dst, char op);
 
-code_t *cod_atribuicao_logica_var(int offset, code_t *cod_expr);
+code_t *cod_atribuicao_logica_var(int offset, code_t *cod_expr, bool global);
 
 code_t *cod_atribuicao_logica_reg(operando_instr_t* reg, code_t *cod_expr);
 

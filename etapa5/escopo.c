@@ -61,13 +61,16 @@ pilha_t * adiciona_simbolo(pilha_t *p, simbolo_t *s)
         //Se é um escopo interno, tem que aumentar o descolamento da função!
         switch(p->tipo_escopo){
             case escopo_global:
+                s->global = true;
                 insere_simbolo(topo(p), s);
                 break;
             case escopo_funcao:
+                s->global = false;
                 insere_simbolo(topo(p), s);
                 break;
             case escopo_interno: ;
                 //Precisa considerar o descolamento em relação à tabela da função para saber a posição  
+                s->global = false;
                 int offset = retorna_proximo_id_do_escopo_da_funcao(p);
                 insere_simbolo_com_offset(topo(p), s, offset);
                 //Aumenta o deslocamento do offset da função.
