@@ -271,7 +271,7 @@ parametros: constante tipo TK_IDENTIFICADOR lista_parametros
 	{simbolo_t *s = novo_simbolo();
 	 adiciona_valor_lexico(s, $3);
 	 libera_tk($3);
-	 s->natureza = simbolo_variavel;
+	 s->natureza = simbolo_parametro;
 	 s->tipo = $2;
 	 escopo = adiciona_simbolo(escopo, s);  }
 	| 
@@ -281,7 +281,7 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR
 	{simbolo_t *s = novo_simbolo();
 	 adiciona_valor_lexico(s, $5);
 	 libera_tk($5);
-	 s->natureza = simbolo_variavel;
+	 s->natureza = simbolo_parametro;
 	 s->tipo = $4;
 	 escopo = adiciona_simbolo(escopo, s); }
 	| 

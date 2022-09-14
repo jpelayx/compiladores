@@ -105,9 +105,20 @@ simbolo_t *referencia(pilha_t *p, valor_token_t *v, tipos_simbolos_t natureza)
     simbolo_t *s = procura_nome_em_todas_tabelas(p, v->valor.cadeia_caracteres);
     if(s == NULL)
         erro_nao_declaracao(v->valor.cadeia_caracteres, v->linha);
-    if(s->natureza != natureza)
+    if(verifica_erro_uso(s->natureza, natureza) )
         erro_uso_incorreto(v->valor.cadeia_caracteres, v->linha, natureza, s->natureza);
     return s;
+}
+
+bool verifica_erro_uso(tipos_simbolos_t n0, tipos_simbolos_t n1)
+{
+    if(n0 == n1)
+        return false;
+    if(n0 == simbolo_parametro && n1 == simbolo_variavel)
+        return false;
+    if(n0 == simbolo_variavel && n1 == simbolo_parametro)
+        return false;
+    return true;
 }
 
 simbolo_t *procura_nome_em_todas_tabelas(pilha_t *p, char *nome){

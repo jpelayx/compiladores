@@ -55,6 +55,8 @@ void erro_redeclaracao(char *nome, int linha_redeclaracao, int linha_original);
 
 void erro_uso_incorreto(char *nome, int linha, tipos_simbolos_t tipo, tipos_simbolos_t tipo_original);
 
+bool verifica_erro_uso(tipos_simbolos_t n0, tipos_simbolos_t n1);
+
 // verifica que o tipo da arvore t é compativel com o tipo esperado s
 void verifica_tipos(tipos_semanticos_t t, tipos_semanticos_t s, int linha);
 
