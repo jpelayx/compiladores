@@ -285,6 +285,7 @@ void imprime_lista_intrucao(lista_instr_t *li)
     }
     if(i->op0 != NULL)
     {
+        printf("=> ");
         print_operando(i->op0);
         printf("\n");
         return;
