@@ -510,12 +510,15 @@ code_t *cod_atribuicao_logica_var(int offset, code_t *cod_expr)
 {
     operando_instr_t *lt = novo_label(),
                      *lf = novo_label(),
-                     *fim = novo_label();
+                     *fim = novo_label(),
+                     *temp = novo_registrador();
     
-    code_t *cod_true = cod_store_variavel(gera_imediato(1), offset);
+    code_t *cod_true = cod_load_literal(temp, 1);
+    cod_true = concatena_codigo(cod_true, cod_store_variavel(temp, offset));
     cod_true = concatena_codigo(cod_true, cod_jump_incondicional(fim));
     adiciona_label(lt, cod_true);
-    code_t *cod_false = cod_store_variavel(gera_imediato(0), offset);
+    code_t *cod_false = cod_load_literal(temp, 0);
+    cod_false = concatena_codigo(cod_false, cod_store_variavel(temp, offset));
     cod_false = concatena_codigo(cod_false, cod_jump_incondicional(fim));
     adiciona_label(lf, cod_false);
     code_t *cod_fim = cod_nop();
