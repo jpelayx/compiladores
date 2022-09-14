@@ -276,7 +276,7 @@ parametros: constante tipo TK_IDENTIFICADOR lista_parametros
 	 escopo = adiciona_simbolo(escopo, s);  }
 	| 
 	{// primeira redução que vai ocorrer, inicio do escopo local da funcao s/ parametros
-	 escopo = novo_escopo(escopo, escopo_funcao, 0);};
+	 escopo = novo_escopo(escopo, escopo_funcao, REGISTRO_ATIVACAO_OFFSET+4);};
 lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR 
 	{simbolo_t *s = novo_simbolo();
 	 adiciona_valor_lexico(s, $5);
@@ -286,7 +286,7 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR
 	 escopo = adiciona_simbolo(escopo, s); }
 	| 
 	{//primeira redução que vai ocorrer, inicio do escopo local da funcao c/ paramentros
-	 escopo = novo_escopo(escopo, escopo_funcao, 0);};
+	 escopo = novo_escopo(escopo, escopo_funcao, REGISTRO_ATIVACAO_OFFSET+4);};
 
 bloco_cmd: bloco_cmd_inicio lista_comandos bloco_cmd_fim {$$ = $2;}
 
