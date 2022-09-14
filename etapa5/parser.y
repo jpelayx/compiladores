@@ -261,7 +261,6 @@ funcao: cabecalho '{' corpo_funcao '}'
 		else
 			$$->codigo = concatena_codigo($$->codigo, cod_funcao_epilogo(ret));
 		adiciona_label(s->label, $$->codigo);
-		imprime_codigo($$->codigo);
 	}
 
 bloco_cmd_inicio: '{' { 
@@ -395,7 +394,6 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 		{
 			n->codigo = concatena_codigo($4->codigo, cod_store_variavel($4->temp, s->id));
 		}
-		imprime_codigo(n->codigo);
 		$$ = n;
 	}
 
@@ -425,7 +423,6 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 		simbolo_t *s = referencia(escopo, $1, simbolo_funcao);
 		ast_t *n = cria_nodo(chamada_funcao, $1);
 		n->tipo_sem = s->tipo;
-		printf("ISSO AQUI É O CODIGO DO NODO DA CHAMADA DE FUNCAO\n");
 		/* rsp + 0: endereco de retorno 
 		 *     + 4: rsp 
 		 *     + 8: rfp 
@@ -461,8 +458,6 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 	    n->codigo = concatena_codigo(n->codigo, cod_params);
 	    n->codigo = concatena_codigo(n->codigo, cod_jump_incondicional(s->label));
 		n->codigo = concatena_codigo(n->codigo, cod_load_pilha(n->temp, 12));
-		imprime_codigo(n->codigo);
-		printf("FIM DO CODIGO DO NODO DA CHAMADA DE FUNCAO\n");
 		$$ = n;
 	};
 
@@ -493,7 +488,6 @@ retorno: TK_PR_RETURN expressao
 			n->codigo = cod_atribuicao_logica_reg(n->temp, $2->codigo);
 		}
 		else{
-			
 			n->temp = $2->temp;
 			n->codigo = $2->codigo;
 		} 
@@ -535,7 +529,6 @@ cf_if: TK_PR_IF '(' expressao ')' bloco_cmd cf_else
 		n->codigo = concatena_codigo($3->codigo, cod_if);
 		n->codigo = concatena_codigo(n->codigo, cod_else);
 		n->codigo = concatena_codigo(n->codigo, cod_fim);
-		imprime_codigo(n->codigo);
 		$$ = n;
 	};
 cf_else: TK_PR_ELSE bloco_cmd {$$ = $2;}
@@ -567,7 +560,6 @@ cf_for: TK_PR_FOR '(' atribuicao ':' expressao ':' atribuicao ')' bloco_cmd
 		n->codigo = concatena_codigo($3->codigo, $5->codigo);
 		n->codigo = concatena_codigo(n->codigo, cod_bloco);
 		n->codigo = concatena_codigo(n->codigo, cod_fim);
-		imprime_codigo(n->codigo);
 		$$ = n;
 	};
 
@@ -589,7 +581,6 @@ cf_while: TK_PR_WHILE '(' expressao ')' TK_PR_DO bloco_cmd
 		remenda_false(fim, $3->codigo);
 		n->codigo = concatena_codigo($3->codigo, cod_bloco);
 		n->codigo = concatena_codigo(n->codigo, cod_fim);
-		imprime_codigo(n->codigo);
 		$$ = n;
 	};
 
@@ -599,7 +590,7 @@ literal_numerico: TK_LIT_INT
 	  $$->tipo_sem = int_sem;
 	  $$->temp = novo_registrador();
 	  $$->codigo = cod_load_literal($$->temp, $1->valor.inteiro);
-	  imprime_codigo($$->codigo); }
+	   }
 	| TK_LIT_FLOAT // FORA DA ETAPA 5 
 	{ $$ = cria_nodo(literal, $1);
 	  $$->tipo_sem = float_sem;} ;
@@ -618,7 +609,7 @@ operandos_aritmeticos:
 		// assumindo que nao vao haver vetores na etapa 5
 	  	$$->temp = novo_registrador();
 		$$->codigo = cod_load_variavel($$->temp, s->id);
-		imprime_codigo($$->codigo);  }
+		  }
 	| expressao_aritmetica          {$$ = $1;}
 	| '(' expressao_aritmetica ')'  {$$ = $2;}
 	
@@ -655,7 +646,7 @@ expressao_aritmetica:
 	  $$->temp = novo_registrador();
 	  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
 	  $$->codigo = concatena_codigo($$->codigo, cod_op_bin_aritmetica($1->temp, $3->temp, $$->temp, '+'));  
-	  imprime_codigo($$->codigo);}
+	  }
 	| operandos_aritmeticos '-' operandos_aritmeticos   
 	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
@@ -664,7 +655,7 @@ expressao_aritmetica:
 	  $$->temp = novo_registrador();
 	  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
 	  $$->codigo = concatena_codigo($$->codigo, cod_op_bin_aritmetica($1->temp, $3->temp, $$->temp, '-'));  
-	  imprime_codigo($$->codigo);}
+	  }
 	| operandos_aritmeticos '^' operandos_aritmeticos   
 	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 	  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
@@ -678,7 +669,7 @@ expressao_aritmetica:
 	  $$->temp = novo_registrador();
 	  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
 	  $$->codigo = concatena_codigo($$->codigo, cod_op_bin_aritmetica($1->temp, $3->temp, $$->temp, '*'));  
-	  imprime_codigo($$->codigo);}
+	  }
 	// divisao
 	| operandos_aritmeticos '/' operandos_aritmeticos   
 	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
@@ -688,7 +679,7 @@ expressao_aritmetica:
 	  $$->temp = novo_registrador();
 	  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
 	  $$->codigo = concatena_codigo($$->codigo, cod_op_bin_aritmetica($1->temp, $3->temp, $$->temp, '/')); 
-	  imprime_codigo($$->codigo);}
+	  }
 	// modulo
 	| operandos_aritmeticos '%' operandos_aritmeticos   
 	{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
@@ -712,12 +703,12 @@ literal_booleano: TK_LIT_TRUE
 	{ $$ = cria_nodo(literal, ($1));
 	  $$->tipo_sem = bool_sem;
 	  $$->codigo = cod_op_bin_lit('t');
-	  imprime_codigo($$->codigo);  } 
+	    } 
     | TK_LIT_FALSE 
 	{ $$ = cria_nodo(literal, ($1)); 
 	  $$->tipo_sem = bool_sem;
 	  $$->codigo = cod_op_bin_lit('f');
-	  imprime_codigo($$->codigo);  }
+	    }
 
 operandos_booleanos: 
 	  TK_IDENTIFICADOR acesso_vetor	{ 
@@ -730,7 +721,7 @@ operandos_booleanos:
 		$$->tipo_sem = s->tipo; 
 		// assumindo que nao vao haver vetores na etapa 5
 		$$->codigo = cod_load_variavel_logica(s->id);
-		imprime_codigo($$->codigo);  }
+		  }
 	| literal_booleano {$$ = $1;}
 	| expressao_booleana {$$ = $1;}
 	| '(' expressao_booleana ')' {$$ = $2;}
@@ -755,7 +746,7 @@ expressao_booleana:
 		  $$->codigo = concatena_codigo($$->codigo, op_rel);
 		  $$->codigo->tl = op_rel->tl;
 		  $$->codigo->fl = op_rel->fl;
-		  imprime_codigo($$->codigo);
+		  
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos '>' operandos_aritmeticos  
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
@@ -767,7 +758,7 @@ expressao_booleana:
 		  $$->codigo = concatena_codigo($$->codigo, op_rel);
 		  $$->codigo->tl = op_rel->tl;
 		  $$->codigo->fl = op_rel->fl;
-		  imprime_codigo($$->codigo);
+		  
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_EQ operandos_aritmeticos  
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
@@ -779,7 +770,6 @@ expressao_booleana:
 		  $$->codigo = concatena_codigo($$->codigo, op_rel);
 		  $$->codigo->tl = op_rel->tl;
 		  $$->codigo->fl = op_rel->fl;
-		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_NE operandos_aritmeticos  
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
@@ -791,7 +781,6 @@ expressao_booleana:
 		  $$->codigo = concatena_codigo($$->codigo, op_rel);
 		  $$->codigo->tl = op_rel->tl;
 		  $$->codigo->fl = op_rel->fl;
-		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_GE operandos_aritmeticos  
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
@@ -803,7 +792,6 @@ expressao_booleana:
 		  $$->codigo = concatena_codigo($$->codigo, op_rel);
 		  $$->codigo->tl = op_rel->tl;
 		  $$->codigo->fl = op_rel->fl;
-		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_LE operandos_aritmeticos  
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
@@ -815,7 +803,6 @@ expressao_booleana:
 		  $$->codigo = concatena_codigo($$->codigo, op_rel);
 		  $$->codigo->tl = op_rel->tl;
 		  $$->codigo->fl = op_rel->fl;
-		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	//operadores logicos	
 	| operandos_booleanos TK_OC_AND operandos_booleanos 
@@ -829,7 +816,6 @@ expressao_booleana:
 		  $$->codigo->tl = $3->codigo->tl;
 		  insere_lista_buracos_false($$->codigo, $1->codigo->fl);
 		  insere_lista_buracos_false($$->codigo, $3->codigo->fl);
-		  imprime_codigo($$->codigo);
 		  $$->tipo_sem = bool_sem; }
 	| operandos_booleanos TK_OC_OR operandos_booleanos  
 		{ verifica_tipos($1->tipo_sem, bool_sem, $1->valor_lexico->linha);
@@ -842,7 +828,6 @@ expressao_booleana:
 		  $$->codigo->fl = $3->codigo->fl;
 		  insere_lista_buracos_true($$->codigo, $1->codigo->tl);
 		  insere_lista_buracos_true($$->codigo, $3->codigo->tl);
-		  imprime_codigo($$->codigo);
  		  $$->tipo_sem = bool_sem; }
 	
 expressao:
@@ -856,7 +841,7 @@ expressao:
 		$$->tipo_sem = s->tipo;
 	  	$$->temp = novo_registrador();
 		$$->codigo = cod_load_variavel($$->temp, s->id);
-		imprime_codigo($$->codigo);  }
+		  }
 	| chamada_de_funcao             {$$ = $1;}
 	| literal_numerico              {$$ = $1;}
 	| expressao_aritmetica			{$$ = $1;}

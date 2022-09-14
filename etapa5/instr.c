@@ -234,9 +234,7 @@ code_t *concatena_codigo(code_t *head, code_t *tail)
 
 void imprime_codigo(code_t *c)
 {
-    printf("-------\n");
     imprime_lista_intrucao(c->codigo);
-    printf("-------\n");
 }
 
 void imprime_lista_intrucao(lista_instr_t *li)
