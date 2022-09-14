@@ -157,11 +157,28 @@ pilha_t *escopo = NULL;
 
 %%
 
-input: programa {arvore = $1; sai_escopo(escopo); };
+input: programa 
+	{ arvore = $1; 
+	  imprime_codigo($1->codigo);
+	  sai_escopo(escopo); 
+	};
 
-programa: programa var_global	{$$ = $1;} 
-	| programa funcao           { $$ = insere_fim_lista($2, $1);} 
-	| 	                        { $$ = NULL;};
+programa: programa var_global	
+	{ $$ = insere_fim_lista($2, $1);
+	  if($1 != NULL)
+	  	$$->codigo = concatena_codigo($1->codigo, $2->codigo);
+	  else 
+	  	$$->codigo = $2->codigo; 
+	} 
+	| programa funcao           
+	{ $$ = insere_fim_lista($2, $1);
+	  if($1 != NULL)
+	  	$$->codigo = concatena_codigo($1->codigo, $2->codigo);
+	  else 
+	  	$$->codigo = $2->codigo; 
+	}
+	| 	                        
+	{ $$ = NULL;};
 
 tipo: TK_PR_INT    {$$ = $1;} 
 	| TK_PR_FLOAT  {$$ = $1;} 
@@ -189,11 +206,16 @@ var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';'
 		s->tamanho = $4->valor_lexico->valor.inteiro;
 		libera($4);
 	 }
+	 int aux_proximo_id_antes = retorna_proximo_id_do_escopo_da_funcao(escopo);
 	 escopo = adiciona_simbolo(escopo, s); 
 	 escopo = adiciona_lista_simbolos(escopo, $5, $2); // adiciona as variaveis em lista_identificadores_g
+	 int aux_proximo_id_depois = retorna_proximo_id_do_escopo_da_funcao(escopo);
+	 int numero_de_declaracoes = (aux_proximo_id_depois - aux_proximo_id_antes)/4;
 	 
 	 libera($5); // libera arvore temporaria
 
+	 $$ = cria_nodo_passagem();
+	 $$->codigo = cod_alocacao_var_global(numero_de_declaracoes);
      //Cria ILOC para variaveis globais
 	 ///Esse nodo serve somente para passar para a raiz da arvore o código gerado;
 	 //$$ = cria_nodo(nodo_inutil, NULL);
@@ -302,22 +324,11 @@ declaracao_variavel: estatico constante tipo inicializa_variavel lista_identific
 	  int aux_proximo_id_antes = retorna_proximo_id_do_escopo_da_funcao(escopo);
 	  escopo = adiciona_lista_simbolos(escopo, $$, $3);
 	  int aux_proximo_id_depois = retorna_proximo_id_do_escopo_da_funcao(escopo);
-
 	  int numero_de_declaracoes = (aux_proximo_id_depois - aux_proximo_id_antes)/4;
-	  /*
-	  Exemplo: int x, y, z;
-	  Será preciso fazer (3 vezes): 
-	  addI rsp, 4 => rsp
-	  addI rsp, 4 => rsp
-	  addI rsp, 4 => rsp 
-
-	  Cria as instr_t aqui, concatena e coloca em $$->codigo
-
-	  */
-
-	  
-	  
-	  $$ = remove_nodos_inuteis($$);};
+	  $$ = remove_nodos_inuteis($$);
+	  if($$ == NULL)
+	  	$$ = cria_nodo_passagem();
+	  $$->codigo = cod_alocacao_var_local(numero_de_declaracoes); };
 lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel
 		{$$ = insere_fim_lista($3, $1); } 	
 	|   {$$ = NULL;}

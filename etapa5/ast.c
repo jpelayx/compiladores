@@ -41,6 +41,13 @@ ast_t *cria_nodo_vetor(valor_token_t *valor_lexico_id, ast_t *vetor) {
 	return n;
 }
 
+ast_t *cria_nodo_passagem()
+{
+	ast_t *n = cria_nodo(passagem, NULL);
+	insere_filho(n, NULL);
+	return n; 
+}
+
 void insere_filho(ast_t *pai, ast_t *filho){
 	if(pai == NULL)	{
 		if(filho != NULL)

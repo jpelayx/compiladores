@@ -62,7 +62,7 @@ typedef struct tabela_simbolos
 } tabela_simbolos_t;
 
 // inicia a tabela com o tamanho inicial padrao INITIAL_SIZE
-tabela_simbolos_t *init_tabela_simbolos();
+tabela_simbolos_t *init_tabela_simbolos(int id_inicial);
 
 void libera_tabela_simbolos(tabela_simbolos_t *t);
 

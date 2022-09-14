@@ -743,6 +743,58 @@ code_t *cod_load_parametro(operando_instr_t *r, int offset)
     return c;
 }
 
+code_t *cod_alocacao_var_local(int num_vars)
+{
+    if(num_vars == 0)
+        return NULL;
+
+    code_t *c = calloc(1, sizeof(code_t));
+    lista_instr_t *declaracoes = NULL,
+                  *prev = NULL;
+    operando_instr_t *sp = calloc(1, sizeof(operando_instr_t)),
+                     *i4 = gera_imediato(4);
+    sp->tipo = rsp;
+    for(int i = 0; i<num_vars; i++)
+    {
+        prev = declaracoes;
+        declaracoes = calloc(1, sizeof(instr_t)); 
+        declaracoes->i = calloc(1, sizeof(instr_t));
+        declaracoes->i->opcode = ILOC_addI;
+        declaracoes->i->op0 = sp;
+        declaracoes->i->op1 = i4;
+        declaracoes->i->op2 = sp;
+        declaracoes->prev = prev; 
+    }
+    c->codigo = declaracoes;
+    return c;
+}
+
+code_t *cod_alocacao_var_global(int num_vars)
+{
+    if(num_vars == 0)
+        return NULL;
+
+    code_t *c = calloc(1, sizeof(code_t));
+    lista_instr_t *declaracoes = NULL,
+                  *prev = NULL;
+    operando_instr_t *bss = calloc(1, sizeof(operando_instr_t)),
+                     *i4 = gera_imediato(4);
+    bss->tipo = rbss;
+    for(int i = 0; i<num_vars; i++)
+    {
+        prev = declaracoes;
+        declaracoes = calloc(1, sizeof(instr_t)); 
+        declaracoes->i = calloc(1, sizeof(instr_t));
+        declaracoes->i->opcode = ILOC_addI;
+        declaracoes->i->op0 = bss;
+        declaracoes->i->op1 = i4;
+        declaracoes->i->op2 = bss;
+        declaracoes->prev = prev; 
+    }
+    c->codigo = declaracoes;
+    return c;
+}
+
 code_t *cod_jump_incondicional(operando_instr_t *l)
 {
     code_t *c = calloc(1, sizeof(code_t));

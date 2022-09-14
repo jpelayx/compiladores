@@ -172,6 +172,10 @@ code_t *cod_funcao_prologo(int num_parametros);
 
 code_t *cod_funcao_epilogo(operando_instr_t *ret);
 
+code_t *cod_alocacao_var_local(int num_vars);
+
+code_t *cod_alocacao_var_global(int num_vars);
+
 code_t *cod_jump_incondicional(operando_instr_t *l);
 
 code_t *cod_nop();

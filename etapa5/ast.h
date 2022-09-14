@@ -40,7 +40,8 @@ typedef enum tipos_ast_nodo
 	acesso_vetor,
 	identificador,
 	identificador_vetor, 
-	literal
+	literal,
+	passagem
 } tipos_nodo_t;
 
 typedef struct ast {
@@ -64,6 +65,8 @@ ast_t *cria_nodo_unario(valor_token_t *valor_lexico, ast_t *f1);
 
 // Cria nó do tipo acesso_vetor ou identificador (se nenhum acesso for feito)
 ast_t *cria_nodo_vetor(valor_token_t *valor_lexico, ast_t *vetor);
+
+ast_t *cria_nodo_passagem();
 
 // Adiciona nó filho
 void insere_filho(ast_t *pai, ast_t *filho);

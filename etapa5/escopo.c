@@ -214,7 +214,9 @@ tipos_semanticos_t infere_tipo(ast_t *t1, ast_t *t2)
 }
 
 int retorna_proximo_id_do_escopo_da_funcao(pilha_t *p){
-    while(p->tipo_escopo != escopo_funcao){
+    if(p == NULL)
+        return 0;
+    while(p->tipo_escopo == escopo_interno ){
         p = p->anterior;
     }
     return p->t->proximo_id;

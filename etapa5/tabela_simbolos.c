@@ -73,10 +73,10 @@ void libera_lista_simbolos(lista_simbolos_t *l)
     free(l);
 }
 
-tabela_simbolos_t *init_tabela_simbolos()
+tabela_simbolos_t *init_tabela_simbolos(int id_inicial)
 {
     tabela_simbolos_t *t = calloc(1, sizeof(tabela_simbolos_t));
-    t->proximo_id = REGISTRO_ATIVACAO_OFFSET + 4;
+    t->proximo_id = id_inicial;
     t->tamanho = INITIAL_SIZE;
     t->dados = calloc(INITIAL_SIZE, sizeof(lista_simbolos_t*));
     for(int i=0; i<INITIAL_SIZE; i++)
@@ -105,7 +105,7 @@ int func_hash(tabela_simbolos_t *t, char *id)
 tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s)
 {
     if(t == NULL)
-        t = init_tabela_simbolos();
+        t = init_tabela_simbolos(0);
     
     if(s->natureza == simbolo_funcao)
         s->id = -1; // valor padrao 
@@ -136,7 +136,7 @@ tabela_simbolos_t *insere_simbolo(tabela_simbolos_t *t, simbolo_t *s)
 tabela_simbolos_t *insere_simbolo_com_offset(tabela_simbolos_t *t, simbolo_t *s, int offset)
 {
     if(t == NULL)
-        t = init_tabela_simbolos();
+        t = init_tabela_simbolos(REGISTRO_ATIVACAO_OFFSET + 4);
 
     s->id = offset;
     t->proximo_id = offset + s->tamanho;
