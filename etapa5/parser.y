@@ -19,6 +19,8 @@ extern void *arvore;
 
 pilha_t *escopo = NULL;
 
+operando_instr_t *label_main = NULL;
+
 %}
 
 %code requires { #include "ast.h" }
@@ -158,9 +160,11 @@ pilha_t *escopo = NULL;
 %%
 
 input: programa 
-	{ arvore = $1; 
-	  imprime_codigo($1->codigo);
-	  sai_escopo(escopo); 
+	{ 
+		$1->codigo = cod_init(label_main, $1->codigo);
+		imprime_codigo($1->codigo);
+	    arvore = $1; 
+	    sai_escopo(escopo); 
 	};
 
 programa: programa var_global	
@@ -232,13 +236,17 @@ funcao: cabecalho '{' corpo_funcao '}'
 	{
 		insere_filho($1, $3);
 		$$ = $1;
-		$$->codigo = cod_funcao_prologo(numero_parametros(escopo->t)); // adiciona o prologo antes de fechar o escopo local
+		bool func_main = eh_main($$);
+		if(!func_main)
+			$$->codigo = cod_funcao_prologo(numero_parametros(escopo->t)); // adiciona o prologo antes de fechar o escopo local
 		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
 		simbolo_t *s = novo_simbolo();
 		adiciona_valor_lexico(s, $1->valor_lexico);
 		s->natureza = simbolo_funcao;
 		s->tipo = $1->tipo_sem;
 		s->label = novo_label();
+		if(func_main)
+			label_main = s->label;
 		escopo = adiciona_simbolo(escopo, s); // adicionando a funcao ao escopo global
 		operando_instr_t *ret;
 		if($3 != NULL)
@@ -248,7 +256,10 @@ funcao: cabecalho '{' corpo_funcao '}'
 		}
 		else 
 			ret = NULL;
-		$$->codigo = concatena_codigo($$->codigo, cod_funcao_epilogo(ret));
+		if(func_main)
+			$$->codigo = concatena_codigo($$->codigo, cod_halt());
+		else
+			$$->codigo = concatena_codigo($$->codigo, cod_funcao_epilogo(ret));
 		adiciona_label(s->label, $$->codigo);
 		imprime_codigo($$->codigo);
 	}

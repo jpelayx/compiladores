@@ -1,6 +1,7 @@
 #include "ast.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 // baseado em: https://www.inf.ufrgs.br/~schnorr/tutorial-bison-p2.html
 
@@ -276,6 +277,14 @@ bool eh_booleana(ast_t *t)
 	if(t->tipo_sem == bool_sem)
 		return true;
 	else
+		return false;
+}
+
+bool eh_main(ast_t *t)
+{
+	if (strcmp("main", t->valor_lexico->valor.cadeia_caracteres) == 0 )
+		return true;
+	else 
 		return false;
 }
 

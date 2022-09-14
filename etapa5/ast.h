@@ -88,6 +88,8 @@ operando_instr_t * retorno(ast_t *t);
 
 bool eh_booleana(ast_t *t);
 
+bool eh_main(ast_t *t);
+
 // Libera recursivamente o nó e seus filhos
 void libera(void *arvore);
 

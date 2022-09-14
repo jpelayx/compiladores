@@ -721,8 +721,61 @@ code_t *cod_chamada_func_antes(int retorno, int num_parametros)
     store_rfp->i->op2 = i8;
     store_rfp->prev = store_rsp;
 
-    c->codigo = store_rsp;
+    c->codigo = store_rfp;
     return c;
+}
+
+code_t *cod_init(operando_instr_t *l, code_t *cod)
+{
+    // loadI 1024 => rfp
+    // loadI 1024 => rsp
+    // loadI len(cod + 4) => rbss
+    // jumpI => l
+    code_t *c = calloc(1, sizeof(code_t));
+
+    operando_instr_t *fp = calloc(1, sizeof(operando_instr_t)),
+                     *sp = calloc(1, sizeof(operando_instr_t)),
+                     *bss = calloc(1, sizeof(operando_instr_t));
+    fp->tipo = rfp;
+    sp->tipo = rsp;
+    bss->tipo = rbss;
+
+    lista_instr_t *ld_rfp = calloc(1, sizeof(lista_instr_t));
+    ld_rfp->i = calloc(1, sizeof(instr_t));
+    ld_rfp->i->opcode = ILOC_loadI;
+    ld_rfp->i->op0 = gera_imediato(1024);
+    ld_rfp->i->op1 = fp;
+    ld_rfp->prev = NULL;  
+
+    lista_instr_t *ld_rsp = calloc(1, sizeof(lista_instr_t));
+    ld_rsp->i = calloc(1, sizeof(instr_t));
+    ld_rsp->i->opcode = ILOC_loadI;
+    ld_rsp->i->op0 = gera_imediato(1024);
+    ld_rsp->i->op1 = sp;
+    ld_rsp->prev = ld_rfp;  
+
+    lista_instr_t *ld_rbss = calloc(1, sizeof(lista_instr_t));
+    ld_rbss->i = calloc(1, sizeof(instr_t));
+    ld_rbss->i->opcode = ILOC_loadI;
+    ld_rbss->i->op0 = gera_imediato(num_linhas(cod) + 5);
+    ld_rbss->i->op1 = bss;
+    ld_rbss->prev = ld_rsp;  
+
+    if (l == NULL) // sem main 
+    {
+        ld_rbss->i->op0->val = 5;
+        c->codigo = ld_rbss;
+        return concatena_codigo(c, cod_halt());
+    }
+
+    lista_instr_t *jump_main = calloc(1, sizeof(lista_instr_t));
+    jump_main->i = calloc(1, sizeof(instr_t));
+    jump_main->i->opcode = jumpI;
+    jump_main->i->op0 = l;
+    jump_main->prev = ld_rbss;
+
+    c->codigo = jump_main;
+    return concatena_codigo(c, cod);
 }
 
 code_t *cod_load_parametro(operando_instr_t *r, int offset)
@@ -813,12 +866,24 @@ code_t *cod_nop()
     return c;
 }
 
+code_t *cod_halt()
+{
+    code_t *c = calloc(1, sizeof(code_t));
+    c->codigo = calloc(1, sizeof(lista_instr_t));
+    c->codigo->i = calloc(1, sizeof(instr_t));
+    c->codigo->i->opcode = ILOC_halt;
+    return c;
+}
+
 void imprime_opcode(ILOC_op op)
 {
     switch (op)
     {
     case ILOC_nop :
 		printf("nop ");
+		break;
+    case ILOC_halt :
+		printf("halt ");
 		break;
     case ILOC_add :
 		printf("add ");
