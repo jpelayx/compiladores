@@ -95,8 +95,9 @@ pilha_t *escopo = NULL;
 %token<valor_lexico> '$'
 %token<valor_lexico> '?'
 
-%type<nodo> programa 
+%type<nodo> programa
 %type<nodo> funcao
+%type<nodo> var_global	
 %type<tipo> tipo
 %type<nodo> vetor
 %type<nodo> cabecalho
@@ -190,7 +191,14 @@ var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';'
 	 }
 	 escopo = adiciona_simbolo(escopo, s); 
 	 escopo = adiciona_lista_simbolos(escopo, $5, $2); // adiciona as variaveis em lista_identificadores_g
-	 libera($5); // libera arvore temporaria 
+	 
+	 libera($5); // libera arvore temporaria
+
+     //Cria ILOC para variaveis globais
+	 ///Esse nodo serve somente para passar para a raiz da arvore o código gerado;
+	 //$$ = cria_nodo(nodo_inutil, NULL);
+	 //Faz mesma coisa que foi feita nas variaveis locais sem inicializacao, mas desloca em rbss
+
 	};
 lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor  
 	{// cria uma arvore temporaria que guarda as variaveis 
@@ -291,7 +299,24 @@ comando:
 
 declaracao_variavel: estatico constante tipo inicializa_variavel lista_identificadores_l
 	{ $$ = insere_inicio_lista($4, $5);
+	  int aux_proximo_id_antes = retorna_proximo_id_do_escopo_da_funcao(escopo);
 	  escopo = adiciona_lista_simbolos(escopo, $$, $3);
+	  int aux_proximo_id_depois = retorna_proximo_id_do_escopo_da_funcao(escopo);
+
+	  int numero_de_declaracoes = (aux_proximo_id_depois - aux_proximo_id_antes)/4;
+	  /*
+	  Exemplo: int x, y, z;
+	  Será preciso fazer (3 vezes): 
+	  addI rsp, 4 => rsp
+	  addI rsp, 4 => rsp
+	  addI rsp, 4 => rsp 
+
+	  Cria as instr_t aqui, concatena e coloca em $$->codigo
+
+	  */
+
+	  
+	  
 	  $$ = remove_nodos_inuteis($$);};
 lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel
 		{$$ = insere_fim_lista($3, $1); } 	
