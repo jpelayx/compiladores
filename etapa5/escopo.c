@@ -38,7 +38,7 @@ pilha_t *novo_escopo(pilha_t *p, tipo_escopo_t tipo_escopo, int offset)
 pilha_t* sai_escopo(pilha_t *p)
 {
     pilha_t *nt = p->anterior;
-    print_tabela(p->t);
+    // print_tabela(p->t);
     printf("\n");
     libera_tabela_simbolos(p->t);
     free(p);
