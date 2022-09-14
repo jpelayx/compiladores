@@ -264,6 +264,13 @@ operando_instr_t *retorno(ast_t *t)
 	return NULL;	
 }
 
+bool eh_booleana(ast_t *t)
+{
+	if(t->tipo_sem == bool_sem)
+		return true;
+	else
+		return false;
+}
 
 code_t *cod_prepara_chamada_funcao(ast_t *parametros){
 	if(parametros != NULL){

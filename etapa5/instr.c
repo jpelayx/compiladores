@@ -505,6 +505,52 @@ code_t *cod_op_bin_lit(char op)
     return c;
 }
 
+code_t *cod_atribuicao_logica_var(int offset, code_t *cod_expr)
+{
+    operando_instr_t *lt = novo_label(),
+                     *lf = novo_label(),
+                     *fim = novo_label();
+    
+    code_t *cod_true = cod_store_variavel(gera_imediato(1), offset);
+    cod_true = concatena_codigo(cod_true, cod_jump_incondicional(fim));
+    adiciona_label(lt, cod_true);
+    code_t *cod_false = cod_store_variavel(gera_imediato(0), offset);
+    cod_false = concatena_codigo(cod_false, cod_jump_incondicional(fim));
+    adiciona_label(lf, cod_false);
+    code_t *cod_fim = cod_nop();
+    adiciona_label(fim, cod_fim);
+    remenda_true(lt, cod_expr);
+    remenda_false(lf, cod_expr);
+
+    code_t *c = concatena_codigo(cod_expr, cod_true);
+    c = concatena_codigo(c, cod_false);
+    c = concatena_codigo(c, cod_fim);
+    return c;
+}
+
+code_t *cod_atribuicao_logica_reg(operando_instr_t *reg, code_t *cod_expr)
+{
+    operando_instr_t *lt = novo_label(),
+                     *lf = novo_label(),
+                     *fim = novo_label();
+    
+    code_t *cod_true = cod_load_literal(reg, 1);
+    cod_true = concatena_codigo(cod_true, cod_jump_incondicional(fim));
+    adiciona_label(lt, cod_true);
+    code_t *cod_false = cod_load_literal(reg, 0);
+    cod_false = concatena_codigo(cod_false, cod_jump_incondicional(fim));
+    adiciona_label(lf, cod_false);
+    code_t *cod_fim = cod_nop();
+    adiciona_label(fim, cod_fim);
+    remenda_true(lt, cod_expr);
+    remenda_false(lf, cod_expr);
+
+    code_t *c = concatena_codigo(cod_expr, cod_true);
+    c = concatena_codigo(c, cod_false);
+    c = concatena_codigo(c, cod_fim);
+    return c;
+}
+
 code_t *cod_funcao_prologo(int num_parametros)
 {
     // i2i rsp => rfp 

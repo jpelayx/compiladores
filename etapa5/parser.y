@@ -340,24 +340,9 @@ atribuicao: TK_IDENTIFICADOR acesso_vetor '=' expressao
 		insere_filho(n, cria_nodo_vetor($1, $2));
 		insere_filho(n, $4);
 		libera_tk($3);
-		if($4->codigo->tl != NULL || $4->codigo->fl != NULL) // atriuicao bool
+		if(eh_booleana($4)) // atriuicao bool
 		{
-			operando_instr_t *lt = novo_label(),
-			                 *lf = novo_label(),
-							 *fim = novo_label();
-			code_t *cod_true = cod_store_variavel(gera_imediato(1), s->id);
-			cod_true = concatena_codigo(cod_true, cod_jump_incondicional(fim));
-			adiciona_label(lt, cod_true);
-			code_t *cod_false = cod_store_variavel(gera_imediato(0), s->id);
-			cod_false = concatena_codigo(cod_false, cod_jump_incondicional(fim));
-			adiciona_label(lf, cod_false);
-			code_t *cod_fim = cod_nop();
-			adiciona_label(fim, cod_fim);
-			remenda_true(lt, $4->codigo);
-			remenda_false(lf, $4->codigo);
-			n->codigo = concatena_codigo($4->codigo, cod_true);
-			n->codigo = concatena_codigo(n->codigo, cod_false);
-			n->codigo = concatena_codigo(n->codigo, cod_fim);
+			n->codigo = cod_atribuicao_logica_var(s->id, $4->codigo);
 		}
 		else // atribuicao int
 		{
@@ -408,7 +393,14 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 			param_offset += 4;
 			if(ps->codigo != NULL)
 			{
-				cod_params = concatena_codigo(cod_params, ps->codigo);
+				if(eh_booleana(ps))
+				{
+					ps->temp = novo_registrador();
+					cod_params = concatena_codigo(cod_params, 
+					                              cod_atribuicao_logica_reg(ps->temp, ps->codigo));
+				}
+				else
+					cod_params = concatena_codigo(cod_params, ps->codigo);
 				cod_params = concatena_codigo(cod_params, cod_load_parametro(ps->temp, param_offset));
 			}
 			if(ps->num_filhos > 0)
@@ -448,7 +440,16 @@ retorno: TK_PR_RETURN expressao
 		ast_t *n = cria_nodo(cmd_return, NULL);
 		insere_filho(n, $2);
 		n->tipo_sem = $2->tipo_sem;
-		n->temp = novo_registrador();
+		if(eh_booleana($2)){
+			// faz a atribuicao 
+			n->temp = novo_registrador();
+			n->codigo = cod_atribuicao_logica_reg(n->temp, $2->codigo);
+		}
+		else{
+			
+			n->temp = $2->temp;
+			n->codigo = $2->codigo;
+		} 
 		$$ = n;
 	};
 

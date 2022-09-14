@@ -160,6 +160,10 @@ code_t *cod_op_bin_lit(char op);
 
 code_t *cod_op_bin_logica(operando_instr_t *src1, operando_instr_t *src2, operando_instr_t *dst, char op);
 
+code_t *cod_atribuicao_logica_var(int offset, code_t *cod_expr);
+
+code_t *cod_atribuicao_logica_reg(operando_instr_t* reg, code_t *cod_expr);
+
 code_t *cod_load_parametro(operando_instr_t *r, int offset);
 
 code_t *cod_chamada_func_antes(int retorno, int num_parametros);
