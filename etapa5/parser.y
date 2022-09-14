@@ -237,7 +237,9 @@ funcao: cabecalho '{' corpo_funcao '}'
 		insere_filho($1, $3);
 		$$ = $1;
 		bool func_main = eh_main($$);
-		if(!func_main)
+		if(func_main)
+			$$->codigo = cod_funcao_prologo_main(numero_parametros(escopo->t));
+		else 
 			$$->codigo = cod_funcao_prologo(numero_parametros(escopo->t)); // adiciona o prologo antes de fechar o escopo local
 		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
 		simbolo_t *s = novo_simbolo();

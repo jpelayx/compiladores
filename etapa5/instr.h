@@ -172,6 +172,8 @@ code_t *cod_chamada_func_antes(int retorno, int num_parametros);
 
 code_t *cod_funcao_prologo(int num_parametros);
 
+code_t *cod_funcao_prologo_main();
+
 code_t *cod_funcao_epilogo(operando_instr_t *ret);
 
 code_t *cod_init(operando_instr_t *l, code_t *cod);

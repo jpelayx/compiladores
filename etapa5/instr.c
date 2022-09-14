@@ -585,6 +585,39 @@ code_t *cod_funcao_prologo(int num_parametros)
     return c;
 }
 
+code_t *cod_funcao_prologo_main()
+{
+    // i2i rfp => rsp 
+    // addI rsp, 16 => rsp // usando o mesmo offset  
+    // não me pergunta o porque :(
+    code_t *c = calloc(1, sizeof(code_t));
+
+    lista_instr_t *i2i = calloc(1, sizeof(lista_instr_t));
+    i2i->i = calloc(1, sizeof(instr_t));
+    i2i->i->opcode = ILOC_i2i;
+    operando_instr_t *sp = calloc(1, sizeof(operando_instr_t)),
+                     *fp = calloc(1, sizeof(operando_instr_t));
+    sp->tipo = rsp;
+    fp->tipo = rfp;
+    i2i->i->op0 = fp;
+    i2i->i->op1 = sp;
+    i2i->prev = NULL;
+
+    lista_instr_t *addI = calloc(1, sizeof(lista_instr_t));
+    addI->i = calloc(1, sizeof(instr_t));
+    addI->i->opcode = ILOC_addI;
+    operando_instr_t *n = calloc(1, sizeof(operando_instr_t));
+    n->tipo = imediato;
+    n->val = REGISTRO_ATIVACAO_OFFSET + 4;
+    addI->i->op0 = sp;
+    addI->i->op1 = n;
+    addI->i->op2 = sp;
+    addI->prev = i2i;
+
+    c->codigo = addI;
+    return c;
+}
+
 code_t *cod_funcao_epilogo(operando_instr_t *ret)
 {
     // storeAI ret => rfp, 12 // se ret == NULL
