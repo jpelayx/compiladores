@@ -457,9 +457,12 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 				ps = NULL;
 		}
 		n->temp = novo_registrador();
-		n->codigo = cod_chamada_func_antes(num_linhas(cod_params) + 5,
-		                                   param_offset/4-REGISTRO_ATIVACAO_OFFSET/4);
-	    n->codigo = concatena_codigo(n->codigo, cod_params);
+		n->codigo = concatena_codigo(cod_params, 
+									 cod_chamada_func_antes( 5,
+		                                                     param_offset/4-REGISTRO_ATIVACAO_OFFSET/4));
+		// n->codigo = cod_chamada_func_antes(num_linhas(cod_params) + 5,
+		//                                    param_offset/4-REGISTRO_ATIVACAO_OFFSET/4);
+	    // n->codigo = concatena_codigo(n->codigo, cod_params);
 	    n->codigo = concatena_codigo(n->codigo, cod_jump_incondicional(s->label));
 		n->codigo = concatena_codigo(n->codigo, cod_load_pilha(n->temp, 12));
 		$$ = n;
