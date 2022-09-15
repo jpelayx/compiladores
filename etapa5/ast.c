@@ -288,6 +288,27 @@ bool eh_main(ast_t *t)
 		return false;
 }
 
+int num_vars_globais(ast_t *t)
+{
+	int nv = 0;
+	ast_t *tf;
+	while(t != NULL)
+	{
+		if(t->tipo == passagem)
+		{
+			nv++;
+			tf = t->num_filhos > 1? t->filhos[0]: NULL;
+			while (tf != NULL)
+			{
+				nv++;
+				tf = tf->filhos[tf->num_filhos-1];
+			}
+		}
+		t = t->filhos[t->num_filhos-1];  
+	}
+	return nv;
+}
+
 code_t *cod_prepara_chamada_funcao(ast_t *parametros){
 	if(parametros != NULL){
 		// ast_t* filho = calloc(1,sizeof(ast_t)); 

@@ -161,7 +161,7 @@ operando_instr_t *label_main = NULL;
 
 input: programa 
 	{ 
-		$1->codigo = cod_init(label_main, $1->codigo);
+		$1->codigo = cod_init(num_vars_globais($1), label_main, $1->codigo);
 		imprime_codigo($1->codigo);
 	    arvore = $1; 
 	    sai_escopo(escopo); 
@@ -210,16 +210,18 @@ var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';'
 		s->tamanho = $4->valor_lexico->valor.inteiro;
 		libera($4);
 	 }
-	 int aux_proximo_id_antes = retorna_proximo_id_do_escopo_da_funcao(escopo);
+	//  int aux_proximo_id_antes = retorna_proximo_id_do_escopo_da_funcao(escopo);
 	 escopo = adiciona_simbolo(escopo, s); 
 	 escopo = adiciona_lista_simbolos(escopo, $5, $2); // adiciona as variaveis em lista_identificadores_g
-	 int aux_proximo_id_depois = retorna_proximo_id_do_escopo_da_funcao(escopo);
-	 int numero_de_declaracoes = (aux_proximo_id_depois - aux_proximo_id_antes)/4;
+	//  int aux_proximo_id_depois = retorna_proximo_id_do_escopo_da_funcao(escopo);
+	//  int numero_de_declaracoes = (aux_proximo_id_depois - aux_proximo_id_antes)/4;
 	 
-	 libera($5); // libera arvore temporaria
+	//  libera($5); // libera arvore temporaria
 
 	 $$ = cria_nodo_passagem();
-	 $$->codigo = cod_alocacao_var_global(numero_de_declaracoes);
+	 $$->filhos[0] = $5;
+	 
+	//  $$->codigo = cod_alocacao_var_global(numero_de_declaracoes);
      //Cria ILOC para variaveis globais
 	 ///Esse nodo serve somente para passar para a raiz da arvore o código gerado;
 	 //$$ = cria_nodo(nodo_inutil, NULL);

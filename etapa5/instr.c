@@ -760,11 +760,12 @@ code_t *cod_chamada_func_antes(int retorno, int num_parametros)
     return c;
 }
 
-code_t *cod_init(operando_instr_t *l, code_t *cod)
+code_t *cod_init(int num_vars_globais, operando_instr_t *l, code_t *cod)
 {
     // loadI 1024 => rfp
     // loadI 1024 => rsp
     // loadI len(cod + 4) => rbss
+    // alocacoes de vars globais 
     // jumpI => l
     code_t *c = calloc(1, sizeof(code_t));
 
@@ -789,27 +790,24 @@ code_t *cod_init(operando_instr_t *l, code_t *cod)
     ld_rsp->i->op1 = sp;
     ld_rsp->prev = ld_rfp;  
 
+    code_t * cod_vars = cod_alocacao_var_global(num_vars_globais);
+
     lista_instr_t *ld_rbss = calloc(1, sizeof(lista_instr_t));
     ld_rbss->i = calloc(1, sizeof(instr_t));
     ld_rbss->i->opcode = ILOC_loadI;
-    ld_rbss->i->op0 = gera_imediato(num_linhas(cod) + 5);
+    ld_rbss->i->op0 = gera_imediato(num_linhas(cod) + 5 + num_linhas(cod_vars));
     ld_rbss->i->op1 = bss;
     ld_rbss->prev = ld_rsp;  
 
+    c->codigo = ld_rbss;
+    c = concatena_codigo(c, cod_vars);
     if (l == NULL) // sem main 
     {
         ld_rbss->i->op0->val = 5;
-        c->codigo = ld_rbss;
         return concatena_codigo(c, cod_halt());
     }
-
-    lista_instr_t *jump_main = calloc(1, sizeof(lista_instr_t));
-    jump_main->i = calloc(1, sizeof(instr_t));
-    jump_main->i->opcode = jumpI;
-    jump_main->i->op0 = l;
-    jump_main->prev = ld_rbss;
-
-    c->codigo = jump_main;
+    
+    c = concatena_codigo(c, cod_jump_incondicional(l));
     return concatena_codigo(c, cod);
 }
 
