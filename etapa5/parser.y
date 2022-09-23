@@ -631,7 +631,9 @@ expressao_aritmetica:
 	| '-' operandos_aritmeticos %prec inverte_sinal     
 	{ verifica_tipos($2->tipo_sem, numerico_sem, $2->valor_lexico->linha);
 	  $$ = cria_nodo_unario(($1), $2);
-	  $$->tipo_sem = $2->tipo_sem; }
+	  $$->tipo_sem = $2->tipo_sem;
+	  $$->temp = novo_registrador();
+	  $$->codigo = cod_load_literal($$->temp, -$2->valor_lexico->valor.inteiro); }
 	| '&' operandos_aritmeticos %prec endereco_variavel 
 	{ verifica_tipos($2->tipo_sem, numerico_sem, $2->valor_lexico->linha);
 	  $$ = cria_nodo_unario(($1), $2);
