@@ -309,30 +309,6 @@ int num_vars_globais(ast_t *t)
 	return nv;
 }
 
-code_t *cod_prepara_chamada_funcao(ast_t *parametros){
-	if(parametros != NULL){
-		// ast_t* filho = calloc(1,sizeof(ast_t)); 
-		ast_t* filho; //nao precisa alocar 
-		//filhos[0] pq os parametros só tem um filho, que é o proximo parametro
-		filho = parametros->filhos[0];
-		if(filho != NULL){
-			// code_t* result = calloc(1, sizeof(code_t)); 
-			code_t* result;
-			result = parametros->codigo;
-			do{
-				result = concatena_codigo(result, filho->codigo);
-				filho = filho->filhos[0];
-			} while(filho != NULL);
-			return result;
-		} else {
-			return parametros->codigo;
-		}
-	}
-	else {
-		return NULL;
-	}
-}
-
 void imprime_nodos(ast_t *arvore){
 	if(arvore != NULL){
 		imprime_nodo(arvore);
