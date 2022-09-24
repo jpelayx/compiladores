@@ -164,6 +164,7 @@ input: programa
 		$1->codigo = cod_init(num_vars_globais($1), label_main, $1->codigo);
 		imprime_codigo($1->codigo);
 	    arvore = $1; 
+		print_tabela(escopo->t);
 	    sai_escopo(escopo); 
 	};
 
@@ -243,7 +244,13 @@ funcao: cabecalho '{' corpo_funcao '}'
 			$$->codigo = cod_funcao_prologo_main(numero_parametros(escopo->t));
 		else 
 			$$->codigo = cod_funcao_prologo(numero_parametros(escopo->t)); // adiciona o prologo antes de fechar o escopo local
+		print_tabela(escopo->t);
 		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
+		/*
+		
+		ALTERACAO PARA FUNCAO RECURSIVA.
+		Isso aqui é feito no cabecalho agora.
+
 		simbolo_t *s = novo_simbolo();
 		adiciona_valor_lexico(s, $1->valor_lexico);
 		s->natureza = simbolo_funcao;
@@ -252,6 +259,7 @@ funcao: cabecalho '{' corpo_funcao '}'
 		if(func_main)
 			label_main = s->label;
 		escopo = adiciona_simbolo(escopo, s); // adicionando a funcao ao escopo global
+		*/
 		operando_instr_t *ret;
 		if($3 != NULL)
 		{
@@ -264,13 +272,20 @@ funcao: cabecalho '{' corpo_funcao '}'
 			$$->codigo = concatena_codigo($$->codigo, cod_halt());
 		else
 			$$->codigo = concatena_codigo($$->codigo, cod_funcao_epilogo(ret));
+
+		//ALTERACAO PARA FUNCAO RECURSIVA
+		//No cabecalho o simbolo é incluso na tabela do escopo global.
+		//Basta achar a referencia para ele agora.
+		simbolo_t *s = procura_nome_em_todas_tabelas(escopo, $1->valor_lexico->valor.cadeia_caracteres);
+
+		
 		adiciona_label(s->label, $$->codigo);
 	}
 
 bloco_cmd_inicio: '{' { 
 						escopo = novo_escopo(escopo, escopo_interno, retorna_proximo_id_do_escopo_da_funcao(escopo));
 					  };
-bloco_cmd_fim: '}' { escopo = sai_escopo(escopo); };
+bloco_cmd_fim: '}' {escopo = sai_escopo(escopo); };
 
 corpo_funcao: 
 	//NÃO ABRE ESCOPO PRÓPRIO!!!
@@ -280,7 +295,21 @@ corpo_funcao:
 cabecalho: estatico tipo TK_IDENTIFICADOR '(' parametros ')' 
 	{ast_t *n = cria_nodo(funcao, $3);
 	 n->tipo_sem = $2;
-	 $$ = n; };	
+	 $$ = n; 
+	 
+	//ALTERACAO PARA FUNCAO RECURSIVA
+	bool func_main = eh_main($$);
+	simbolo_t *s = novo_simbolo();
+	adiciona_valor_lexico(s, n->valor_lexico);
+	s->natureza = simbolo_funcao;
+	s->tipo = n->tipo_sem;
+	s->label = novo_label();
+	if(func_main)
+			label_main = s->label;
+
+	adiciona_simbolo_no_escopo_global(escopo, s);
+	
+	};	
 parametros: constante tipo TK_IDENTIFICADOR lista_parametros 
 	{simbolo_t *s = novo_simbolo();
 	 adiciona_valor_lexico(s, $3);
@@ -290,6 +319,10 @@ parametros: constante tipo TK_IDENTIFICADOR lista_parametros
 	 escopo = adiciona_simbolo(escopo, s);  }
 	| 
 	{// primeira redução que vai ocorrer, inicio do escopo local da funcao s/ parametros
+	 //ALTERACAO PARA FUNCAO RECURSIVA.
+	 //Precisa inicializar a pilha para que exista um escopo global.
+	 if(escopo == NULL)
+	 	escopo = inicializa_pilha();
 	 escopo = novo_escopo(escopo, escopo_funcao, REGISTRO_ATIVACAO_OFFSET+4);};
 lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR 
 	{simbolo_t *s = novo_simbolo();
@@ -300,6 +333,10 @@ lista_parametros: lista_parametros ',' constante tipo TK_IDENTIFICADOR
 	 escopo = adiciona_simbolo(escopo, s); }
 	| 
 	{//primeira redução que vai ocorrer, inicio do escopo local da funcao c/ paramentros
+	 //ALTERACAO PARA FUNCAO RECURSIVA.
+	 //Precisa inicializar a pilha para que exista um escopo global.
+	 if(escopo == NULL)
+	 	escopo = inicializa_pilha();
 	 escopo = novo_escopo(escopo, escopo_funcao, REGISTRO_ATIVACAO_OFFSET+4);};
 
 bloco_cmd: bloco_cmd_inicio lista_comandos bloco_cmd_fim {$$ = $2;}
