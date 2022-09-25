@@ -45,7 +45,8 @@ typedef enum ILOC_opcode{
     ILOC_cbr,
     //Jumps
     jumpI,
-    jump
+    jump,
+    comment
 } ILOC_op;
 
 void imprime_opcode(ILOC_op op);
@@ -86,6 +87,7 @@ typedef struct instr
 {
     ILOC_op opcode;
     operando_instr_t *op0, *op1, *op2, *label;
+    char *comment;
     
 } instr_t ;
 
@@ -113,6 +115,8 @@ lista_instr_t * primeiro_item(lista_instr_t *l);
 
 void imprime_lista_intrucao(lista_instr_t *li);
 
+void imprime_comentario(instr_t *i);
+
 typedef struct code
 {
     lista_instr_t *codigo;
@@ -131,6 +135,8 @@ void insere_lista_buracos_true(code_t *c, lista_operando_t *bl);
 void insere_lista_buracos_false(code_t *c, lista_operando_t *bl);
 
 void adiciona_label(operando_instr_t *l, code_t *c);
+
+void adiciona_comentario(char *comentario, code_t *c);
 
 code_t *concatena_codigo(code_t *head, code_t *tail);
 

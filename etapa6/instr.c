@@ -219,6 +219,12 @@ void adiciona_label(operando_instr_t *l, code_t *c)
     inicio->i->label = l;
 }
 
+void adiciona_comentario(char *comentario, code_t *c)
+{
+    lista_instr_t *inicio = primeiro_item(c->codigo);
+    inicio->i->comment = comentario;
+}
+
 code_t *concatena_codigo(code_t *head, code_t *tail)
 {
     if(head == NULL && tail == NULL)
@@ -230,6 +236,12 @@ code_t *concatena_codigo(code_t *head, code_t *tail)
     code_t *c = (code_t*)calloc(1,sizeof(code_t));
     c->codigo = concatena_lista_instr(head->codigo, tail->codigo);
     return c;
+}
+
+void imprime_comentario(instr_t *i)
+{
+    if (i->comment != NULL)
+        printf(" // %s", i->comment);
 }
 
 void imprime_codigo(code_t *c)
@@ -260,6 +272,7 @@ void imprime_lista_intrucao(lista_instr_t *li)
         print_operando(i->op1);
         printf(", ");
         print_operando(i->op2);
+        imprime_comentario(i);
         printf("\n");
         return;
     } 
@@ -270,6 +283,7 @@ void imprime_lista_intrucao(lista_instr_t *li)
         print_operando(i->op1);
         printf(" => ");
         print_operando(i->op2);
+        imprime_comentario(i);
         printf("\n");
         return;
     }
@@ -278,6 +292,7 @@ void imprime_lista_intrucao(lista_instr_t *li)
         print_operando(i->op0);
         printf(" => ");
         print_operando(i->op1);
+        imprime_comentario(i);
         printf("\n");
         return;
     }
@@ -285,9 +300,11 @@ void imprime_lista_intrucao(lista_instr_t *li)
     {
         printf("=> ");
         print_operando(i->op0);
+        imprime_comentario(i);
         printf("\n");
         return;
     }
+    imprime_comentario(i);
     printf("\n");
 }
 
@@ -640,6 +657,8 @@ code_t *cod_funcao_epilogo(operando_instr_t *ret)
     str_ret->i->op1 = fp;
     str_ret->i->op2 = i12;
     str_ret->prev = NULL;
+    str_ret->i->comment = strdup("RETURN");
+    
 
     lista_instr_t *ld_end = calloc(1, sizeof(lista_instr_t));
 	ld_end->i = calloc(1, sizeof(instr_t));
@@ -912,9 +931,6 @@ void imprime_opcode(ILOC_op op)
 {
     switch (op)
     {
-    case ILOC_nop :
-		printf("nop ");
-		break;
     case ILOC_halt :
 		printf("halt ");
 		break;
@@ -1008,5 +1024,7 @@ void imprime_opcode(ILOC_op op)
     case jump :
 		printf("jump ");
 		break;
+    default:
+        break;
     }
 }

@@ -3,6 +3,8 @@
   Não modifique este arquivo.
 */
 #include <stdio.h>
+#include "assembly.h"
+#include "ast.h"
 extern int yyparse(void);
 extern int yylex_destroy(void);
 
@@ -14,6 +16,7 @@ int main (int argc, char **argv)
 {
   int ret = yyparse(); 
   // exporta (arvore);
+  generateAsm(((ast_t *)arvore)->codigo);
   libera(arvore);
   arvore = NULL;
   yylex_destroy();

@@ -9,6 +9,7 @@
 #include "tabela_simbolos.h"
 #include "escopo.h"
 #include "instr.h"
+#include <string.h>
 
 int yylex(void);
 void yyerror (char const *s);
@@ -243,6 +244,10 @@ funcao: cabecalho '{' corpo_funcao '}'
 			$$->codigo = cod_funcao_prologo_main(numero_parametros(escopo->t));
 		else 
 			$$->codigo = cod_funcao_prologo(numero_parametros(escopo->t)); // adiciona o prologo antes de fechar o escopo local
+		char *function_id = calloc(strlen($$->valor_lexico->valor.cadeia_caracteres) + 10, sizeof(char));
+		sprintf(function_id, "FUNCTION %s", $$->valor_lexico->valor.cadeia_caracteres);
+		adiciona_comentario(function_id, $$->codigo);
+
 		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
 		simbolo_t *s = novo_simbolo();
 		adiciona_valor_lexico(s, $1->valor_lexico);
@@ -456,13 +461,14 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 			else 
 				ps = NULL;
 		}
+
+		code_t *preparacao = cod_chamada_func_antes(5, param_offset/4-REGISTRO_ATIVACAO_OFFSET/4);
+		char *call_id = calloc(strlen(s->valor_lexico->valor.cadeia_caracteres) + 6, sizeof(char));
+		sprintf(call_id, "CALL %s", s->valor_lexico->valor.cadeia_caracteres);
+		adiciona_comentario(call_id, preparacao);
+
 		n->temp = novo_registrador();
-		n->codigo = concatena_codigo(cod_params, 
-									 cod_chamada_func_antes( 5,
-		                                                     param_offset/4-REGISTRO_ATIVACAO_OFFSET/4));
-		// n->codigo = cod_chamada_func_antes(num_linhas(cod_params) + 5,
-		//                                    param_offset/4-REGISTRO_ATIVACAO_OFFSET/4);
-	    // n->codigo = concatena_codigo(n->codigo, cod_params);
+		n->codigo = concatena_codigo(cod_params, preparacao);
 	    n->codigo = concatena_codigo(n->codigo, cod_jump_incondicional(s->label));
 		n->codigo = concatena_codigo(n->codigo, cod_load_pilha(n->temp, 12));
 		$$ = n;
