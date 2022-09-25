@@ -33,7 +33,9 @@ pilha_t* novo_escopo(pilha_t *p, tipo_escopo_t tipo_escopo, int offset);
 pilha_t* sai_escopo();
 
 // adiciona simbolo no escopo no topo da pilha
-pilha_t * adiciona_simbolo(pilha_t *p, simbolo_t *s);
+pilha_t *adiciona_simbolo(pilha_t *p, simbolo_t *s);
+
+void adiciona_simbolo_no_escopo_global(pilha_t *p, simbolo_t *s);
 
 // adiciona os simbolos retirados da ast com o tipo especificado 
 pilha_t *adiciona_lista_simbolos(pilha_t *p, ast_t *t, tipos_semanticos_t tipo);

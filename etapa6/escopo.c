@@ -3,6 +3,7 @@
 
 pilha_t* inicializa_pilha()
 {
+    printf("INICIALIZOU!\n");
     pilha_t *p = calloc(1, sizeof(pilha_t));
     tabela_simbolos_t *tabela_global = init_tabela_simbolos(0);
     p->anterior = NULL; // fundo da pilha
@@ -43,6 +44,23 @@ pilha_t* sai_escopo(pilha_t *p)
     libera_tabela_simbolos(p->t);
     free(p);
     return nt;
+}
+
+void adiciona_simbolo_no_escopo_global(pilha_t *p, simbolo_t *s)
+{
+    //Inicializa escopo global.
+    if(p == NULL){
+        printf("CAIU NA INIT\n");
+        adiciona_simbolo(p, s);
+    } else {
+        //Escopo global ja existe, mas é preciso chegar até ele.
+        while (p != NULL){
+            if(p->tipo_escopo == escopo_global){
+                adiciona_simbolo(p, s);                
+            } 
+            p = p->anterior;
+        }
+    }
 }
 
 pilha_t * adiciona_simbolo(pilha_t *p, simbolo_t *s)
