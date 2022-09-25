@@ -1,0 +1,8 @@
+int f(){
+    int w;
+    w = f();
+}
+
+int main(){
+    int a;
+}
