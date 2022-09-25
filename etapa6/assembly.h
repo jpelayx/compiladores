@@ -9,6 +9,7 @@ typedef enum flag_traducao
 {
     TRAD_NORMAL,
     TRAD_INICIO,
+    TRAD_PROLOGO,
     TRAD_RETORNO,
     TRAD_CALL
 } flag_traducao_t;
@@ -22,6 +23,8 @@ flag_traducao_t traducao_inicio(instr_t *i);
 flag_traducao_t traducao_direta(instr_t *i);
 
 flag_traducao_t traducao_retorno(instr_t *i);
+
+flag_traducao_t traducao_prologo(instr_t *i);
 
 bool eh_declaracao_funcao(instr_t *i);
 bool eh_sequencia_retorno(instr_t *i);

@@ -273,10 +273,7 @@ funcao: cabecalho '{' corpo_funcao '}'
 		}
 		else 
 			ret = NULL;
-		if(func_main)
-			$$->codigo = concatena_codigo($$->codigo, cod_halt());
-		else
-			$$->codigo = concatena_codigo($$->codigo, cod_funcao_epilogo(ret));
+		$$->codigo = concatena_codigo($$->codigo, cod_funcao_epilogo(ret));
 
 		//ALTERACAO PARA FUNCAO RECURSIVA
 		//No cabecalho o simbolo é incluso na tabela do escopo global.
