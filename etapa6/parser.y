@@ -211,24 +211,11 @@ var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';'
 		s->tamanho = $4->valor_lexico->valor.inteiro;
 		libera($4);
 	 }
-	//  int aux_proximo_id_antes = retorna_proximo_id_do_escopo_da_funcao(escopo);
 	 escopo = adiciona_simbolo(escopo, s); 
 	 escopo = adiciona_lista_simbolos(escopo, $5, $2); // adiciona as variaveis em lista_identificadores_g
-	//  int aux_proximo_id_depois = retorna_proximo_id_do_escopo_da_funcao(escopo);
-	//  int numero_de_declaracoes = (aux_proximo_id_depois - aux_proximo_id_antes)/4;
-	 
-	//  libera($5); // libera arvore temporaria
 
 	 $$ = cria_nodo_passagem($3);
 	 $$->filhos[0] = $5;
-	 printf("adicionando var global %s\n", $3->valor.cadeia_caracteres);
-	 
-	//  $$->codigo = cod_alocacao_var_global(numero_de_declaracoes);
-     //Cria ILOC para variaveis globais
-	 ///Esse nodo serve somente para passar para a raiz da arvore o código gerado;
-	 //$$ = cria_nodo(nodo_inutil, NULL);
-	 //Faz mesma coisa que foi feita nas variaveis locais sem inicializacao, mas desloca em rbss
-
 	};
 lista_identificadores_g: lista_identificadores_g ',' TK_IDENTIFICADOR vetor  
 	{// cria uma arvore temporaria que guarda as variaveis 

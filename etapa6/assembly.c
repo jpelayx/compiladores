@@ -6,9 +6,7 @@ pilha_escopo_registrador_t *escopo_reg;
 
 void generateAsm(code_t *c)
 {
-    escopo_reg = malloc(sizeof(pilha_escopo_registrador_t));
-    escopo_reg->prev = NULL;
-    escopo_reg->top = novo_escopo_registrador();
+    escopo_reg = NULL;
     // inicio padrão 
     printf("\t.text\n");
     printf("\t.globl main\n");
@@ -64,11 +62,12 @@ flag_traducao_t traducao_direta(instr_t *i)
         printf("%s:\n", i->comment + 9);
         printf("pushq %%rbp\n");
         printf("movq %%rsp, %%rbp\n");
+        escopo_reg = push_pilha_registrador(escopo_reg, novo_escopo_registrador());
         return TRAD_PROLOGO;
     }
     if(eh_sequencia_retorno(i))
     {
-        printf("mov ");
+        printf("movq ");
         imprime_registrador_assembly(escopo_reg->top, i->op0);
         printf(", %%eax\n"); // retorno sempre pelo %eax
         return TRAD_RETORNO;
@@ -186,6 +185,7 @@ flag_traducao_t traducao_retorno(instr_t *i)
     {
         printf("popq %%rbp\n");
         printf("ret\n");
+        escopo_reg = pop_pilha_registrador(escopo_reg);
         return TRAD_NORMAL;
     }
     return TRAD_RETORNO;
@@ -220,13 +220,13 @@ escopo_registrador_t *novo_escopo_registrador()
 {
     escopo_registrador_t *e = malloc(sizeof(escopo_registrador_t));
     e->num_regs = 0;
-    e->reg_area = malloc(4*sizeof(int)); // cx, dx, ci, di
+    e->reg_area = malloc(15*sizeof(int)); 
     return e;
 }
 
 int adiciona_registrador(escopo_registrador_t *e, operando_instr_t *r)
 {
-    if(e->num_regs > 3)
+    if(e->num_regs > 14)
         e->reg_area = realloc(e->reg_area, sizeof(int) * (e->num_regs-3));
 
     e->reg_area[e->num_regs] = r->val;
@@ -247,25 +247,55 @@ void imprime_registrador_assembly(escopo_registrador_t *e,  operando_instr_t *r)
     int reg_ref = registrador_assembly(e, r);
     switch (reg_ref)
     {
-    case 0:
-        printf("%%rcx");
-        break;
-    case 1:
-        printf("%%rdx");
-        break;
-    case 2:
-        printf("%%rci");
-        break;
-    case 3:
-        printf("%%rdi");
-        break;
-    default: // spill
-        printf("spill");
-        break;
+	case 0:
+		printf("%%ecx");
+		break;
+	case 1:
+		printf("%%edx");
+		break;
+	case 2:
+		printf("%%ebx");
+		break;
+	case 3:
+		printf("%%esi");
+		break;
+	case 4:
+		printf("%%edi");
+		break;
+	case 5:
+		printf("%%esp");
+		break;
+	case 6:
+		printf("%%ebp");
+		break;
+	case 7:
+		printf("%%r8d");
+		break;
+	case 8:
+		printf("%%r9d");
+		break;
+	case 9:
+		printf("%%r10d");
+		break;
+	case 10:
+		printf("%%r11d");
+		break;
+	case 11:
+		printf("%%r12d");
+		break;
+	case 12:
+		printf("%%r13d");
+		break;
+	case 13:
+		printf("%%r14d");
+		break;
+	case 14:
+		printf("%%r15d");
+		break;
+    default:
+        printf("spill :(");
     }
-    return;
 }
-
 
 pilha_escopo_registrador_t *pop_pilha_registrador(pilha_escopo_registrador_t *p)
 {
