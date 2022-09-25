@@ -1,8 +1,14 @@
 #include "assembly.h"
 #include <string.h>
+#include <stdlib.h>
+
+pilha_escopo_registrador_t *escopo_reg;
 
 void generateAsm(code_t *c)
 {
+    escopo_reg = malloc(sizeof(pilha_escopo_registrador_t));
+    escopo_reg->prev = NULL;
+    escopo_reg->top = novo_escopo_registrador();
     // inicio padrão 
     printf("\t.text\n");
     printf("\t.globl main\n");
@@ -63,7 +69,7 @@ flag_traducao_t traducao_direta(instr_t *i)
     if(eh_sequencia_retorno(i))
     {
         printf("mov ");
-        registrador_assembly(i->op0);
+        imprime_registrador_assembly(escopo_reg->top, i->op0);
         printf(", %%eax\n"); // retorno sempre pelo %eax
         return TRAD_RETORNO;
     }
@@ -125,7 +131,7 @@ flag_traducao_t traducao_direta(instr_t *i)
 		break;
 	case ILOC_loadI:
         printf("movl $%d, ", i->op0->val);
-        registrador_assembly(i->op1);
+        imprime_registrador_assembly(escopo_reg->top, i->op1);
         printf("\n");
 		break;
 	case ILOC_store:
@@ -209,32 +215,70 @@ bool eh_sequencia_retorno(instr_t *i)
         return false;
 }
 
-void registrador_assembly(operando_instr_t *r)
+
+escopo_registrador_t *novo_escopo_registrador()
 {
-    /* RESERVADOS
-     * - eax: retornos e acumulador p/ expressoes aritmeticas 
-     * - rsp: pilha
-     * - rpb: frame pointer 
-     * DISPONÍVEIS 
-     * - ecx, edx, esi, edi
-     */
-    // tem que ver isso melhor..
-    switch (r->val)
+    escopo_registrador_t *e = malloc(sizeof(escopo_registrador_t));
+    e->num_regs = 0;
+    e->reg_area = malloc(4*sizeof(int)); // cx, dx, ci, di
+    return e;
+}
+
+int adiciona_registrador(escopo_registrador_t *e, operando_instr_t *r)
+{
+    if(e->num_regs > 3)
+        e->reg_area = realloc(e->reg_area, sizeof(int) * (e->num_regs-3));
+
+    e->reg_area[e->num_regs] = r->val;
+    e->num_regs++;
+    return e->num_regs - 1;
+}
+
+int registrador_assembly(escopo_registrador_t *e,operando_instr_t *r)
+{
+    for(int i=0; i < e->num_regs; i++)
+        if(e->reg_area[i] == r->val)
+            return i;
+    return adiciona_registrador(e, r);
+}
+
+void imprime_registrador_assembly(escopo_registrador_t *e,  operando_instr_t *r)
+{
+    int reg_ref = registrador_assembly(e, r);
+    switch (reg_ref)
     {
     case 0:
-        printf("%%ecx");
+        printf("%%rcx");
         break;
     case 1:
-        printf("%%edx");
+        printf("%%rdx");
         break;
     case 2:
-        printf("%%esi");
+        printf("%%rci");
         break;
     case 3:
-        printf("%%edi");
+        printf("%%rdi");
         break;
-    default:
-        printf("REG_ERR");  
+    default: // spill
+        printf("spill");
         break;
     }
+    return;
+}
+
+
+pilha_escopo_registrador_t *pop_pilha_registrador(pilha_escopo_registrador_t *p)
+{
+    pilha_escopo_registrador_t *prev = p->prev;
+    free(p->top->reg_area);
+    free(p->top);
+    free(p);
+    return prev;
+}
+pilha_escopo_registrador_t *push_pilha_registrador(pilha_escopo_registrador_t *p, escopo_registrador_t *e)
+{
+    pilha_escopo_registrador_t *top = calloc(1, sizeof(pilha_escopo_registrador_t));
+    top->top = e;
+    top->prev = p;
+    return top;
 }
