@@ -26,7 +26,8 @@ int adiciona_registrador(escopo_registrador_t *e, operando_instr_t *r);
 
 int registrador_assembly(escopo_registrador_t *e,operando_instr_t *r);
 
-void imprime_registrador_assembly(escopo_registrador_t *e,  operando_instr_t *r);
+void imprime_registrador_assembly_4(escopo_registrador_t *e,  operando_instr_t *r);
+void imprime_registrador_assembly_16(escopo_registrador_t *e,  operando_instr_t *r);
 
 typedef struct pilha_escopo_registradores
 {

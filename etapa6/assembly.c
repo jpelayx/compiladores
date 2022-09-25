@@ -68,7 +68,7 @@ flag_traducao_t traducao_direta(instr_t *i)
     if(eh_sequencia_retorno(i))
     {
         printf("movq ");
-        imprime_registrador_assembly(escopo_reg->top, i->op0);
+        imprime_registrador_assembly_4(escopo_reg->top, i->op0);
         printf(", %%eax\n"); // retorno sempre pelo %eax
         return TRAD_RETORNO;
     }
@@ -130,7 +130,7 @@ flag_traducao_t traducao_direta(instr_t *i)
 		break;
 	case ILOC_loadI:
         printf("movl $%d, ", i->op0->val);
-        imprime_registrador_assembly(escopo_reg->top, i->op1);
+        imprime_registrador_assembly_4(escopo_reg->top, i->op1);
         printf("\n");
 		break;
 	case ILOC_store:
@@ -220,7 +220,7 @@ escopo_registrador_t *novo_escopo_registrador()
 {
     escopo_registrador_t *e = malloc(sizeof(escopo_registrador_t));
     e->num_regs = 0;
-    e->reg_area = malloc(15*sizeof(int)); 
+    e->reg_area = malloc(13*sizeof(int)); 
     return e;
 }
 
@@ -242,7 +242,7 @@ int registrador_assembly(escopo_registrador_t *e,operando_instr_t *r)
     return adiciona_registrador(e, r);
 }
 
-void imprime_registrador_assembly(escopo_registrador_t *e,  operando_instr_t *r)
+void imprime_registrador_assembly_4(escopo_registrador_t *e,  operando_instr_t *r)
 {
     int reg_ref = registrador_assembly(e, r);
     switch (reg_ref)
@@ -263,34 +263,77 @@ void imprime_registrador_assembly(escopo_registrador_t *e,  operando_instr_t *r)
 		printf("%%edi");
 		break;
 	case 5:
-		printf("%%esp");
-		break;
-	case 6:
-		printf("%%ebp");
-		break;
-	case 7:
 		printf("%%r8d");
 		break;
-	case 8:
+	case 6:
 		printf("%%r9d");
 		break;
-	case 9:
+	case 7:
 		printf("%%r10d");
 		break;
-	case 10:
+	case 8:
 		printf("%%r11d");
 		break;
-	case 11:
+	case 9:
 		printf("%%r12d");
 		break;
-	case 12:
+	case 10:
 		printf("%%r13d");
 		break;
-	case 13:
+	case 11:
 		printf("%%r14d");
 		break;
-	case 14:
+	case 12:
 		printf("%%r15d");
+		break;
+    default:
+        printf("spill :(");
+    }
+}
+
+void imprime_registrador_assembly_16(escopo_registrador_t *e,  operando_instr_t *r)
+{
+    int reg_ref = registrador_assembly(e, r);
+    switch (reg_ref)
+    {
+	case 0:
+		printf("%%rcx");
+		break;
+	case 1:
+		printf("%%rdx");
+		break;
+	case 2:
+		printf("%%rbx");
+		break;
+	case 3:
+		printf("%%rsi");
+		break;
+	case 4:
+		printf("%%rdi");
+		break;
+	case 5:
+		printf("%%r8");
+		break;
+	case 6:
+		printf("%%r9");
+		break;
+	case 7:
+		printf("%%r10");
+		break;
+	case 8:
+		printf("%%r11");
+		break;
+	case 9:
+		printf("%%r12");
+		break;
+	case 10:
+		printf("%%r13");
+		break;
+	case 11:
+		printf("%%r14");
+		break;
+	case 12:
+		printf("%%r15");
 		break;
     default:
         printf("spill :(");
