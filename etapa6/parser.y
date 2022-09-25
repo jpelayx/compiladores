@@ -203,7 +203,6 @@ var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';'
 	{
 	 simbolo_t *s = novo_simbolo();
 	 adiciona_valor_lexico(s, $3);
-	 libera_tk($3);
 	 s->tipo = $2;
 	 if($4 == NULL)
 		s->natureza = simbolo_variavel;
@@ -222,6 +221,7 @@ var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';'
 
 	 $$ = cria_nodo_passagem($3);
 	 $$->filhos[0] = $5;
+	 printf("adicionando var global %s\n", $3->valor.cadeia_caracteres);
 	 
 	//  $$->codigo = cod_alocacao_var_global(numero_de_declaracoes);
      //Cria ILOC para variaveis globais
