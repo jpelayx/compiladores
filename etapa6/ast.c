@@ -42,9 +42,9 @@ ast_t *cria_nodo_vetor(valor_token_t *valor_lexico_id, ast_t *vetor) {
 	return n;
 }
 
-ast_t *cria_nodo_passagem()
+ast_t *cria_nodo_passagem(valor_token_t *valor_lexico)
 {
-	ast_t *n = cria_nodo(passagem, NULL);
+	ast_t *n = cria_nodo(passagem, valor_lexico);
 	insere_filho(n, NULL);
 	return n; 
 }
@@ -288,8 +288,9 @@ bool eh_main(ast_t *t)
 		return false;
 }
 
-int num_vars_globais(ast_t *t)
+code_t *vars_globais(ast_t *t)
 {
+	code_t *vars_globais = NULL;
 	int nv = 0;
 	ast_t *tf;
 	while(t != NULL)
@@ -297,16 +298,31 @@ int num_vars_globais(ast_t *t)
 		if(t->tipo == passagem)
 		{
 			nv++;
+
+			code_t *var_global = cod_alocacao_var_global(t->valor_lexico->valor.cadeia_caracteres);
+			
+			vars_globais = concatena_codigo(vars_globais, var_global);
+
 			tf = t->num_filhos > 1? t->filhos[0]: NULL;
 			while (tf != NULL)
 			{
 				nv++;
+
+				code_t *var_global = cod_alocacao_var_global(tf->valor_lexico->valor.cadeia_caracteres);
+				vars_globais = concatena_codigo(vars_globais, var_global);
+
 				tf = tf->filhos[tf->num_filhos-1];
 			}
 		}
 		t = t->filhos[t->num_filhos-1];  
 	}
-	return nv;
+
+	printf("==================\n");
+	printf("IMPRIMINDO CODIGO DAS VARIAVEIS GLOBAIS:\n");
+	imprime_codigo(vars_globais);
+	printf("\n==================\n\n");
+
+	return vars_globais;
 }
 
 code_t *cod_prepara_chamada_funcao(ast_t *parametros){

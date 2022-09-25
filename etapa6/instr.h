@@ -182,11 +182,11 @@ code_t *cod_funcao_prologo_main();
 
 code_t *cod_funcao_epilogo(operando_instr_t *ret);
 
-code_t *cod_init(int num_vars_globais, operando_instr_t *l, code_t *cod);
+code_t *cod_init(code_t *vars_globais, operando_instr_t *l, code_t *cod);
 
 code_t *cod_alocacao_var_local(int num_vars);
 
-code_t *cod_alocacao_var_global(int num_vars);
+code_t *cod_alocacao_var_global(char *identificador);
 
 code_t *cod_jump_incondicional(operando_instr_t *l);
 

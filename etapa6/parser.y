@@ -162,7 +162,7 @@ operando_instr_t *label_main = NULL;
 
 input: programa 
 	{ 
-		$1->codigo = cod_init(num_vars_globais($1), label_main, $1->codigo);
+		$1->codigo = cod_init(vars_globais($1), label_main, $1->codigo);
 		imprime_codigo($1->codigo);
 	    arvore = $1; 
 		print_tabela(escopo->t);
@@ -174,7 +174,7 @@ programa: programa var_global
 	  if($1 != NULL)
 	  	$$->codigo = concatena_codigo($1->codigo, $2->codigo);
 	  else 
-	  	$$->codigo = $2->codigo; 
+	  	$$->codigo = $2->codigo; 		
 	} 
 	| programa funcao           
 	{ $$ = insere_fim_lista($2, $1);
@@ -220,7 +220,7 @@ var_global: estatico tipo TK_IDENTIFICADOR vetor lista_identificadores_g ';'
 	 
 	//  libera($5); // libera arvore temporaria
 
-	 $$ = cria_nodo_passagem();
+	 $$ = cria_nodo_passagem($3);
 	 $$->filhos[0] = $5;
 	 
 	//  $$->codigo = cod_alocacao_var_global(numero_de_declaracoes);
@@ -380,7 +380,7 @@ declaracao_variavel: estatico constante tipo inicializa_variavel lista_identific
 	  int numero_de_declaracoes = (aux_proximo_id_depois - aux_proximo_id_antes)/4;
 	  $$ = remove_nodos_inuteis($$);
 	  if($$ == NULL)
-	  	$$ = cria_nodo_passagem();
+	  	$$ = cria_nodo_passagem(NULL);
 	  $$->codigo = cod_alocacao_var_local(numero_de_declaracoes); };
 lista_identificadores_l: lista_identificadores_l ','  inicializa_variavel
 		{$$ = insere_fim_lista($3, $1); } 	

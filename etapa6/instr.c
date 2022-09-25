@@ -779,7 +779,7 @@ code_t *cod_chamada_func_antes(int retorno, int num_parametros)
     return c;
 }
 
-code_t *cod_init(int num_vars_globais, operando_instr_t *l, code_t *cod)
+code_t *cod_init(code_t *cod_vars_globais, operando_instr_t *l, code_t *cod)
 {
     // loadI 1024 => rfp
     // loadI 1024 => rsp
@@ -787,6 +787,7 @@ code_t *cod_init(int num_vars_globais, operando_instr_t *l, code_t *cod)
     // alocacoes de vars globais 
     // jumpI => l
     code_t *c = calloc(1, sizeof(code_t));
+    printf("TA NO COD_INIT\n");
 
     operando_instr_t *fp = calloc(1, sizeof(operando_instr_t)),
                      *sp = calloc(1, sizeof(operando_instr_t)),
@@ -809,17 +810,19 @@ code_t *cod_init(int num_vars_globais, operando_instr_t *l, code_t *cod)
     ld_rsp->i->op1 = sp;
     ld_rsp->prev = ld_rfp;  
 
-    code_t * cod_vars = cod_alocacao_var_global(num_vars_globais);
+    //code_t * cod_vars = cod_alocacao_var_global(num_vars_globais);
+    //Append com o codigo criado para as globais.
+
 
     lista_instr_t *ld_rbss = calloc(1, sizeof(lista_instr_t));
     ld_rbss->i = calloc(1, sizeof(instr_t));
     ld_rbss->i->opcode = ILOC_loadI;
-    ld_rbss->i->op0 = gera_imediato(num_linhas(cod) + 5 + num_linhas(cod_vars));
+    ld_rbss->i->op0 = gera_imediato(num_linhas(cod) + 5 + num_linhas(cod_vars_globais));
     ld_rbss->i->op1 = bss;
     ld_rbss->prev = ld_rsp;  
 
     c->codigo = ld_rbss;
-    c = concatena_codigo(c, cod_vars);
+    c = concatena_codigo(c, cod_vars_globais);
     if (l == NULL) // sem main 
     {
         ld_rbss->i->op0->val = 5;
@@ -874,28 +877,25 @@ code_t *cod_alocacao_var_local(int num_vars)
     return c;
 }
 
-code_t *cod_alocacao_var_global(int num_vars)
+code_t *cod_alocacao_var_global(char *identificador)
 {
-    if(num_vars == 0)
-        return NULL;
-
     code_t *c = calloc(1, sizeof(code_t));
     lista_instr_t *declaracoes = NULL,
                   *prev = NULL;
     operando_instr_t *bss = calloc(1, sizeof(operando_instr_t)),
                      *i4 = gera_imediato(4);
     bss->tipo = rbss;
-    for(int i = 0; i<num_vars; i++)
-    {
-        prev = declaracoes;
-        declaracoes = calloc(1, sizeof(instr_t)); 
-        declaracoes->i = calloc(1, sizeof(instr_t));
-        declaracoes->i->opcode = ILOC_addI;
-        declaracoes->i->op0 = bss;
-        declaracoes->i->op1 = i4;
-        declaracoes->i->op2 = bss;
-        declaracoes->prev = prev; 
-    }
+
+    prev = declaracoes;
+    declaracoes = calloc(1, sizeof(instr_t)); 
+    declaracoes->i = calloc(1, sizeof(instr_t));
+    declaracoes->i->opcode = ILOC_addI;
+    declaracoes->i->op0 = bss;
+    declaracoes->i->op1 = i4;
+    declaracoes->i->op2 = bss;
+    declaracoes->i->comment = identificador;
+    declaracoes->prev = prev; 
+
     c->codigo = declaracoes;
     return c;
 }

@@ -66,7 +66,7 @@ ast_t *cria_nodo_unario(valor_token_t *valor_lexico, ast_t *f1);
 // Cria nó do tipo acesso_vetor ou identificador (se nenhum acesso for feito)
 ast_t *cria_nodo_vetor(valor_token_t *valor_lexico, ast_t *vetor);
 
-ast_t *cria_nodo_passagem();
+ast_t *cria_nodo_passagem(valor_token_t *valor_lexico);
 
 // Adiciona nó filho
 void insere_filho(ast_t *pai, ast_t *filho);
@@ -91,7 +91,7 @@ bool eh_booleana(ast_t *t);
 bool eh_main(ast_t *t);
 
 // retorna o numero de variaveis globais no programa
-int num_vars_globais(ast_t *t);
+code_t *vars_globais(ast_t *t);
 
 // Libera recursivamente o nó e seus filhos
 void libera(void *arvore);
