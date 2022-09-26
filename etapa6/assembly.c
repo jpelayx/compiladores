@@ -135,7 +135,7 @@ flag_traducao_t traducao_direta(instr_t *i)
 		printf("// traducao ILOC_loadA0\n");
 		break;
 	case ILOC_loadI:
-        printf("movl $%d, ", i->op0->val);
+        printf("movl $%u, ", i->op0->val);
         imprime_registrador_assembly_4(escopo_reg->top, i->op1);
         printf("\n");
 		break;

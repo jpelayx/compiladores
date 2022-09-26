@@ -17,6 +17,10 @@ assembly: ex.c
 	gcc -S ex.c
 	gcc ex.s -o ex
 
+run: out.s
+	gcc out.s -o out
+	-./out
+
 clean:
 	rm -rf etapa6
 	rm parser.tab.* scanner.lex.c	
