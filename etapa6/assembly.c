@@ -63,6 +63,12 @@ flag_traducao_t traducao_inicio(instr_t *i)
 
 flag_traducao_t traducao_direta(lista_instr_t *l)
 {
+	if(l->i->label != NULL){
+			printf(".");
+        	print_operando(l->i->label);
+        	printf(": ");
+			printf("\n");
+    }
     // traducao 1:1
     if(eh_declaracao_funcao(l->i))
     {
@@ -86,11 +92,6 @@ flag_traducao_t traducao_direta(lista_instr_t *l)
     switch (l->i->opcode)
     {
 	case ILOC_nop:
-		if(l->i->label != NULL){
-        	print_operando(l->i->label);
-        	printf(": ");
-			printf("\n");
-    	}
 		break;
 	case ILOC_halt:
 		printf("// traducao ILOC_halt\n");
@@ -226,7 +227,11 @@ flag_traducao_t traducao_direta(lista_instr_t *l)
 		}
 		break;
 	case jumpI:
-		printf("// traducao jumpI\n");
+		//Verificar aqui se nao é jump para um funcao?
+		//Se for simplesmente para um label, faz o jmp normal.
+		printf("jmp .");
+		print_operando(l->i->op0);
+		printf("\n");
 		break;
 	case jump:
 		printf("// traducao jump\n");
