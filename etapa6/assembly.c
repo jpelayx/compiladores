@@ -47,11 +47,15 @@ flag_traducao_t traduz_instrucao(lista_instr_t *l, flag_traducao_t f)
 
 flag_traducao_t traducao_inicio(instr_t *i)
 {
-    // ignora as instrucoes iniciais até o primeiro jumpI (que é pra main)
-    if(i->opcode != jumpI)
+    // faz o print das declaracoes do segmento de dados (vars globais)
+    if(i->opcode != jumpI){    
+        if(i->op0->tipo == rbss && i->op2->tipo == rbss)
+            traducao_alocacao_var_global(i->comment);
         return TRAD_INICIO;
-    else
+    }
+    else{
         return TRAD_NORMAL;
+    }
 }
 
 flag_traducao_t traducao_direta(instr_t *i)
@@ -96,7 +100,7 @@ flag_traducao_t traducao_direta(instr_t *i)
 	case ILOC_addI:
         if(i->op0->tipo == rsp && i->op2->tipo == rsp)
             traducao_alocacao_stack(i->op1);
-		break;
+        break;
 	case ILOC_subI:
 		printf("// traducao ILOC_subI\n");
 		break;
@@ -224,6 +228,10 @@ void traducao_libera_stack()
         printf("addq $%d, %%rsp\n", stack_ctrl);
         stack_ctrl = 0;
     }
+}
+
+void traducao_alocacao_var_global(char* identificador){
+    printf("\t.comm %s,4,4\n", identificador);
 }
 
 bool eh_declaracao_funcao(instr_t *i)

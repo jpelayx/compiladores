@@ -53,6 +53,8 @@ flag_traducao_t traducao_prologo(instr_t *i);
 void traducao_alocacao_stack(operando_instr_t *val);
 void traducao_libera_stack();
 
+void traducao_alocacao_var_global(char* identificador);
+
 bool eh_declaracao_funcao(instr_t *i);
 bool eh_sequencia_retorno(instr_t *i);
 
