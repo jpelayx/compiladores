@@ -242,12 +242,31 @@ void adiciona_label(operando_instr_t *l, code_t *c)
 void adiciona_comentario(char *comentario, code_t *c)
 {
     lista_instr_t *inicio = primeiro_item(c->codigo);
-    inicio->i->comment = comentario;
+    if(inicio->i->comment != NULL)
+    {
+        size_t old = strlen(inicio->i->comment),
+               new = strlen(comentario);
+        inicio->i->comment = realloc(inicio->i->comment, old + new + 1);
+        inicio->i->comment = strcat(inicio->i->comment, ",");
+        inicio->i->comment = strcat(inicio->i->comment, comentario);
+    }
+    else
+        inicio->i->comment = comentario;
 }
 
 void adiciona_comentario_fim(char *comentario, code_t *c)
 {
-    c->codigo->i->comment = comentario;
+    lista_instr_t *inicio = c->codigo;
+    if(inicio->i->comment != NULL)
+    {
+        size_t old = strlen(inicio->i->comment),
+               new = strlen(comentario);
+        inicio->i->comment = realloc(inicio->i->comment, old + new + 1);
+        inicio->i->comment = strcat(inicio->i->comment, ",");
+        inicio->i->comment = strcat(inicio->i->comment, comentario);
+    }
+    else
+        inicio->i->comment = comentario;
 }
 
 code_t *concatena_codigo(code_t *head, code_t *tail)

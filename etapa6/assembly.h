@@ -12,11 +12,13 @@ typedef enum flag_traducao
     TRAD_PROLOGO,
     TRAD_RETORNO,
     TRAD_EXPR_ARIT,
-    TRAD_CALL
+    TRAD_CALL,
+    TRAD_CALL_EXPR
 } flag_traducao_t;
 
 typedef struct escopo_registrador
 {
+    int num_params;
     int num_regs;
     int *reg_area;
 } escopo_registrador_t;
@@ -28,7 +30,9 @@ int adiciona_registrador(escopo_registrador_t *e, operando_instr_t *r);
 int registrador_assembly(escopo_registrador_t *e,operando_instr_t *r);
 
 void imprime_registrador_assembly_4(escopo_registrador_t *e,  operando_instr_t *r);
+void imprime_registrador_assembly_4_ref(int reg_ref);
 void imprime_registrador_assembly_16(escopo_registrador_t *e,  operando_instr_t *r);
+void imprime_registrador_assembly_16_ref(int reg_ref);
 
 typedef struct pilha_escopo_registradores
 {
@@ -54,6 +58,16 @@ acumulador_t *pop_acumulador(acumulador_t *ac);
 // retorna ac se op estava no acumulador, NULL cc.
 acumulador_t *acesso_acumulador(acumulador_t *ac, operando_instr_t *op);  
 
+typedef struct chamada
+{
+    char *nome;
+    bool eh_expr;
+    int num_regs;
+    operando_instr_t *end_ret;
+    struct chamada *prev;
+} chamada_t;
+
+
 flag_traducao_t traduz_instrucao(lista_instr_t *l, flag_traducao_t f);
 
 flag_traducao_t traducao_inicio(instr_t *i);
@@ -64,7 +78,9 @@ flag_traducao_t traducao_retorno(instr_t *i);
 
 flag_traducao_t traducao_prologo(instr_t *i);
 
-flag_traducao_t traducao_expr_arit(instr_t *i);
+flag_traducao_t traducao_call(instr_t *i, bool eh_expr);
+
+flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call);
 
 // retorna o indice do acumulador na expresao (0: primeiro op, 1: segundo, 2: ambos)
 int prepara_acumulador(int *arit_stack, acumulador_t **ac, operando_instr_t *op0, operando_instr_t *op1);
@@ -81,6 +97,7 @@ void traducao_alocacao_var_global(char* identificador);
 
 bool eh_declaracao_funcao(instr_t *i);
 bool eh_sequencia_retorno(instr_t *i);
+bool eh_chamada_funcao(instr_t *i);
 bool eh_inicio_expr_arit(instr_t *i);
 bool eh_fim_expr_arit(instr_t *i);
 

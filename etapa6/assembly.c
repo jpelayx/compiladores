@@ -39,7 +39,13 @@ flag_traducao_t traduz_instrucao(lista_instr_t *l, flag_traducao_t f)
         f = traducao_prologo(l->i);
         return f;
     case TRAD_EXPR_ARIT:
-        f = traducao_expr_arit(l->i);
+        f = traducao_expr_arit(l->i, false);
+        return f;
+    case TRAD_CALL:
+        f = traducao_call(l->i, false);
+        return f;
+    case TRAD_CALL_EXPR:
+        f = traducao_call(l->i, true);
         return f;
     default:
         printf("// tbd\n");
@@ -67,8 +73,7 @@ flag_traducao_t traducao_direta(instr_t *i)
     if(eh_declaracao_funcao(i))
     {
         // comentario: FUNCTION [nome da funcao]
-        printf("%s:\n", i->comment + 9);
-        printf("pushq %%rbp\n");
+        printf("%s:\n", strstr(i->comment, "FUNCTION") + 9);
         printf("movq %%rsp, %%rbp\n");
         escopo_reg = push_pilha_registrador(escopo_reg, novo_escopo_registrador());
         return TRAD_PROLOGO;
@@ -80,8 +85,12 @@ flag_traducao_t traducao_direta(instr_t *i)
         printf(", %%eax\n"); // retorno sempre pelo %eax
         return TRAD_RETORNO;
     }
+	if(eh_chamada_funcao(i) && eh_inicio_expr_arit(i))
+		return traducao_call(i, false);
 	if(eh_inicio_expr_arit(i))
-		return traducao_expr_arit(i);
+		return traducao_expr_arit(i, false);
+	if(eh_chamada_funcao(i))
+		return traducao_call(i, false);
 
     switch (i->opcode)
     {
@@ -135,7 +144,10 @@ flag_traducao_t traducao_direta(instr_t *i)
 		printf("// traducao ILOC_load\n");
 		break;
 	case ILOC_loadAI:
-		printf("movl -%d(", i->op1->val - REGISTRO_ATIVACAO_OFFSET);
+		if(i->op0->tipo == rfp)
+			printf("movl -%d(", i->op1->val - REGISTRO_ATIVACAO_OFFSET);
+		if(i->op0->tipo == rsp)
+			printf("movl -%d(", i->op1->val - REGISTRO_ATIVACAO_OFFSET);
         imprime_registrador_assembly_16(escopo_reg->top, i->op0);
         printf("), ");
         imprime_registrador_assembly_4(escopo_reg->top, i->op2);
@@ -204,7 +216,7 @@ flag_traducao_t traducao_retorno(instr_t *i)
     if(i->opcode == jump)
     {
         traducao_libera_stack();
-        printf("popq %%rbp\n");
+		printf("addq $%d, %%rsp\n", escopo_reg->top->num_params);
         printf("ret\n");
         escopo_reg = pop_pilha_registrador(escopo_reg);
         return TRAD_NORMAL;
@@ -215,12 +227,113 @@ flag_traducao_t traducao_retorno(instr_t *i)
 flag_traducao_t traducao_prologo(instr_t *i)
 {
     int num_parametros = i->op1->val - REGISTRO_ATIVACAO_OFFSET - 4;
+	escopo_reg->top->num_params = num_parametros;
     if(num_parametros > 0)
-        printf("add $%d, %%rsp\n", num_parametros);
+        printf("subq $%d, %%rsp\n", num_parametros);
     return TRAD_NORMAL;
 }
 
-flag_traducao_t traducao_expr_arit(instr_t *i)
+flag_traducao_t traducao_call(instr_t *i, bool eh_expr)
+{
+	static chamada_t * call = NULL;
+	bool ignora_call = false;
+	if(eh_chamada_funcao(i)) // inicio: CALL [nome da funcao]
+	{	
+		
+		chamada_t *c = malloc(sizeof(chamada_t));
+		c->nome = strdup(strstr(i->comment, "CALL") + 5);
+		char* end = strstr(c->nome, ",");
+		if (end != NULL)
+			end = 0;
+		printf("// inicio da chamada de %s\n", c->nome);
+		
+		c->num_regs = escopo_reg->top->num_regs;
+		c->eh_expr = eh_expr;
+		c->prev = call;
+		call = c;
+
+		// 1. salva sp e eax
+		printf("pushq %%rsp\n");
+		printf("pushq %%rbp\n");
+		printf("pushq %%rax\n");
+		// 2. salva registradores em uso na pilha
+		escopo_registrador_t *regs_em_uso = escopo_reg->top;
+		for (int idx=0; idx<regs_em_uso->num_regs; idx++)
+		{
+			printf("pushq ");
+			imprime_registrador_assembly_16_ref(idx);
+			printf("\n");
+		}
+		ignora_call = true;	
+	}
+	switch (i->opcode)
+	{
+	case ILOC_addI:
+		if(i->op0->tipo == rpc) // ignora
+		{
+			call->end_ret = i->op2;
+			break;
+		}
+		traducao_expr_arit(i, ignora_call);
+		break;
+	case ILOC_storeAI:
+		if(i->op0->tipo == rsp)
+			break;
+		if(i->op0->tipo == rfp)
+			break;
+		if(operandos_iguais(i->op0, call->end_ret))
+			break;
+		if(i->op1->tipo == rsp && i->op2->val > 12)
+		{
+			// 3. salva parametros 
+			printf("movl ");
+			imprime_registrador_assembly_4(escopo_reg->top, i->op0);
+			printf(", -%d(%%rsp)\n", i->op2->val - 12);
+			break;
+		}
+		traducao_expr_arit(i, ignora_call);
+	case jumpI:
+		printf("call %s\n", call->nome);
+		break;
+	case ILOC_loadAI:
+		if(i->op0->tipo == rsp && i->op1->val == 12)
+		{
+			// depois retorno 
+			// 4. carrega valor do retorno (eax)
+			printf("movl %%eax, ");
+			imprime_registrador_assembly_4(escopo_reg->top, i->op2);
+			printf("\n");
+
+			// 5. libera registradores usados nos parametros 
+			//    e pop dos registradores em uso antes do inicio da chamada
+			escopo_registrador_t *regs_em_uso = escopo_reg->top;
+			regs_em_uso->num_regs = call->num_regs;
+			for(int idx = regs_em_uso->num_regs-1; idx>=0; idx--)
+			{
+				printf("popq ");
+				imprime_registrador_assembly_16_ref(idx);
+				printf("\n");
+			}
+			// 6. pop do rsp e rax 
+			// fim da chamada
+			printf("popq %%rax\n");
+			printf("popq %%rbp\n");
+			printf("popq %%rsp\n");
+			eh_expr = call->eh_expr;
+			chamada_t *c = call->prev;
+			free(call->nome);
+			free(call);
+			call = c;
+			printf("// fim da chamada eh_expr = %d\n", eh_expr);
+			return eh_expr ? TRAD_EXPR_ARIT : TRAD_NORMAL ;				
+		}
+	default:
+		traducao_expr_arit(i, ignora_call);
+	}
+	return call->eh_expr ? TRAD_CALL_EXPR : TRAD_CALL;
+}
+
+flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call)
 {
 	static acumulador_t *ac;
 	static int arit_stack;
@@ -230,6 +343,8 @@ flag_traducao_t traducao_expr_arit(instr_t *i)
 		arit_stack = stack_ctrl; // topo da pilha no inicio da expr
 		printf("// INICIO EXPR AR\n");
 	}
+	if(eh_chamada_funcao(i) && !ignora_call)
+		return traducao_call(i, true);
 	if(i->opcode == ILOC_loadAI || i->opcode == ILOC_loadI)
 	{
 		if(i->opcode == ILOC_loadAI)
@@ -478,6 +593,11 @@ bool eh_fim_expr_arit(instr_t *i)
     return (i->comment != NULL && strstr(i->comment, "EXPR_ARIT_END") != NULL);
 }
 
+bool eh_chamada_funcao(instr_t *i)
+{
+    return (i->comment != NULL && strstr(i->comment, "CALL") != NULL);
+}
+
 escopo_registrador_t *novo_escopo_registrador()
 {
     escopo_registrador_t *e = malloc(sizeof(escopo_registrador_t));
@@ -525,17 +645,27 @@ pilha_escopo_registrador_t *push_pilha_registrador(pilha_escopo_registrador_t *p
 
 void imprime_registrador_assembly_4(escopo_registrador_t *e,  operando_instr_t *r)
 {
-    if(r->tipo == rfp)
-    {
+	switch (r->tipo)
+	{
+    case rfp:
         printf("%%rbp");
-        return;
-    }
-    if(r->tipo == rsp)
-    {
+		break;
+    case rsp:
         printf("%%rsp");
-        return;
-    }
-    int reg_ref = registrador_assembly(e, r);
+		break;
+	case imediato:
+		printf("$%d", r->val);
+		break;
+	case registrador:
+ 		int reg_ref = registrador_assembly(e, r);
+		imprime_registrador_assembly_4_ref(reg_ref);
+		break;
+	default:
+		break;
+	}
+}
+void imprime_registrador_assembly_4_ref(int reg_ref)
+{
     switch (reg_ref)
     {
 	case 0:
@@ -584,17 +714,28 @@ void imprime_registrador_assembly_4(escopo_registrador_t *e,  operando_instr_t *
 
 void imprime_registrador_assembly_16(escopo_registrador_t *e,  operando_instr_t *r)
 {
-    if(r->tipo == rfp)
-    {
+	switch (r->tipo)
+	{
+    case rfp:
         printf("%%rbp");
-        return;
-    }
-    if(r->tipo == rsp)
-    {
+		break;
+    case rsp:
         printf("%%rsp");
-        return;
-    }
-    int reg_ref = registrador_assembly(e, r);
+		break;
+	case imediato:
+		printf("$%d", r->val);
+		break;
+	case registrador:
+ 		int reg_ref = registrador_assembly(e, r);
+		imprime_registrador_assembly_16_ref(reg_ref);
+		break;
+	default:
+		break;
+	}
+}
+
+void imprime_registrador_assembly_16_ref(int reg_ref)
+{
     switch (reg_ref)
     {
 	case 0:

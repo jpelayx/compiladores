@@ -484,14 +484,15 @@ chamada_de_funcao: TK_IDENTIFICADOR '(' parametro_chamada_funcao ')'
 		}
 
 		code_t *preparacao = cod_chamada_func_antes(5, param_offset/4-REGISTRO_ATIVACAO_OFFSET/4);
+
 		char *call_id = calloc(strlen(s->valor_lexico->valor.cadeia_caracteres) + 6, sizeof(char));
 		sprintf(call_id, "CALL %s", s->valor_lexico->valor.cadeia_caracteres);
-		adiciona_comentario(call_id, preparacao);
 
 		n->temp = novo_registrador();
 		n->codigo = concatena_codigo(cod_params, preparacao);
 	    n->codigo = concatena_codigo(n->codigo, cod_jump_incondicional(s->label));
 		n->codigo = concatena_codigo(n->codigo, cod_load_pilha(n->temp, 12));
+		adiciona_comentario(call_id, n->codigo);
 		$$ = n;
 	};
 
