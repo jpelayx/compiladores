@@ -58,7 +58,7 @@ flag_traducao_t traduz_instrucao(lista_instr_t *l, flag_traducao_t f);
 
 flag_traducao_t traducao_inicio(instr_t *i);
 
-flag_traducao_t traducao_direta(instr_t *i);
+flag_traducao_t traducao_direta(lista_instr_t *l);
 
 flag_traducao_t traducao_retorno(instr_t *i);
 
