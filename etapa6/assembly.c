@@ -91,7 +91,7 @@ flag_traducao_t traducao_direta(lista_instr_t *l)
         printf(", %%eax\n"); // retorno sempre pelo %eax
         return TRAD_RETORNO;
     }
-	if(eh_chamada_funcao(l->i) && eh_inicio_expr_arit(i))
+	if(eh_chamada_funcao(l->i) && eh_inicio_expr_arit(l->i))
 		return traducao_call(l->i, false);
 	if(eh_inicio_expr_arit(l->i))
 		return traducao_expr_arit(l->i, false);
