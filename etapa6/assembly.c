@@ -198,6 +198,9 @@ flag_traducao_t traducao_direta(lista_instr_t *l)
 		//printf("// traducao ILOC_cmp_NE\n");
 		break;
 	case ILOC_cbr:
+		printf("cmpl \n");
+		//IMPRIMIR OS REGISTRADORES CERTOS AQUI!!!!
+		
 		switch (l->prev->i->opcode)
 		{
 		case ILOC_cmp_LT:
@@ -697,10 +700,11 @@ void imprime_registrador_assembly_4(escopo_registrador_t *e,  operando_instr_t *
 	case imediato:
 		printf("$%d", r->val);
 		break;
-	case registrador:
+	case registrador:{
  		int reg_ref = registrador_assembly(e, r);
 		imprime_registrador_assembly_4_ref(reg_ref);
 		break;
+		}
 	default:
 		break;
 	}
@@ -766,10 +770,11 @@ void imprime_registrador_assembly_16(escopo_registrador_t *e,  operando_instr_t 
 	case imediato:
 		printf("$%d", r->val);
 		break;
-	case registrador:
+	case registrador:{
  		int reg_ref = registrador_assembly(e, r);
 		imprime_registrador_assembly_16_ref(reg_ref);
 		break;
+		}
 	default:
 		break;
 	}
