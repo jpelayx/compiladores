@@ -30,7 +30,7 @@ flag_traducao_t traduz_instrucao(lista_instr_t *l, flag_traducao_t f)
         f = traducao_inicio(l->i);
         return f;
     case TRAD_NORMAL:
-        f = traducao_direta(l->i);
+        f = traducao_direta(l);
         return f;
     case TRAD_RETORNO:
         f = traducao_retorno(l->i);
@@ -67,35 +67,40 @@ flag_traducao_t traducao_inicio(instr_t *i)
     }
 }
 
-flag_traducao_t traducao_direta(instr_t *i)
+flag_traducao_t traducao_direta(lista_instr_t *l)
 {
+	if(l->i->label != NULL){
+			printf(".");
+        	print_operando(l->i->label);
+        	printf(": ");
+			printf("\n");
+    }
     // traducao 1:1
-    if(eh_declaracao_funcao(i))
+    if(eh_declaracao_funcao(l->i))
     {
         // comentario: FUNCTION [nome da funcao]
-        printf("%s:\n", strstr(i->comment, "FUNCTION") + 9);
+        printf("%s:\n", strstr(l->i->comment, "FUNCTION") + 9);
         printf("movq %%rsp, %%rbp\n");
         escopo_reg = push_pilha_registrador(escopo_reg, novo_escopo_registrador());
         return TRAD_PROLOGO;
     }
-    if(eh_sequencia_retorno(i))
+    if(eh_sequencia_retorno(l->i))
     {
         printf("movl ");
-        imprime_registrador_assembly_4(escopo_reg->top, i->op0);
+        imprime_registrador_assembly_4(escopo_reg->top, l->i->op0);
         printf(", %%eax\n"); // retorno sempre pelo %eax
         return TRAD_RETORNO;
     }
-	if(eh_chamada_funcao(i) && eh_inicio_expr_arit(i))
-		return traducao_call(i, false);
-	if(eh_inicio_expr_arit(i))
-		return traducao_expr_arit(i, false);
-	if(eh_chamada_funcao(i))
-		return traducao_call(i, false);
+	if(eh_chamada_funcao(l->i) && eh_inicio_expr_arit(i))
+		return traducao_call(l->i, false);
+	if(eh_inicio_expr_arit(l->i))
+		return traducao_expr_arit(l->i, false);
+	if(eh_chamada_funcao(l->i))
+		return traducao_call(l->i, false);
 
-    switch (i->opcode)
+    switch (l->i->opcode)
     {
 	case ILOC_nop:
-		printf("// traducao ILOC_nop\n");
 		break;
 	case ILOC_halt:
 		printf("// traducao ILOC_halt\n");
@@ -113,8 +118,8 @@ flag_traducao_t traducao_direta(instr_t *i)
 		printf("// traducao ILOC_div\n");
 		break;
 	case ILOC_addI:
-        if(i->op0->tipo == rsp && i->op2->tipo == rsp)
-            traducao_alocacao_stack(i->op1);
+        if(l->i->op0->tipo == rsp && l->i->op2->tipo == rsp)
+            traducao_alocacao_stack(l->i->op1);
         break;
 	case ILOC_subI:
 		printf("// traducao ILOC_subI\n");
@@ -144,21 +149,18 @@ flag_traducao_t traducao_direta(instr_t *i)
 		printf("// traducao ILOC_load\n");
 		break;
 	case ILOC_loadAI:
-		if(i->op0->tipo == rfp)
-			printf("movl -%d(", i->op1->val - REGISTRO_ATIVACAO_OFFSET);
-		if(i->op0->tipo == rsp)
-			printf("movl -%d(", i->op1->val - REGISTRO_ATIVACAO_OFFSET);
-        imprime_registrador_assembly_16(escopo_reg->top, i->op0);
+		printf("movl -%d(", l->i->op1->val - REGISTRO_ATIVACAO_OFFSET);
+        imprime_registrador_assembly_16(escopo_reg->top, l->i->op0);
         printf("), ");
-        imprime_registrador_assembly_4(escopo_reg->top, i->op2);
+        imprime_registrador_assembly_4(escopo_reg->top, l->i->op2);
         printf("\n");
 		break;
 	case ILOC_loadA0:
 		printf("// traducao ILOC_loadA0\n");
 		break;
 	case ILOC_loadI:
-        printf("movl $%d, ", i->op0->val);
-        imprime_registrador_assembly_4(escopo_reg->top, i->op1);
+        printf("movl $%d, ", l->i->op0->val);
+        imprime_registrador_assembly_4(escopo_reg->top, l->i->op1);
         printf("\n");
 		break;
 	case ILOC_store:
@@ -166,9 +168,9 @@ flag_traducao_t traducao_direta(instr_t *i)
 		break;
 	case ILOC_storeAI:
         printf("movl ");
-        imprime_registrador_assembly_4(escopo_reg->top, i->op0);
-        printf(", -%d(", i->op2->val - REGISTRO_ATIVACAO_OFFSET);
-        imprime_registrador_assembly_16(escopo_reg->top, i->op1);
+        imprime_registrador_assembly_4(escopo_reg->top, l->i->op0);
+        printf(", -%d(", l->i->op2->val - REGISTRO_ATIVACAO_OFFSET);
+        imprime_registrador_assembly_16(escopo_reg->top, l->i->op1);
         printf(")\n");
 		break;
 	case ILOC_storeAO:
@@ -178,34 +180,73 @@ flag_traducao_t traducao_direta(instr_t *i)
 		printf("// traducao ILOC_i2i\n");
 		break;
 	case ILOC_cmp_LT:
-		printf("// traducao ILOC_cmp_LT\n");
+		//printf("// traducao ILOC_cmp_LT\n");
 		break;
 	case ILOC_cmp_LE:
-		printf("// traducao ILOC_cmp_LE\n");
+		///printf("// traducao ILOC_cmp_LE\n");
 		break;
 	case ILOC_cmp_EQ:
-		printf("// traducao ILOC_cmp_EQ\n");
+		//printf("// traducao ILOC_cmp_EQ\n");
 		break;
 	case ILOC_cmp_GE:
-		printf("// traducao ILOC_cmp_GE\n");
+		//printf("// traducao ILOC_cmp_GE\n");
 		break;
 	case ILOC_cmp_GT:
-		printf("// traducao ILOC_cmp_GT\n");
+		//printf("// traducao ILOC_cmp_GT\n");
 		break;
 	case ILOC_cmp_NE:
-		printf("// traducao ILOC_cmp_NE\n");
+		//printf("// traducao ILOC_cmp_NE\n");
 		break;
 	case ILOC_cbr:
-		printf("// traducao ILOC_cbr\n");
+		switch (l->prev->i->opcode)
+		{
+		case ILOC_cmp_LT:
+			printf("jge .");
+			print_operando(l->i->op2);
+			printf("\n");
+			break;
+		case ILOC_cmp_LE:
+			printf("jg .");
+			print_operando(l->i->op2);
+			printf("\n");
+			break;
+		case ILOC_cmp_GT:
+			printf("jle .");
+			print_operando(l->i->op2);
+			printf("\n");
+			break;
+		case ILOC_cmp_GE:
+			printf("jl .");
+			print_operando(l->i->op2);
+			printf("\n");
+			break;
+		case ILOC_cmp_EQ:
+			printf("jne .");
+			print_operando(l->i->op2);
+			printf("\n");
+			break;
+		case ILOC_cmp_NE:
+			printf("je .");
+			print_operando(l->i->op2);
+			printf("\n");
+			break;
+		default:
+			printf("CBR FAZENDO JUMPRA PRA ONDE/!!\n");
+			break;
+		}
 		break;
 	case jumpI:
-		printf("// traducao jumpI\n");
+		//Verificar aqui se nao é jump para um funcao?
+		//Se for simplesmente para um label, faz o jmp normal.
+		printf("jmp .");
+		print_operando(l->i->op0);
+		printf("\n");
 		break;
 	case jump:
 		printf("// traducao jump\n");
 		break;
 	case comment:
-        printf("// %s\n", i->comment);
+        printf("// %s\n", l->i->comment);
 		break;
     }
     return TRAD_NORMAL;
