@@ -73,6 +73,8 @@ operando_instr_t* novo_buraco();
 
 operando_instr_t* gera_imediato(int val);
 
+bool operandos_iguais(operando_instr_t *op0, operando_instr_t *op1);
+
 void print_operando(operando_instr_t *op);
 
 typedef struct lista_operando

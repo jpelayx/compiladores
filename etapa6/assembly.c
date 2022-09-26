@@ -4,9 +4,12 @@
 
 pilha_escopo_registrador_t *escopo_reg;
 
+int stack_ctrl;
+
 void generateAsm(code_t *c)
 {
     escopo_reg = NULL;
+    stack_ctrl = 0;
     // inicio padrão 
     printf("\t.text\n");
     printf("\t.globl main\n");
@@ -14,7 +17,6 @@ void generateAsm(code_t *c)
 
     traduz_instrucao(c->codigo, TRAD_INICIO);
 }
-
 
 flag_traducao_t traduz_instrucao(lista_instr_t *l, flag_traducao_t f)
 {
@@ -43,7 +45,6 @@ flag_traducao_t traduz_instrucao(lista_instr_t *l, flag_traducao_t f)
     return f;
 }
 
-
 flag_traducao_t traducao_inicio(instr_t *i)
 {
     // ignora as instrucoes iniciais até o primeiro jumpI (que é pra main)
@@ -67,7 +68,7 @@ flag_traducao_t traducao_direta(instr_t *i)
     }
     if(eh_sequencia_retorno(i))
     {
-        printf("movq ");
+        printf("movl ");
         imprime_registrador_assembly_4(escopo_reg->top, i->op0);
         printf(", %%eax\n"); // retorno sempre pelo %eax
         return TRAD_RETORNO;
@@ -93,7 +94,8 @@ flag_traducao_t traducao_direta(instr_t *i)
 		printf("// traducao ILOC_div\n");
 		break;
 	case ILOC_addI:
-		printf("// traducao ILOC_addI\n");
+        if(i->op0->tipo == rsp && i->op2->tipo == rsp)
+            traducao_alocacao_stack(i->op1);
 		break;
 	case ILOC_subI:
 		printf("// traducao ILOC_subI\n");
@@ -123,7 +125,11 @@ flag_traducao_t traducao_direta(instr_t *i)
 		printf("// traducao ILOC_load\n");
 		break;
 	case ILOC_loadAI:
-		printf("// traducao ILOC_loadAI\n");
+		printf("movl -%d(", i->op1->val - REGISTRO_ATIVACAO_OFFSET);
+        imprime_registrador_assembly_16(escopo_reg->top, i->op0);
+        printf("), ");
+        imprime_registrador_assembly_4(escopo_reg->top, i->op2);
+        printf("\n");
 		break;
 	case ILOC_loadA0:
 		printf("// traducao ILOC_loadA0\n");
@@ -137,7 +143,11 @@ flag_traducao_t traducao_direta(instr_t *i)
 		printf("// traducao ILOC_store\n");
 		break;
 	case ILOC_storeAI:
-		printf("// traducao ILOC_storeAI\n");
+        printf("movl ");
+        imprime_registrador_assembly_4(escopo_reg->top, i->op0);
+        printf(", -%d(", i->op2->val - REGISTRO_ATIVACAO_OFFSET);
+        imprime_registrador_assembly_16(escopo_reg->top, i->op1);
+        printf(")\n");
 		break;
 	case ILOC_storeAO:
 		printf("// traducao ILOC_storeAO\n");
@@ -183,6 +193,7 @@ flag_traducao_t traducao_retorno(instr_t *i)
 {
     if(i->opcode == jump)
     {
+        traducao_libera_stack();
         printf("popq %%rbp\n");
         printf("ret\n");
         escopo_reg = pop_pilha_registrador(escopo_reg);
@@ -197,6 +208,22 @@ flag_traducao_t traducao_prologo(instr_t *i)
     if(num_parametros > 0)
         printf("add $%d, %%rsp\n", num_parametros);
     return TRAD_NORMAL;
+}
+
+void traducao_alocacao_stack(operando_instr_t *val)
+{
+    int v = val->val;
+    stack_ctrl += v;
+    printf("subq $%d, %%rsp\n", v);
+}
+
+void traducao_libera_stack()
+{
+    if(stack_ctrl > 0)
+    {
+        printf("addq $%d, %%rsp\n", stack_ctrl);
+        stack_ctrl = 0;
+    }
 }
 
 bool eh_declaracao_funcao(instr_t *i)
@@ -215,7 +242,6 @@ bool eh_sequencia_retorno(instr_t *i)
         return false;
 }
 
-
 escopo_registrador_t *novo_escopo_registrador()
 {
     escopo_registrador_t *e = malloc(sizeof(escopo_registrador_t));
@@ -229,7 +255,7 @@ int adiciona_registrador(escopo_registrador_t *e, operando_instr_t *r)
     if(e->num_regs > 14)
         e->reg_area = realloc(e->reg_area, sizeof(int) * (e->num_regs-3));
 
-    e->reg_area[e->num_regs] = r->val;
+    e->reg_area[e->num_regs] = r->id;
     e->num_regs++;
     return e->num_regs - 1;
 }
@@ -237,13 +263,42 @@ int adiciona_registrador(escopo_registrador_t *e, operando_instr_t *r)
 int registrador_assembly(escopo_registrador_t *e,operando_instr_t *r)
 {
     for(int i=0; i < e->num_regs; i++)
-        if(e->reg_area[i] == r->val)
+    {
+        if(e->reg_area[i] == r->id)
             return i;
+        
+    }
     return adiciona_registrador(e, r);
+}
+
+pilha_escopo_registrador_t *pop_pilha_registrador(pilha_escopo_registrador_t *p)
+{
+    pilha_escopo_registrador_t *prev = p->prev;
+    free(p->top->reg_area);
+    free(p->top);
+    free(p);
+    return prev;
+}
+pilha_escopo_registrador_t *push_pilha_registrador(pilha_escopo_registrador_t *p, escopo_registrador_t *e)
+{
+    pilha_escopo_registrador_t *top = calloc(1, sizeof(pilha_escopo_registrador_t));
+    top->top = e;
+    top->prev = p;
+    return top;
 }
 
 void imprime_registrador_assembly_4(escopo_registrador_t *e,  operando_instr_t *r)
 {
+    if(r->tipo == rfp)
+    {
+        printf("%%rbp");
+        return;
+    }
+    if(r->tipo == rsp)
+    {
+        printf("%%rsp");
+        return;
+    }
     int reg_ref = registrador_assembly(e, r);
     switch (reg_ref)
     {
@@ -293,6 +348,16 @@ void imprime_registrador_assembly_4(escopo_registrador_t *e,  operando_instr_t *
 
 void imprime_registrador_assembly_16(escopo_registrador_t *e,  operando_instr_t *r)
 {
+    if(r->tipo == rfp)
+    {
+        printf("%%rbp");
+        return;
+    }
+    if(r->tipo == rsp)
+    {
+        printf("%%rsp");
+        return;
+    }
     int reg_ref = registrador_assembly(e, r);
     switch (reg_ref)
     {
@@ -338,20 +403,4 @@ void imprime_registrador_assembly_16(escopo_registrador_t *e,  operando_instr_t 
     default:
         printf("spill :(");
     }
-}
-
-pilha_escopo_registrador_t *pop_pilha_registrador(pilha_escopo_registrador_t *p)
-{
-    pilha_escopo_registrador_t *prev = p->prev;
-    free(p->top->reg_area);
-    free(p->top);
-    free(p);
-    return prev;
-}
-pilha_escopo_registrador_t *push_pilha_registrador(pilha_escopo_registrador_t *p, escopo_registrador_t *e)
-{
-    pilha_escopo_registrador_t *top = calloc(1, sizeof(pilha_escopo_registrador_t));
-    top->top = e;
-    top->prev = p;
-    return top;
 }

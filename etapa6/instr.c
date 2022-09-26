@@ -47,6 +47,22 @@ operando_instr_t* gera_imediato(int val)
     return new_i;
 }
 
+bool operandos_iguais(operando_instr_t *op0, operando_instr_t *op1)
+{
+    if(op0->tipo != op1->tipo)
+        return false;
+    if(op0->tipo == rsp  || 
+       op0->tipo == rfp  || 
+       op0->tipo == rbss ||
+       op0->tipo == rpc    )
+        return true;
+    if(op0->tipo == registrador)
+        return op0->id == op1->id;
+    if(op0->tipo == imediato)
+        return op0->val == op1->val;
+    return false;
+}
+
 void print_operando(operando_instr_t *op)
 {
     switch (op->tipo)

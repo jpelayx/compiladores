@@ -50,6 +50,8 @@ flag_traducao_t traducao_retorno(instr_t *i);
 
 flag_traducao_t traducao_prologo(instr_t *i);
 
+void traducao_alocacao_stack(operando_instr_t *val);
+void traducao_libera_stack();
 
 bool eh_declaracao_funcao(instr_t *i);
 bool eh_sequencia_retorno(instr_t *i);
