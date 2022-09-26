@@ -38,6 +38,9 @@ flag_traducao_t traduz_instrucao(lista_instr_t *l, flag_traducao_t f)
     case TRAD_PROLOGO:
         f = traducao_prologo(l->i);
         return f;
+    case TRAD_EXPR_ARIT:
+        f = traducao_expr_arit(l->i);
+        return f;
     default:
         printf("// tbd\n");
         break;
@@ -77,6 +80,9 @@ flag_traducao_t traducao_direta(instr_t *i)
         printf(", %%eax\n"); // retorno sempre pelo %eax
         return TRAD_RETORNO;
     }
+	if(eh_inicio_expr_arit(i))
+		return traducao_expr_arit(i);
+
     switch (i->opcode)
     {
 	case ILOC_nop:
@@ -139,7 +145,7 @@ flag_traducao_t traducao_direta(instr_t *i)
 		printf("// traducao ILOC_loadA0\n");
 		break;
 	case ILOC_loadI:
-        printf("movl $%u, ", i->op0->val);
+        printf("movl $%d, ", i->op0->val);
         imprime_registrador_assembly_4(escopo_reg->top, i->op1);
         printf("\n");
 		break;
@@ -214,6 +220,224 @@ flag_traducao_t traducao_prologo(instr_t *i)
     return TRAD_NORMAL;
 }
 
+flag_traducao_t traducao_expr_arit(instr_t *i)
+{
+	static acumulador_t *ac;
+	static int arit_stack;
+	if(eh_inicio_expr_arit(i))
+	{
+		ac = NULL;
+		arit_stack = stack_ctrl; // topo da pilha no inicio da expr
+		printf("// INICIO EXPR AR\n");
+	}
+	if(i->opcode == ILOC_loadAI || i->opcode == ILOC_loadI)
+	{
+		if(i->opcode == ILOC_loadAI)
+		{
+			printf("movl -%d(", i->op1->val - REGISTRO_ATIVACAO_OFFSET);
+        	imprime_registrador_assembly_16(escopo_reg->top, i->op0);
+        	printf("), ");
+        	imprime_registrador_assembly_4(escopo_reg->top, i->op2);
+        	printf("\n");
+		}
+		else 
+		{
+			printf("movl $%d, ", i->op0->val);
+        	imprime_registrador_assembly_4(escopo_reg->top, i->op1);
+        	printf("\n");
+		}
+	}
+	else 
+	{
+		int ac_idx = prepara_acumulador(&arit_stack, &ac, i->op0, i->op1);
+		switch (i->opcode)
+		{
+		case ILOC_add:
+			printf("addl ");
+			ac_idx == 0? 
+				imprime_registrador_assembly_4(escopo_reg->top, i->op1) : 
+				imprime_registrador_assembly_4(escopo_reg->top, i->op0) ;
+			printf(", %%eax\n");
+			break;
+		case ILOC_sub:
+			if (ac_idx == 0)
+			{
+				printf("subl ");
+				imprime_registrador_assembly_4(escopo_reg->top, i->op1);
+				printf(", %%eax\n");
+			}
+			else 
+			{
+				printf("negl %%eax\n");
+				printf("addl ");
+				imprime_registrador_assembly_4(escopo_reg->top, i->op0);
+				printf(", %%eax\n");
+			}
+			break;
+		case ILOC_mult:
+			printf("imull ");
+			ac_idx == 0? 
+				imprime_registrador_assembly_4(escopo_reg->top, i->op1) : 
+				imprime_registrador_assembly_4(escopo_reg->top, i->op0) ;
+			printf(", %%eax\n");
+			break;
+		case ILOC_div:
+			printf("pushq %%rdx\n");
+			if (ac_idx == 1)
+			{
+				// troca os operandos de registrador
+				printf("pushq %%rax\n");
+				printf("movl ");
+				imprime_registrador_assembly_4(escopo_reg->top, i->op1);
+				printf(", %%eax\n");
+				printf("popq ");
+				imprime_registrador_assembly_16(escopo_reg->top, i->op1);
+				printf("\n");
+			}
+			// printf("cltd\n");
+			printf("idivl ");
+			imprime_registrador_assembly_4(escopo_reg->top, i->op1);
+			printf("\n");
+			printf("popq %%rdx\n");
+			break;
+		default:
+			break;
+		}
+		ac->op = i->op2;
+		
+	}
+	if(eh_fim_expr_arit(i))
+	{
+		if(arit_stack - stack_ctrl > 0)
+			printf("addq $%d, %%rsp\n", arit_stack - stack_ctrl); // desalocando espaco na pilha
+		// move o resultado pro temporario adequado 
+		printf("movl %%eax, ");
+		imprime_registrador_assembly_4(escopo_reg->top, i->op2);
+		printf("\n");
+		printf("// FIM EXPR AR\n");
+		return TRAD_NORMAL;
+	}
+	else
+		return TRAD_EXPR_ARIT;
+}
+
+int prepara_acumulador(int *arit_stack, acumulador_t **ac, operando_instr_t *op0, operando_instr_t *op1)
+{
+	acumulador_t *ac0 = acesso_acumulador(*ac, op0),
+	             *ac1 = acesso_acumulador(*ac, op1);
+	if(ac0 == NULL && ac1 == NULL)
+	{
+		traducao_carrega_acumulador(arit_stack, ac, op0); // nenhum dos operandos é o acumulador 
+		return 0; // carregou o op0 
+	}
+	if(ac0 != NULL && ac1 == NULL)
+	{
+		if(ac0->deslocamento == -1) // esta no eax, alegria 
+			return 0;
+
+		// esta salvo na pilha
+		// precisa salvar o conteudo do eax, e carregar da memoria
+		traducao_carrega_acumulador_stack(arit_stack, ac, op0);
+		return 0;
+	}	
+	if(ac0 == NULL && ac1 != NULL)
+	{
+		if(ac1->deslocamento == -1) // esta no eax, alegria 
+			return 1;
+
+		// esta salvo na pilha
+		// precisa salvar o conteudo do eax, e carregar da memoria
+		traducao_carrega_acumulador_stack(arit_stack, ac, op1);
+		return 1;
+	}	
+	// os dois estao na pilha
+	if(ac0->deslocamento == -1)
+	{
+		printf("movl -%d(%%rsp), ", ac1->deslocamento);
+		imprime_registrador_assembly_4(escopo_reg->top, ac1->op);
+		printf("\n");
+		return 0;
+	}
+	if(ac1->deslocamento == -1)
+	{
+		printf("movl -%d(%%rsp), ", ac0->deslocamento);
+		imprime_registrador_assembly_4(escopo_reg->top, ac0->op);
+		printf("\n");
+		return 1;
+	}
+	// um deve ser carregado para um registrador 
+	printf("movl -%d(%%rsp), ", ac1->deslocamento);
+	imprime_registrador_assembly_4(escopo_reg->top, ac1->op);
+	printf("\n");
+	// e o outro pro eax
+	traducao_carrega_acumulador_stack(arit_stack, ac, op0);
+	return 0;
+}
+
+void traducao_salva_acumulador(int deslocamento)
+{
+	printf("subq $4, %%rsp\n");
+	printf("movl %%eax, -%d(%%rsp)\n", deslocamento); 
+}
+
+void traducao_busca_acumulador(int deslocamento)
+{
+	printf("movl -%d(%%rsp)\n", deslocamento);
+}
+
+void traducao_carrega_acumulador(int *arit_stack, acumulador_t **ac, operando_instr_t *op)
+{
+	if(*ac != NULL) 
+	{
+		// ja havia algo no acumulador, salvando na pilha para depois
+		*arit_stack = *arit_stack + 4;
+		traducao_salva_acumulador(*arit_stack - stack_ctrl);
+	}
+	*ac = push_acumulador(*ac, op, *arit_stack);
+	printf("movl ");
+	imprime_registrador_assembly_4(escopo_reg->top, op);
+	printf(", %%eax\n");
+}
+
+void traducao_carrega_acumulador_stack(int *arit_stack, acumulador_t **ac, operando_instr_t *op)
+{
+	// ja havia algo no acumulador, salvando na pilha para depois
+	*arit_stack = *arit_stack + 4;
+	traducao_salva_acumulador(*arit_stack - stack_ctrl);
+
+	acumulador_t *ac_ref = acesso_acumulador(*ac, op);
+	printf("movl -%d(%%rsp), %%eax\n", ac_ref->deslocamento);
+	*ac = push_acumulador(*ac, op, *arit_stack);
+}
+
+acumulador_t *push_acumulador(acumulador_t *ac, operando_instr_t *op, int sp)
+{
+	acumulador_t *a = malloc(sizeof(acumulador_t));
+	a->prev = ac;
+	a->op = op;
+	a->deslocamento = -1; // esta no registrador eax
+	if(ac != NULL)
+		ac->deslocamento = sp - stack_ctrl;
+	return a;
+}
+
+acumulador_t *pop_acumulador(acumulador_t *ac)
+{
+	acumulador_t *a = ac->prev;
+	free(ac);
+	return a;
+}
+acumulador_t *acesso_acumulador(acumulador_t *ac, operando_instr_t *op)
+{
+	while(ac != NULL)
+	{
+		if(operandos_iguais(ac->op, op))
+			return ac;
+		ac = ac->prev;
+	}
+	return NULL;
+} 
+
 void traducao_alocacao_stack(operando_instr_t *val)
 {
     int v = val->val;
@@ -236,18 +460,22 @@ void traducao_alocacao_var_global(char* identificador){
 
 bool eh_declaracao_funcao(instr_t *i)
 {
-    if(i->comment != NULL && strstr(i->comment, "FUNCTION") != NULL)
-        return true;
-    else 
-        return false;
+    return (i->comment != NULL && strstr(i->comment, "FUNCTION") != NULL);
 }
 
 bool eh_sequencia_retorno(instr_t *i)
 {
-    if(i->comment != NULL && strstr(i->comment, "RETURN") != NULL)
-        return true;
-    else 
-        return false;
+    return (i->comment != NULL && strstr(i->comment, "RETURN") != NULL);
+}
+
+bool eh_inicio_expr_arit(instr_t *i)
+{
+    return (i->comment != NULL && strstr(i->comment, "EXPR_ARIT_START") != NULL);
+}
+
+bool eh_fim_expr_arit(instr_t *i)
+{
+    return (i->comment != NULL && strstr(i->comment, "EXPR_ARIT_END") != NULL);
 }
 
 escopo_registrador_t *novo_escopo_registrador()

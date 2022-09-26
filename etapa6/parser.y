@@ -880,7 +880,12 @@ expressao:
 		  }
 	| chamada_de_funcao             {$$ = $1;}
 	| literal_numerico              {$$ = $1;}
-	| expressao_aritmetica			{$$ = $1;}
+	| expressao_aritmetica			
+	{
+		$$ = $1;
+	 	adiciona_comentario(strdup("EXPR_ARIT_START"), $$->codigo);
+	 	adiciona_comentario_fim(strdup("EXPR_ARIT_END"), $$->codigo);
+	}
 	| expressao_booleana			{$$ = $1;}
 	// ternario
 	| expressao '?' expressao ':' expressao	{

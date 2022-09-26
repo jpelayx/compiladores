@@ -49,6 +49,10 @@ operando_instr_t* gera_imediato(int val)
 
 bool operandos_iguais(operando_instr_t *op0, operando_instr_t *op1)
 {
+    if (op0 == NULL)
+        return op1 == NULL;
+    if (op1 == NULL)
+        return false;
     if(op0->tipo != op1->tipo)
         return false;
     if(op0->tipo == rsp  || 
@@ -239,6 +243,11 @@ void adiciona_comentario(char *comentario, code_t *c)
 {
     lista_instr_t *inicio = primeiro_item(c->codigo);
     inicio->i->comment = comentario;
+}
+
+void adiciona_comentario_fim(char *comentario, code_t *c)
+{
+    c->codigo->i->comment = comentario;
 }
 
 code_t *concatena_codigo(code_t *head, code_t *tail)

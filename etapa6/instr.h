@@ -139,6 +139,7 @@ void insere_lista_buracos_false(code_t *c, lista_operando_t *bl);
 void adiciona_label(operando_instr_t *l, code_t *c);
 
 void adiciona_comentario(char *comentario, code_t *c);
+void adiciona_comentario_fim(char *comentario, code_t *c);
 
 code_t *concatena_codigo(code_t *head, code_t *tail);
 
