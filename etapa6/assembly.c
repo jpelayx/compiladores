@@ -198,8 +198,12 @@ flag_traducao_t traducao_direta(lista_instr_t *l)
 		//printf("// traducao ILOC_cmp_NE\n");
 		break;
 	case ILOC_cbr:
-		printf("cmpl \n");
 		//IMPRIMIR OS REGISTRADORES CERTOS AQUI!!!!
+		printf("cmpl ");
+		imprime_registrador_assembly_4(escopo_reg->top, l->prev->i->op1);
+		printf(", ");
+		imprime_registrador_assembly_4(escopo_reg->top, l->prev->i->op0);
+		printf("\n");
 		
 		switch (l->prev->i->opcode)
 		{
