@@ -777,6 +777,10 @@ expressao_booleana:
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3);
+		  adiciona_comentario(strdup("EXPR_ARIT_START"), $1->codigo); 
+		  adiciona_comentario_fim(strdup("EXPR_ARIT_END"), $1->codigo); 
+		  adiciona_comentario(strdup("EXPR_ARIT_START"), $3->codigo); 
+		  adiciona_comentario_fim(strdup("EXPR_ARIT_END"), $3->codigo); 
 		  $$->temp = novo_registrador();
 		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
 		  code_t *op_rel = cod_op_rel_logica($1->temp, $3->temp, $$->temp, 1);
@@ -788,19 +792,26 @@ expressao_booleana:
 	| operandos_aritmeticos '>' operandos_aritmeticos  
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
-		  $$ = cria_nodo_binario($2, $1, $3); 
+		  $$ = cria_nodo_binario($2, $1, $3);
+		  adiciona_comentario(strdup("EXPR_ARIT_START"), $1->codigo); 
+		  adiciona_comentario_fim(strdup("EXPR_ARIT_END"), $1->codigo); 
+		  adiciona_comentario(strdup("EXPR_ARIT_START"), $3->codigo); 
+		  adiciona_comentario_fim(strdup("EXPR_ARIT_END"), $3->codigo); 
 		  $$->temp = novo_registrador();
 		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
 		  code_t *op_rel = cod_op_rel_logica($1->temp, $3->temp, $$->temp, 3);
 		  $$->codigo = concatena_codigo($$->codigo, op_rel);
 		  $$->codigo->tl = op_rel->tl;
-		  $$->codigo->fl = op_rel->fl;
-		  
+		  $$->codigo->fl = op_rel->fl; 
 		  $$->tipo_sem = bool_sem; }
 	| operandos_aritmeticos TK_OC_EQ operandos_aritmeticos  
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
+		  adiciona_comentario(strdup("EXPR_ARIT_START"), $1->codigo); 
+		  adiciona_comentario_fim(strdup("EXPR_ARIT_END"), $1->codigo); 
+		  adiciona_comentario(strdup("EXPR_ARIT_START"), $3->codigo); 
+		  adiciona_comentario_fim(strdup("EXPR_ARIT_END"), $3->codigo); 
 		  $$->temp = novo_registrador();
 		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
 		  code_t *op_rel = cod_op_rel_logica($1->temp, $3->temp, $$->temp, 5);
@@ -812,6 +823,10 @@ expressao_booleana:
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
+		  adiciona_comentario(strdup("EXPR_ARIT_START"), $1->codigo); 
+		  adiciona_comentario_fim(strdup("EXPR_ARIT_END"), $1->codigo); 
+		  adiciona_comentario(strdup("EXPR_ARIT_START"), $3->codigo); 
+		  adiciona_comentario_fim(strdup("EXPR_ARIT_END"), $3->codigo); 
 		  $$->temp = novo_registrador();
 		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
 		  code_t *op_rel = cod_op_rel_logica($1->temp, $3->temp, $$->temp, 6);
@@ -823,6 +838,10 @@ expressao_booleana:
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
+		  adiciona_comentario(strdup("EXPR_ARIT_START"), $1->codigo); 
+		  adiciona_comentario_fim(strdup("EXPR_ARIT_END"), $1->codigo); 
+		  adiciona_comentario(strdup("EXPR_ARIT_START"), $3->codigo); 
+		  adiciona_comentario_fim(strdup("EXPR_ARIT_END"), $3->codigo); 
 		  $$->temp = novo_registrador();
 		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
 		  code_t *op_rel = cod_op_rel_logica($1->temp, $3->temp, $$->temp, 4);
@@ -834,6 +853,10 @@ expressao_booleana:
 		{ verifica_tipos($1->tipo_sem, numerico_sem, $1->valor_lexico->linha);
 		  verifica_tipos($3->tipo_sem, numerico_sem, $3->valor_lexico->linha);
 		  $$ = cria_nodo_binario($2, $1, $3); 
+		  adiciona_comentario(strdup("EXPR_ARIT_START"), $1->codigo); 
+		  adiciona_comentario(strdup("EXPR_ARIT_END"), $1->codigo); 
+		  adiciona_comentario_fim(strdup("EXPR_ARIT_START"), $3->codigo); 
+		  adiciona_comentario_fim(strdup("EXPR_ARIT_END"), $3->codigo); 
 		  $$->temp = novo_registrador();
 		  $$->codigo = concatena_codigo($1->codigo, $3->codigo);
 		  code_t *op_rel = cod_op_rel_logica($1->temp, $3->temp, $$->temp, 2);
