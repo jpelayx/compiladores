@@ -349,17 +349,17 @@ flag_traducao_t traducao_call(instr_t *i, bool eh_expr)
 	case ILOC_loadAI:
 		if(i->op0->tipo == rsp && i->op1->val == 12)
 		{
+			// 5. libera registradores usados nos parametros 
+			escopo_registrador_t *regs_em_uso = escopo_reg->top;
+			regs_em_uso->num_regs = call->num_regs;
+
 			// depois retorno 
 			// 4. carrega valor do retorno (eax)
 			printf("movl %%eax, ");
 			imprime_registrador_assembly_4(escopo_reg->top, i->op2);
 			printf("\n");
 
-			// 5. libera registradores usados nos parametros 
-			//    e pop dos registradores em uso antes do inicio da chamada
-			escopo_registrador_t *regs_em_uso = escopo_reg->top;
-			regs_em_uso->num_regs = call->num_regs;
-			for(int idx = regs_em_uso->num_regs-1; idx>=0; idx--)
+			for(int idx = regs_em_uso->num_regs-2; idx>=0; idx--)
 			{
 				printf("popq ");
 				imprime_registrador_assembly_16_ref(idx);
