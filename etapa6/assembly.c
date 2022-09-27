@@ -241,6 +241,9 @@ flag_traducao_t traducao_direta(lista_instr_t *l)
 			printf("CBR FAZENDO JUMPRA PRA ONDE/!!\n");
 			break;
 		}
+		printf("jmp .");
+		print_operando(l->i->op1);
+		printf("\n");
 		break;
 	case jumpI:
 		//Verificar aqui se nao é jump para um funcao?
@@ -474,9 +477,12 @@ flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call)
 		if(arit_stack - stack_ctrl > 0)
 			printf("addq $%d, %%rsp\n", arit_stack - stack_ctrl); // desalocando espaco na pilha
 		// move o resultado pro temporario adequado 
-		printf("movl %%eax, ");
-		imprime_registrador_assembly_4(escopo_reg->top, i->op2);
-		printf("\n");
+		if(ac != NULL)
+		{
+			printf("movl %%eax, ");
+			imprime_registrador_assembly_4(escopo_reg->top, i->op2);
+			printf("\n");
+		}
 		printf("// FIM EXPR AR\n");
 		return TRAD_NORMAL;
 	}
