@@ -63,6 +63,7 @@ typedef struct chamada
     char *nome;
     bool eh_expr;
     int num_regs;
+    int num_params;
     operando_instr_t *end_ret;
     struct chamada *prev;
 } chamada_t;

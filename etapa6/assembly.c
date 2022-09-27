@@ -267,7 +267,7 @@ flag_traducao_t traducao_retorno(instr_t *i)
     if(i->opcode == jump)
     {
         traducao_libera_stack();
-		printf("addq $%d, %%rsp\n", escopo_reg->top->num_params);
+		// printf("addq $%d, %%rsp\n", escopo_reg->top->num_params);
         printf("ret\n");
         escopo_reg = pop_pilha_registrador(escopo_reg);
         return TRAD_NORMAL;
@@ -278,9 +278,17 @@ flag_traducao_t traducao_retorno(instr_t *i)
 flag_traducao_t traducao_prologo(instr_t *i)
 {
     int num_parametros = i->op1->val - REGISTRO_ATIVACAO_OFFSET - 4;
+	num_parametros = num_parametros/4;
 	escopo_reg->top->num_params = num_parametros;
-    if(num_parametros > 0)
-        printf("subq $%d, %%rsp\n", num_parametros);
+	// salva os parametros passados por registradores na pilha
+	for(int idx = 0; idx < num_parametros; idx++)
+	{
+    	printf("subq $4, %%rsp\n");
+		stack_ctrl += 4;
+    	printf("movl ");
+		imprime_registrador_assembly_4_ref(idx); 
+		printf(", -%d(%%rbp)\n", (idx+1)*4);
+	}
     return TRAD_NORMAL;
 }
 
@@ -299,6 +307,7 @@ flag_traducao_t traducao_call(instr_t *i, bool eh_expr)
 		printf("// inicio da chamada de %s\n", c->nome);
 		
 		c->num_regs = escopo_reg->top->num_regs;
+		c->num_params = 0;
 		c->eh_expr = eh_expr;
 		c->prev = call;
 		call = c;
@@ -336,14 +345,26 @@ flag_traducao_t traducao_call(instr_t *i, bool eh_expr)
 			break;
 		if(i->op1->tipo == rsp && i->op2->val > 12)
 		{
-			// 3. salva parametros 
-			printf("movl ");
-			imprime_registrador_assembly_4(escopo_reg->top, i->op0);
-			printf(", -%d(%%rsp)\n", i->op2->val - 12);
+			// 3. salva parametros na pilha  
+			// printf("movl ");
+			// imprime_registrador_assembly_4(escopo_reg->top, i->op0);
+			// printf(", ");
+			// imprime_registrador_assembly_4_ref(call->num_params);
+			// printf("\n");
+			printf("pushq ");
+			imprime_registrador_assembly_16(escopo_reg->top, i->op0);
+			printf("\n");
+			call->num_params++;
 			break;
 		}
 		traducao_expr_arit(i, ignora_call);
 	case jumpI:
+		for(int idx = call->num_params-1; idx >= 0; idx--)
+		{
+			printf("popq ");
+			imprime_registrador_assembly_16_ref(idx);
+			printf("\n");
+		}
 		printf("call %s\n", call->nome);
 		break;
 	case ILOC_loadAI:
