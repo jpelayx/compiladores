@@ -1,0 +1,74 @@
+--- a/ast.c
++++ b/ast.c
+@@ -316,13 +316,6 @@ code_t *vars_globais(ast_t *t)
+ 		}
+ 		t = t->filhos[t->num_filhos-1];  
+ 	}
+-
+-	printf("==================\n");
+-	printf("IMPRIMINDO CODIGO DAS VARIAVEIS GLOBAIS:\n");
+-	if(vars_globais!=NULL)
+-		imprime_codigo(vars_globais);
+-	printf("\n==================\n\n");
+-
+ 	return vars_globais;
+ }
+ 
+--- a/escopo.c
++++ b/escopo.c
+@@ -3,7 +3,6 @@
+ 
+ pilha_t* inicializa_pilha()
+ {
+-    printf("INICIALIZOU!\n");
+     pilha_t *p = calloc(1, sizeof(pilha_t));
+     tabela_simbolos_t *tabela_global = init_tabela_simbolos(0);
+     p->anterior = NULL; // fundo da pilha
+@@ -39,8 +38,6 @@ pilha_t *novo_escopo(pilha_t *p, tipo_escopo_t tipo_escopo, int offset)
+ pilha_t* sai_escopo(pilha_t *p)
+ {
+     pilha_t *nt = p->anterior;
+-    // print_tabela(p->t);
+-    printf("\n");
+     libera_tabela_simbolos(p->t);
+     free(p);
+     return nt;
+@@ -50,7 +47,6 @@ void adiciona_simbolo_no_escopo_global(pilha_t *p, simbolo_t *s)
+ {
+     //Inicializa escopo global.
+     if(p == NULL){
+-        printf("CAIU NA INIT\n");
+         adiciona_simbolo(p, s);
+     } else {
+         //Escopo global ja existe, mas é preciso chegar até ele.
+--- a/instr.c
++++ b/instr.c
+@@ -831,8 +831,6 @@ code_t *cod_init(code_t *cod_vars_globais, operando_instr_t *l, code_t *cod)
+     // alocacoes de vars globais 
+     // jumpI => l
+     code_t *c = calloc(1, sizeof(code_t));
+-    printf("TA NO COD_INIT\n");
+-
+     operando_instr_t *fp = calloc(1, sizeof(operando_instr_t)),
+                      *sp = calloc(1, sizeof(operando_instr_t)),
+                      *bss = calloc(1, sizeof(operando_instr_t));
+--- a/parser.y
++++ b/parser.y
+@@ -163,9 +163,7 @@ operando_instr_t *label_main = NULL;
+ input: programa 
+ 	{ 
+ 		$1->codigo = cod_init(vars_globais($1), label_main, $1->codigo);
+-		imprime_codigo($1->codigo);
+ 	    arvore = $1; 
+-		print_tabela(escopo->t);
+ 	    sai_escopo(escopo); 
+ 	};
+ 
+@@ -236,7 +234,6 @@ funcao: cabecalho '{' corpo_funcao '}'
+ 		sprintf(function_id, "FUNCTION %s", $$->valor_lexico->valor.cadeia_caracteres);
+ 		adiciona_comentario(function_id, $$->codigo);
+ 
+-		print_tabela(escopo->t);
+ 		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
+ 		/*
+ 		

@@ -831,8 +831,6 @@ code_t *cod_init(code_t *cod_vars_globais, operando_instr_t *l, code_t *cod)
     // alocacoes de vars globais 
     // jumpI => l
     code_t *c = calloc(1, sizeof(code_t));
-    printf("TA NO COD_INIT\n");
-
     operando_instr_t *fp = calloc(1, sizeof(operando_instr_t)),
                      *sp = calloc(1, sizeof(operando_instr_t)),
                      *bss = calloc(1, sizeof(operando_instr_t));

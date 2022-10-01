@@ -316,13 +316,6 @@ code_t *vars_globais(ast_t *t)
 		}
 		t = t->filhos[t->num_filhos-1];  
 	}
-
-	printf("==================\n");
-	printf("IMPRIMINDO CODIGO DAS VARIAVEIS GLOBAIS:\n");
-	if(vars_globais!=NULL)
-		imprime_codigo(vars_globais);
-	printf("\n==================\n\n");
-
 	return vars_globais;
 }
 

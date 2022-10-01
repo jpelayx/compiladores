@@ -163,9 +163,7 @@ operando_instr_t *label_main = NULL;
 input: programa 
 	{ 
 		$1->codigo = cod_init(vars_globais($1), label_main, $1->codigo);
-		imprime_codigo($1->codigo);
 	    arvore = $1; 
-		print_tabela(escopo->t);
 	    sai_escopo(escopo); 
 	};
 
@@ -236,7 +234,6 @@ funcao: cabecalho '{' corpo_funcao '}'
 		sprintf(function_id, "FUNCTION %s", $$->valor_lexico->valor.cadeia_caracteres);
 		adiciona_comentario(function_id, $$->codigo);
 
-		print_tabela(escopo->t);
 		escopo = sai_escopo(escopo); // fechando o escopo local na hora da redução
 		/*
 		
