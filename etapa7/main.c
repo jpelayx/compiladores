@@ -4,6 +4,7 @@
 */
 #include <stdio.h>
 #include <string.h>
+#include "optimizer.h"
 #include "assembly.h"
 #include "ast.h"
 extern int yyparse(void);
@@ -19,7 +20,9 @@ int main (int argc, char **argv)
   // exporta (arvore);
   if (argc > 1 && strcmp(argv[1], "-O") == 0 )
   {
+    ((ast_t*)arvore)->codigo = optmize(((ast_t*)arvore)->codigo);
     printf("// versao otimizada\n");
+
   }  
   generateAsm(((ast_t *)arvore)->codigo);
   libera(arvore);
