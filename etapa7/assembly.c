@@ -133,6 +133,9 @@ flag_traducao_t traducao_direta(lista_instr_t *l)
 	case ILOC_divI:
 		printf("// traducao ILOC_divI\n");
 		break;
+	case ILOC_rdivI:
+		printf("// traducao ILOC_rdivI\n");
+		break;
 	case ILOC_lshift:
 		printf("// traducao ILOC_lshift\n");
 		break;

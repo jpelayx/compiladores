@@ -19,6 +19,7 @@ typedef enum ILOC_opcode{
     ILOC_rsubI,
     ILOC_multI,
     ILOC_divI,
+    ILOC_rdivI,
     //Shifts
     ILOC_lshift,
     ILOC_lshiftI,
@@ -94,6 +95,8 @@ typedef struct instr
 } instr_t ;
 
 void libera_instr(instr_t *i);
+
+int operando_em_instr(instr_t *i, operando_instr_t *op);
  
 instr_t * cria_instr(ILOC_op opcode, operando_instr_t *arg0, operando_instr_t *arg1, operando_instr_t *arg2);
 
@@ -138,6 +141,7 @@ void insere_lista_buracos_false(code_t *c, lista_operando_t *bl);
 
 void adiciona_label(operando_instr_t *l, code_t *c);
 
+void concatena_comentario(char *comentario, instr_t *i);
 void adiciona_comentario(char *comentario, code_t *c);
 void adiciona_comentario_fim(char *comentario, code_t *c);
 

@@ -27,53 +27,90 @@ code_t *optmize(code_t *c)
 {    
     opt_code_t *start = load_code(c);
 
+    start = otimizacao_janela(start);
+
     return get_code(start);
 
 }
 
-
-void optimize_instr(lista_instr_t *li)
+opt_code_t *otimizacao_janela(opt_code_t *start)
 {
-    // otimizacoes de uma unica instrucao e load do codigo pra estrutura 
-    // de otimizacao (que eh encadeada pros dois lados) 
-    while(instrucao_inutil(li->i))
-        li = li->prev;
-    while(li->prev != NULL)
+    opt_code_t *oc = start;
+    while(oc != NULL)
     {
-        if (instrucao_inutil(li->prev->i))
-        {
-            li->prev = li->prev->prev;
-        }
-        else
-        {
-            li = li->prev;
-        }
+        // coloca aqui as otimizacoes 
+        oc = operacao_com_imediato(oc);
+        oc = oc->next;
     }
+    return start;
 }
 
-bool instrucao_inutil(instr_t *i)
+opt_code_t *operacao_com_imediato(opt_code_t *oc)
 {
-    /*
-    s1 = s2 + 0
-    s1 = s2 - 0
-    s1 = s2 * 1
-    s1 = s2 / 1
-    */
-    if(i->opcode == ILOC_addI && i->op1->val == 0)
-        return true;
+    // loadI c => r1 
+    // op r1, r2 => r3
+    // vira:
+    // opI r2, c => r3
+    if(oc == NULL)
+        return oc;
+    
+    instr_t *i = oc->i;
+    
+    if(i->opcode != ILOC_loadI)
+        return oc;
+    
+    if(oc->next == NULL)
+        return oc;
+    
+    instr_t *j = oc->next->i;
+    int op_idx = operando_em_instr(j, i->op1);
+    if(op_idx == -1 || op_idx == 2)
+        return oc;
 
-    if(i->opcode == ILOC_subI && i->op1->val == 0)
-        return true;
-    
-    if(i->opcode == ILOC_multI && i->op1->val == 1)
-        return true;
-    
-    if(i->opcode == ILOC_divI && i->op1->val == 1)
-        return true;
-    
-    return false;
+    instr_t *new_j = calloc(1, sizeof(instr_t)); 
+    switch (j->opcode)
+    {
+    case ILOC_add:
+        new_j->opcode = ILOC_addI;
+        new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
+        new_j->op1 = i->op0;
+        new_j->op2 = j->op2;
+        new_j->comment = j->comment;
+        new_j->label = j->label;
+        break;
+    case ILOC_sub:
+        new_j->opcode = op_idx == 0 ? ILOC_rsubI : ILOC_subI;
+        new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
+        new_j->op1 = i->op0;
+        new_j->op2 = j->op2;
+        new_j->comment = j->comment;
+        new_j->label = j->label;
+        break;
+    case ILOC_mult:
+        new_j->opcode = ILOC_multI;
+        new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
+        new_j->op1 = i->op0;
+        new_j->op2 = j->op2;
+        new_j->comment = j->comment;
+        new_j->label = j->label;
+        break;
+    case ILOC_div:
+        new_j->opcode = op_idx == 0 ? ILOC_rdivI : ILOC_divI;
+        new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
+        new_j->op1 = i->op0;
+        new_j->op2 = j->op2;
+        new_j->comment = j->comment;
+        new_j->label = j->label;
+        break;
+    default:
+        new_j = j;
+        break;
+    }
+    concatena_comentario(i->comment, new_j);
+    oc->next = oc->next->next;
+    oc->i = new_j;
+    return oc;
 }
-
 
 opt_code_t *load_code(code_t *c)
 {

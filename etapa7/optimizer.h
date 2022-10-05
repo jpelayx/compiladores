@@ -19,8 +19,8 @@ opt_code_t *inicio(opt_code_t *oc);
 
 code_t* optmize(code_t *c);
 
-void optimize_instr(lista_instr_t *li);
+opt_code_t *otimizacao_janela(opt_code_t *start);
 
-bool instrucao_inutil(instr_t *i);
+opt_code_t *operacao_com_imediato(opt_code_t *oc);
 
 #endif // _OPTIMIZER_H_

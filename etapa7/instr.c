@@ -112,6 +112,19 @@ instr_t  *cria_instr(ILOC_op opcode, operando_instr_t *arg0, operando_instr_t *a
     return instr;
 }
 
+int operando_em_instr(instr_t *i, operando_instr_t *op)
+{
+    if(i == NULL)
+        return -1;
+    if (operandos_iguais(i->op0, op))
+        return 0;
+    if (operandos_iguais(i->op1, op))
+        return 1;
+    if (operandos_iguais(i->op2, op))
+        return 2;
+    return -1; 
+}
+
 void libera_instr(instr_t *i)
 {
     if (i == NULL)
@@ -239,34 +252,32 @@ void adiciona_label(operando_instr_t *l, code_t *c)
     inicio->i->label = l;
 }
 
+void concatena_comentario(char *comentario, instr_t *i)
+{
+    if(comentario == NULL)
+        return;
+    if(i->comment == NULL)
+    {
+        i->comment = comentario;
+        return;
+    }    
+    size_t old = strlen(i->comment),
+            new = strlen(comentario);
+    i->comment = realloc(i->comment, old + new + 1);
+    i->comment = strcat(i->comment, ",");
+    i->comment = strcat(i->comment, comentario);
+}
+
 void adiciona_comentario(char *comentario, code_t *c)
 {
     lista_instr_t *inicio = primeiro_item(c->codigo);
-    if(inicio->i->comment != NULL)
-    {
-        size_t old = strlen(inicio->i->comment),
-               new = strlen(comentario);
-        inicio->i->comment = realloc(inicio->i->comment, old + new + 1);
-        inicio->i->comment = strcat(inicio->i->comment, ",");
-        inicio->i->comment = strcat(inicio->i->comment, comentario);
-    }
-    else
-        inicio->i->comment = comentario;
+    concatena_comentario(comentario, inicio->i);
 }
 
 void adiciona_comentario_fim(char *comentario, code_t *c)
 {
     lista_instr_t *inicio = c->codigo;
-    if(inicio->i->comment != NULL)
-    {
-        size_t old = strlen(inicio->i->comment),
-               new = strlen(comentario);
-        inicio->i->comment = realloc(inicio->i->comment, old + new + 1);
-        inicio->i->comment = strcat(inicio->i->comment, ",");
-        inicio->i->comment = strcat(inicio->i->comment, comentario);
-    }
-    else
-        inicio->i->comment = comentario;
+    concatena_comentario(comentario, inicio->i);
 }
 
 code_t *concatena_codigo(code_t *head, code_t *tail)
@@ -1002,6 +1013,9 @@ void imprime_opcode(ILOC_op op)
 		break;
     case ILOC_divI :
 		printf("divI ");
+		break;
+    case ILOC_rdivI :
+		printf("rdivI ");
 		break;
     case ILOC_lshift :
 		printf("lshift ");
