@@ -22,7 +22,7 @@
 
 
 
-code_t *optimize(code_t *c)
+code_t *optmize(code_t *c)
 {    
     lista_instr_t *li = c->codigo;
 
