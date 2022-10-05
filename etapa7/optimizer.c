@@ -1,5 +1,6 @@
 #include "optimizer.h"
-#include "stdlib.h"
+#include <stdlib.h>
+#include <string.h>
 
 /* 
     OTIMIZACOES 
@@ -102,34 +103,41 @@ opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc)
         break;
     case ILOC_addI:
         new_j->opcode = ILOC_loadI;
-        new_j->op0 = gera_imediato(j->op0->val + i->op0->val);
+        new_j->op0 = gera_imediato(j->op1->val + i->op0->val);
         new_j->op1 = j->op2;
         break;
     case ILOC_subI:
         new_j->opcode = ILOC_loadI;
-        new_j->op0 = gera_imediato(i->op0->val - j->op0->val) ;
+        new_j->op0 = gera_imediato(i->op0->val - j->op1->val) ;
         new_j->op1 = j->op2;
         break;
     case ILOC_rsubI:
         new_j->opcode = ILOC_loadI;
-        new_j->op0 = gera_imediato(j->op0->val - i->op0->val) ;
+        new_j->op0 = gera_imediato(j->op1->val - i->op0->val) ;
         new_j->op1 = j->op2;
         break;
     case ILOC_multI:
         new_j->opcode = ILOC_loadI;
-        new_j->op0 = gera_imediato(j->op0->val * i->op0->val);
+        new_j->op0 = gera_imediato(j->op1->val * i->op0->val);
         new_j->op1 = j->op2;
         break;
     case ILOC_divI:
         new_j->opcode = ILOC_loadI;
-        new_j->op0 = gera_imediato(i->op0->val / j->op0->val) ;
+        new_j->op0 = gera_imediato(i->op0->val / j->op1->val) ;
         new_j->op1 = j->op2;
         break;
     case ILOC_rdivI:
         new_j->opcode = ILOC_loadI;
-        new_j->op0 = gera_imediato(j->op0->val / i->op0->val) ;
+        new_j->op0 = gera_imediato(j->op1->val / i->op0->val) ;
         new_j->op1 = j->op2;
         break;
+    case ILOC_store:
+    case ILOC_storeAI:
+    case ILOC_storeAO:
+        char *flag = strdup("OPT_STORE_IMEDIATO");
+        if(j->comment == NULL || strstr(j->comment, flag) == NULL)
+            concatena_comentario(flag, j);
+        return oc;
     default:
         return oc;
         break;
