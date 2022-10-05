@@ -238,7 +238,6 @@ flag_traducao_t traducao_direta(lista_instr_t *l)
 			printf("\n");
 			break;
 		default:
-			printf("CBR FAZENDO JUMPRA PRA ONDE/!!\n");
 			break;
 		}
 		printf("jmp .");

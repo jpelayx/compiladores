@@ -7,3 +7,5 @@ etapa3/scanner.lex.c
 etapa3/parser.tab.h
 etapa3/parser.tab.c
 etapa3/etapa3
+etapa7/in
+etapa7/etapa7

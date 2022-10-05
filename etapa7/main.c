@@ -3,6 +3,7 @@
   Não modifique este arquivo.
 */
 #include <stdio.h>
+#include <string.h>
 #include "assembly.h"
 #include "ast.h"
 extern int yyparse(void);
@@ -16,6 +17,10 @@ int main (int argc, char **argv)
 {
   int ret = yyparse(); 
   // exporta (arvore);
+  if (argc > 1 && strcmp(argv[1], "-O") == 0 )
+  {
+    printf("// versao otimizada\n");
+  }  
   generateAsm(((ast_t *)arvore)->codigo);
   libera(arvore);
   arvore = NULL;
