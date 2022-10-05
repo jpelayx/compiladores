@@ -46,6 +46,10 @@ void optimize_instr(lista_instr_t *li)
         {
             li->prev = li->prev->prev;
         }
+        else
+        {
+            li = li->prev;
+        }
     }
 }
 

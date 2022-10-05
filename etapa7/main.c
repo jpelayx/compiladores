@@ -20,7 +20,13 @@ int main (int argc, char **argv)
   // exporta (arvore);
   if (argc > 1 && strcmp(argv[1], "-O") == 0 )
   {
-    ((ast_t*)arvore)->codigo = optmize(((ast_t*)arvore)->codigo);
+    code_t *c = ((ast_t*)arvore)->codigo;
+    printf("CODIGO ANTES DA OTIMIZACAO\n-----\n");
+    imprime_codigo(c);
+    c = optmize(c);
+    printf("\nCODIGO DEPOIS DA OTIMIZACAO\n-----\n");
+    imprime_codigo(c);
+    ((ast_t*)arvore)->codigo = c;
     printf("// versao otimizada\n");
 
   }  
