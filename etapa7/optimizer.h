@@ -14,6 +14,7 @@ opt_code_t *load_code(code_t *c);
 code_t *get_code(opt_code_t *oc);
 
 opt_code_t *fim(opt_code_t *oc);
+opt_code_t *inicio(opt_code_t *oc);
 
 
 code_t* optmize(code_t *c);

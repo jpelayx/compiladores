@@ -130,3 +130,12 @@ opt_code_t *fim(opt_code_t *oc)
         oc = oc->next;
     return oc;
 }
+
+opt_code_t *inicio(opt_code_t *oc)
+{
+    if(oc == NULL)
+        return NULL;
+    while(oc->prev != NULL)
+        oc = oc->prev;
+    return oc;
+}
