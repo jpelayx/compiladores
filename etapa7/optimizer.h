@@ -21,6 +21,6 @@ code_t* optmize(code_t *c);
 
 opt_code_t *otimizacao_janela(opt_code_t *start);
 
-opt_code_t *operacao_com_imediato(opt_code_t *oc);
+opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc);
 
 #endif // _OPTIMIZER_H_

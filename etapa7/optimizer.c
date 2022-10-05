@@ -36,16 +36,22 @@ code_t *optmize(code_t *c)
 opt_code_t *otimizacao_janela(opt_code_t *start)
 {
     opt_code_t *oc = start;
-    while(oc != NULL)
+    bool changed = true;
+    while(changed)
     {
-        // coloca aqui as otimizacoes 
-        oc = operacao_com_imediato(oc);
-        oc = oc->next;
+        changed = false;
+        while(oc != NULL)
+        {
+            // coloca aqui as otimizacoes 
+            oc = operacao_com_imediato(&changed, oc);
+            oc = oc->next;
+        }
+        oc = start;
     }
     return start;
 }
 
-opt_code_t *operacao_com_imediato(opt_code_t *oc)
+opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc)
 {
     // loadI c => r1 
     // op r1, r2 => r3
@@ -75,40 +81,66 @@ opt_code_t *operacao_com_imediato(opt_code_t *oc)
         new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
         new_j->op1 = i->op0;
         new_j->op2 = j->op2;
-        new_j->comment = j->comment;
-        new_j->label = j->label;
         break;
     case ILOC_sub:
         new_j->opcode = op_idx == 0 ? ILOC_rsubI : ILOC_subI;
         new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
         new_j->op1 = i->op0;
         new_j->op2 = j->op2;
-        new_j->comment = j->comment;
-        new_j->label = j->label;
         break;
     case ILOC_mult:
         new_j->opcode = ILOC_multI;
         new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
         new_j->op1 = i->op0;
         new_j->op2 = j->op2;
-        new_j->comment = j->comment;
-        new_j->label = j->label;
         break;
     case ILOC_div:
         new_j->opcode = op_idx == 0 ? ILOC_rdivI : ILOC_divI;
         new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
         new_j->op1 = i->op0;
         new_j->op2 = j->op2;
-        new_j->comment = j->comment;
-        new_j->label = j->label;
+        break;
+    case ILOC_addI:
+        new_j->opcode = ILOC_loadI;
+        new_j->op0 = gera_imediato(j->op0->val + i->op0->val);
+        new_j->op1 = j->op2;
+        break;
+    case ILOC_subI:
+        new_j->opcode = ILOC_loadI;
+        new_j->op0 = gera_imediato(i->op0->val - j->op0->val) ;
+        new_j->op1 = j->op2;
+        break;
+    case ILOC_rsubI:
+        new_j->opcode = ILOC_loadI;
+        new_j->op0 = gera_imediato(j->op0->val - i->op0->val) ;
+        new_j->op1 = j->op2;
+        break;
+    case ILOC_multI:
+        new_j->opcode = ILOC_loadI;
+        new_j->op0 = gera_imediato(j->op0->val * i->op0->val);
+        new_j->op1 = j->op2;
+        break;
+    case ILOC_divI:
+        new_j->opcode = ILOC_loadI;
+        new_j->op0 = gera_imediato(i->op0->val / j->op0->val) ;
+        new_j->op1 = j->op2;
+        break;
+    case ILOC_rdivI:
+        new_j->opcode = ILOC_loadI;
+        new_j->op0 = gera_imediato(j->op0->val / i->op0->val) ;
+        new_j->op1 = j->op2;
         break;
     default:
-        new_j = j;
+        return oc;
         break;
     }
+    new_j->comment = j->comment;
+    new_j->label = j->label;
     concatena_comentario(i->comment, new_j);
     oc->next = oc->next->next;
+    oc->next->prev = oc;
     oc->i = new_j;
+    *changed = true;
     return oc;
 }
 
