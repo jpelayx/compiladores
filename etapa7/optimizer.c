@@ -1,4 +1,5 @@
 #include "optimizer.h"
+#include "stdlib.h"
 
 /* 
     OTIMIZACOES 
@@ -24,12 +25,9 @@
 
 code_t *optmize(code_t *c)
 {    
-    lista_instr_t *li = c->codigo;
+    opt_code_t *start = load_code(c);
 
-    optimize_instr(li);
-
-    c->codigo = li;
-    return c;
+    return get_code(start);
 
 }
 
@@ -74,4 +72,61 @@ bool instrucao_inutil(instr_t *i)
         return true;
     
     return false;
+}
+
+
+opt_code_t *load_code(code_t *c)
+{
+    opt_code_t *oc = calloc(1, sizeof(opt_code_t));
+    
+    lista_instr_t *li = c->codigo;
+    
+    while(li != NULL)
+    {
+        if(oc->i == NULL)
+            oc->i = li->i;
+        else 
+        {
+            oc->prev = malloc(sizeof(opt_code_t));
+            oc->prev->i = li->i;
+            oc->prev->next = oc;
+            oc->prev->prev = NULL;
+            oc = oc->prev;
+        }
+        li = li->prev;
+    }
+    return oc; //inicio do codigo
+}
+
+code_t *get_code(opt_code_t *oc)
+{
+    code_t *c = calloc(1, sizeof(code_t));
+    lista_instr_t *last = malloc(sizeof(lista_instr_t)),
+                  *li;
+    li = last;
+    oc = fim(oc);
+    
+    while(oc != NULL)
+    {
+        li->i = oc->i;
+        if(oc->prev != NULL)
+        {
+            li->prev = malloc(sizeof(lista_instr_t));
+            li = li->prev;
+        }
+        else 
+            li->prev = NULL;
+        oc = oc->prev;
+    }
+    c->codigo = last;
+    return c;
+}
+
+opt_code_t *fim(opt_code_t *oc)
+{
+    if(oc == NULL)
+        return NULL;
+    while(oc->next != NULL)
+        oc = oc->next;
+    return oc;
 }
