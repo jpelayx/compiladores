@@ -47,10 +47,12 @@ opt_code_t *otimizacao_janela(opt_code_t *start)
             oc = operacao_com_imediato(&changed, oc);
             oc = remove_instr_inutil(&changed, oc);
             // oc = remove_store_load(&changed, oc);
+            oc->i = simplificacao_algebrica_mult_2(&changed, oc->i);
             oc = oc->next;
         }
         oc = start;
     }
+
     return start;
 }
 
@@ -203,8 +205,8 @@ opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc)
     instr_t *j = oc->next->i;
     int op_idx = operando_em_instr(j, i->op1);
     if(op_idx == -1 || op_idx == 2)
-        return oc;
-
+            return oc;
+    
     instr_t *new_j = calloc(1, sizeof(instr_t)); 
     switch (j->opcode)
     {
@@ -346,4 +348,16 @@ opt_code_t *inicio(opt_code_t *oc)
     while(oc->prev != NULL)
         oc = oc->prev;
     return oc;
+}
+
+instr_t* simplificacao_algebrica_mult_2(bool *changed, instr_t *i)
+{
+    if (i->opcode == ILOC_multI){
+        if (i->op1->val == 2){
+            i->opcode = ILOC_add;
+            i->op1 = i->op0;
+            *changed = true;
+        }
+    }
+    return i;
 }

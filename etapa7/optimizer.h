@@ -31,4 +31,6 @@ void substitui_reg(opt_code_t* it, operando_instr_t *old, operando_instr_t *new)
 
 opt_code_t *remove_store_load(bool *changed, opt_code_t *oc);
 
+instr_t* simplificacao_algebrica_mult_2(bool *changed, instr_t *i);
+
 #endif // _OPTIMIZER_H_
