@@ -46,11 +46,58 @@ opt_code_t *otimizacao_janela(opt_code_t *start)
             // coloca aqui as otimizacoes 
             oc = operacao_com_imediato(&changed, oc);
             oc = remove_instr_inutil(&changed, oc);
+            // oc = remove_store_load(&changed, oc);
             oc = oc->next;
         }
         oc = start;
     }
     return start;
+}
+
+opt_code_t *remove_store_load(bool *changed, opt_code_t *oc)
+{
+    /* REMOVE INSTRUCOES DO TIPO
+        storeAI r1 => rfp, n
+        loadAI rfp, n => r2 
+     */
+
+    if (oc == NULL)
+        return oc;
+    if (oc->next == NULL )
+        return oc;
+
+    instr_t *i = oc->i, 
+            *j = oc->next->i;
+    if(i->opcode == ILOC_storeAI && j->opcode == ILOC_loadAI)
+    {
+        if(!operandos_iguais(i->op1, j->op0) || !operandos_iguais(i->op2, j->op1))
+            return oc;
+        if(j->comment != NULL && oc->next->next != NULL)
+        {
+            concatena_comentario(j->comment, oc->next->next->i);
+        }
+        if(j->label != NULL && oc->next->next != NULL)
+        {
+            instr_t *k = oc->next->next->i;
+            if(k->label != NULL)
+            {
+                instr_t *nop_i = calloc(1, sizeof(instr_t));
+                opt_code_t *nop = malloc(sizeof(opt_code_t));
+                nop->i = nop_i;
+                oc->next->next->prev = nop;
+                nop->next = oc->next->next;
+                oc->next->next = nop;
+            }
+            oc->next->next->i->label = j->label;
+        }
+        substitui_reg(oc->next->next, j->op2, i->op0);
+        opt_code_t *aux = oc->next;
+        oc->next->next->prev = oc;
+        oc->next = oc->next->next;
+        free(aux);
+        *changed = true;
+    }
+    return oc;
 }
 
 opt_code_t *remove_instr_inutil(bool *changed, opt_code_t *oc)
@@ -87,26 +134,7 @@ opt_code_t *remove_instr_inutil(bool *changed, opt_code_t *oc)
     operando_instr_t *old = i->op2, 
                      *new = i->op0;
     opt_code_t *it = oc->next;
-    int op_idx;
-    while(it != NULL)
-    {
-        op_idx = operando_em_instr(it->i, old);
-        switch (op_idx)
-        {
-        case 0:
-            it->i->op0 = new;
-            break;
-        case 1:
-            it->i->op1 = new;
-            break;
-        case 2:
-            it->i->op2 = new;
-            break;
-        default:
-            break;
-        }
-        it = it->next;
-    }
+    substitui_reg(it, old, new);
     if(oc->prev != NULL)
         oc->prev->next = oc->next;
     if(oc->next != NULL)
@@ -129,6 +157,30 @@ bool instrucao_inutil(instr_t *i)
         i->op1->val == 1)
         return true;
     return false;
+}
+
+void substitui_reg(opt_code_t* it, operando_instr_t *old, operando_instr_t *new)
+{   
+    int op_idx;
+    while(it != NULL)
+    {
+        op_idx = operando_em_instr(it->i, old);
+        switch (op_idx)
+        {
+        case 0:
+            it->i->op0 = new;
+            break;
+        case 1:
+            it->i->op1 = new;
+            break;
+        case 2:
+            it->i->op2 = new;
+            break;
+        default:
+            break;
+        }
+        it = it->next;
+    }
 }
 
 
@@ -213,9 +265,9 @@ opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc)
     case ILOC_store:
     case ILOC_storeAI:
     case ILOC_storeAO:
-        char *flag = strdup("OPT_STORE_IMEDIATO");
-        if(i->comment == NULL || strstr(i->comment, flag) == NULL)
-            concatena_comentario(flag, i);
+        // char *flag = strdup("OPT_STORE_IMEDIATO");
+        // if(i->comment == NULL || strstr(i->comment, flag) == NULL)
+        //     concatena_comentario(flag, i);
         return oc;
     default:
         return oc;

@@ -27,5 +27,8 @@ opt_code_t *simplificacoes_aritmeticas(bool *changed, opt_code_t *oc);
 
 opt_code_t *remove_instr_inutil(bool *changed, opt_code_t *oc);
 bool instrucao_inutil(instr_t *i);
+void substitui_reg(opt_code_t* it, operando_instr_t *old, operando_instr_t *new);
+
+opt_code_t *remove_store_load(bool *changed, opt_code_t *oc);
 
 #endif // _OPTIMIZER_H_
