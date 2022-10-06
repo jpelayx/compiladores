@@ -47,6 +47,16 @@ flag_traducao_t traduz_instrucao(lista_instr_t *l, flag_traducao_t f)
     case TRAD_CALL_EXPR:
         f = traducao_call(l->i, true);
         return f;
+	case TRAD_STORE_IMEDIATO_DIRETO:
+        printf("-%d(", l->i->op2->val - REGISTRO_ATIVACAO_OFFSET);
+        imprime_registrador_assembly_16(escopo_reg->top, l->i->op1);
+		printf(")\n");
+		return TRAD_NORMAL;
+	case TRAD_STORE_IMEDIATO_EXPR:
+        printf("-%d(", l->i->op2->val - REGISTRO_ATIVACAO_OFFSET);
+        imprime_registrador_assembly_16(escopo_reg->top, l->i->op1);
+		printf(")\n");
+		return TRAD_EXPR_ARIT;
     default:
         printf("// tbd\n");
         break;
@@ -162,6 +172,11 @@ flag_traducao_t traducao_direta(lista_instr_t *l)
 		printf("// traducao ILOC_loadA0\n");
 		break;
 	case ILOC_loadI:
+		if(eh_store_imediato(l->i))
+		{
+			printf("movl $%d, ", l->i->op0->val);
+			return TRAD_STORE_IMEDIATO_DIRETO;
+		}
         printf("movl $%d, ", l->i->op0->val);
         imprime_registrador_assembly_4(escopo_reg->top, l->i->op1);
         printf("\n");
@@ -504,7 +519,7 @@ flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call)
 			printf("popq %%rdx\n");
 			break;
 		case ILOC_divI:
-			
+
 		default:
 			printf("// missing translation: ");
 			imprime_opcode(i->opcode);
@@ -692,6 +707,11 @@ bool eh_fim_expr_arit(instr_t *i)
 bool eh_chamada_funcao(instr_t *i)
 {
     return (i->comment != NULL && strstr(i->comment, "CALL") != NULL);
+}
+
+bool eh_store_imediato(instr_t *i)
+{
+    return (i->comment != NULL && strstr(i->comment, "OPT_STORE_IMEDIATO") != NULL);
 }
 
 escopo_registrador_t *novo_escopo_registrador()

@@ -13,7 +13,9 @@ typedef enum flag_traducao
     TRAD_RETORNO,
     TRAD_EXPR_ARIT,
     TRAD_CALL,
-    TRAD_CALL_EXPR
+    TRAD_CALL_EXPR,
+    TRAD_STORE_IMEDIATO_DIRETO,
+    TRAD_STORE_IMEDIATO_EXPR
 } flag_traducao_t;
 
 typedef struct escopo_registrador
@@ -101,5 +103,6 @@ bool eh_sequencia_retorno(instr_t *i);
 bool eh_chamada_funcao(instr_t *i);
 bool eh_inicio_expr_arit(instr_t *i);
 bool eh_fim_expr_arit(instr_t *i);
+bool eh_store_imediato(instr_t *i);
 
 #endif // _ASSEMBLY_H_

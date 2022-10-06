@@ -214,8 +214,8 @@ opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc)
     case ILOC_storeAI:
     case ILOC_storeAO:
         char *flag = strdup("OPT_STORE_IMEDIATO");
-        if(j->comment == NULL || strstr(j->comment, flag) == NULL)
-            concatena_comentario(flag, j);
+        if(i->comment == NULL || strstr(i->comment, flag) == NULL)
+            concatena_comentario(flag, i);
         return oc;
     default:
         return oc;
