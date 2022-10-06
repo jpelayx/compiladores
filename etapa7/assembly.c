@@ -464,7 +464,10 @@ flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call)
 			printf(", %%eax\n");
 			break;
 		case ILOC_addI:
-			printf("addl $%d, %%eax\n", i->op1->val);
+			if(strstr(i->comment, "OPT_INC") != NULL)
+				printf("incl %%eax\n");
+			else
+				printf("addl $%d, %%eax\n", i->op1->val);
 			break;
 		case ILOC_sub:
 			if (ac_idx == 0)
@@ -482,7 +485,10 @@ flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call)
 			}
 			break;
 		case ILOC_subI:
-			printf("subl $%d, %%eax\n", i->op1->val);
+			if(strstr(i->comment, "OPT_DEC") != NULL)
+				printf("decl %%eax\n");
+			else
+				printf("subl $%d, %%eax\n", i->op1->val);
 			break;
 		case ILOC_rsubI:
 			printf("negl %%eax\n");

@@ -46,60 +46,14 @@ opt_code_t *otimizacao_janela(opt_code_t *start)
             // coloca aqui as otimizacoes 
             oc = operacao_com_imediato(&changed, oc);
             oc = remove_instr_inutil(&changed, oc);
-            // oc = remove_store_load(&changed, oc);
             oc->i = simplificacao_algebrica_mult_2(&changed, oc->i);
+            oc = simplificacao_inc_dec(&changed, oc);
             oc = oc->next;
         }
         oc = start;
     }
 
     return start;
-}
-
-opt_code_t *remove_store_load(bool *changed, opt_code_t *oc)
-{
-    /* REMOVE INSTRUCOES DO TIPO
-        storeAI r1 => rfp, n
-        loadAI rfp, n => r2 
-     */
-
-    if (oc == NULL)
-        return oc;
-    if (oc->next == NULL )
-        return oc;
-
-    instr_t *i = oc->i, 
-            *j = oc->next->i;
-    if(i->opcode == ILOC_storeAI && j->opcode == ILOC_loadAI)
-    {
-        if(!operandos_iguais(i->op1, j->op0) || !operandos_iguais(i->op2, j->op1))
-            return oc;
-        if(j->comment != NULL && oc->next->next != NULL)
-        {
-            concatena_comentario(j->comment, oc->next->next->i);
-        }
-        if(j->label != NULL && oc->next->next != NULL)
-        {
-            instr_t *k = oc->next->next->i;
-            if(k->label != NULL)
-            {
-                instr_t *nop_i = calloc(1, sizeof(instr_t));
-                opt_code_t *nop = malloc(sizeof(opt_code_t));
-                nop->i = nop_i;
-                oc->next->next->prev = nop;
-                nop->next = oc->next->next;
-                oc->next->next = nop;
-            }
-            oc->next->next->i->label = j->label;
-        }
-        substitui_reg(oc->next->next, j->op2, i->op0);
-        opt_code_t *aux = oc->next;
-        oc->next->next->prev = oc;
-        oc->next = oc->next->next;
-        free(aux);
-        *changed = true;
-    }
-    return oc;
 }
 
 opt_code_t *remove_instr_inutil(bool *changed, opt_code_t *oc)
@@ -360,4 +314,30 @@ instr_t* simplificacao_algebrica_mult_2(bool *changed, instr_t *i)
         }
     }
     return i;
+}
+
+opt_code_t *simplificacao_inc_dec(bool *changed, opt_code_t *oc)
+{
+    instr_t *i = oc->i;
+    if(i->opcode == ILOC_addI && i->op1->val == 1)
+    {
+        char *flag = strdup("OPT_INC");
+        if(strstr(i->comment, flag) == NULL)
+        {
+            concatena_comentario(flag, i);
+            *changed = true;
+        }
+        return oc;
+    }
+    if(i->opcode == ILOC_subI && i->op1->val == 1)
+    {
+        char *flag = strdup("OPT_DEC");
+        if(strstr(i->comment, flag) == NULL)
+        {
+            concatena_comentario(flag, i);
+            *changed = true;
+        }
+        return oc;
+    }
+    return oc;
 }
