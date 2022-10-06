@@ -64,6 +64,8 @@ bool operandos_iguais(operando_instr_t *op0, operando_instr_t *op1)
         return op0->id == op1->id;
     if(op0->tipo == imediato)
         return op0->val == op1->val;
+    if(op0->tipo == label)
+        return op0->id == op1->id;
     return false;
 }
 

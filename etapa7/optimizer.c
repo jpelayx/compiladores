@@ -48,6 +48,7 @@ opt_code_t *otimizacao_janela(opt_code_t *start)
             oc = remove_instr_inutil(&changed, oc);
             oc->i = simplificacao_algebrica_mult_2(&changed, oc->i);
             oc = simplificacao_inc_dec(&changed, oc);
+            oc = remove_jump_inutil(&changed, oc);
             oc = oc->next;
         }
         oc = start;
@@ -338,6 +339,34 @@ opt_code_t *simplificacao_inc_dec(bool *changed, opt_code_t *oc)
             *changed = true;
         }
         return oc;
+    }
+    return oc;
+}
+
+opt_code_t *remove_jump_inutil(bool *changed, opt_code_t *oc)
+{
+    instr_t *i, *j;
+    i = oc->i;
+    if(i->opcode != jumpI)
+        return oc;
+    if(oc->next == NULL)
+        return oc;
+    j = oc->next->i;    
+    if(operandos_iguais(i->op0, j->label))
+    {
+        if(j->comment != NULL && strstr(j->comment, "FUNCTION") != NULL)
+            return oc;
+        if(i->label == NULL)
+        {
+            opt_code_t *aux = oc->next;
+            if(oc->next != NULL)
+                oc->next->prev  = oc->prev;
+            if(oc->prev != NULL)
+                oc->prev->next = oc->next;
+            free(oc);
+            *changed = true;
+            return aux;
+        }
     }
     return oc;
 }

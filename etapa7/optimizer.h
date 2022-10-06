@@ -35,5 +35,6 @@ instr_t* simplificacao_algebrica_mult_2(bool *changed, instr_t *i);
 
 opt_code_t *simplificacao_inc_dec(bool *changed, opt_code_t *oc);
 
+opt_code_t *remove_jump_inutil(bool *changed, opt_code_t *oc);
 
 #endif // _OPTIMIZER_H_
