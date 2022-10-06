@@ -28,4 +28,6 @@ opt_code_t *simplificacoes_aritmeticas(bool *changed, opt_code_t *oc);
 opt_code_t *remove_instr_inutil(bool *changed, opt_code_t *oc);
 bool instrucao_inutil(instr_t *i);
 
+instr_t* simplificacao_algebrica_mult_2(bool *changed, instr_t *i);
+
 #endif // _OPTIMIZER_H_
