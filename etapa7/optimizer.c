@@ -45,12 +45,92 @@ opt_code_t *otimizacao_janela(opt_code_t *start)
         {
             // coloca aqui as otimizacoes 
             oc = operacao_com_imediato(&changed, oc);
+            oc = remove_instr_inutil(&changed, oc);
             oc = oc->next;
         }
         oc = start;
     }
     return start;
 }
+
+opt_code_t *remove_instr_inutil(bool *changed, opt_code_t *oc)
+{
+   /* 
+    REMOVER OPERACOES INUTEIS 
+    s1 = s2 + 0
+    s1 = s2 - 0
+    s1 = s2 * 1
+    s1 = s2 / 1
+   */
+    instr_t *i = oc->i;
+    if (!instrucao_inutil(i))
+        return oc;
+    if(i->comment != NULL && oc->prev != NULL)
+    {
+        concatena_comentario(i->comment, oc->prev->i);
+    }
+    if(i->label != NULL && oc->next != NULL)
+    {
+        if(oc->next->i->label != NULL)
+        {
+            // adiciona NOP pra colocar a outra label 
+            instr_t *l = calloc(1, sizeof(instr_t));
+            opt_code_t *nop = malloc(sizeof(opt_code_t));
+            nop->i = l;
+            nop->prev = oc;
+            nop->next = oc->next;
+            oc->next->prev = nop;
+            oc->next = nop;
+        }
+        oc->next->i->label = i->label;
+    }
+    operando_instr_t *old = i->op2, 
+                     *new = i->op0;
+    opt_code_t *it = oc->next;
+    int op_idx;
+    while(it != NULL)
+    {
+        op_idx = operando_em_instr(it->i, old);
+        switch (op_idx)
+        {
+        case 0:
+            it->i->op0 = new;
+            break;
+        case 1:
+            it->i->op1 = new;
+            break;
+        case 2:
+            it->i->op2 = new;
+            break;
+        default:
+            break;
+        }
+        it = it->next;
+    }
+    if(oc->prev != NULL)
+        oc->prev->next = oc->next;
+    if(oc->next != NULL)
+        oc->next->prev = oc->prev;
+    it = oc->next;
+    free(oc);
+    *changed = true;
+    return it;
+}
+
+bool instrucao_inutil(instr_t *i)
+{
+    if ((i->opcode == ILOC_addI || 
+         i->opcode == ILOC_subI ||
+         i->opcode == ILOC_rsubI  ) && 
+        i->op1->val == 0)
+        return true;
+    if ((i->opcode == ILOC_multI || 
+         i->opcode == ILOC_divI    ) && 
+        i->op1->val == 1)
+        return true;
+    return false;
+}
+
 
 opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc)
 {
@@ -62,7 +142,6 @@ opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc)
         return oc;
     
     instr_t *i = oc->i;
-    
     if(i->opcode != ILOC_loadI)
         return oc;
     

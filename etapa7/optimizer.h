@@ -23,4 +23,9 @@ opt_code_t *otimizacao_janela(opt_code_t *start);
 
 opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc);
 
+opt_code_t *simplificacoes_aritmeticas(bool *changed, opt_code_t *oc);
+
+opt_code_t *remove_instr_inutil(bool *changed, opt_code_t *oc);
+bool instrucao_inutil(instr_t *i);
+
 #endif // _OPTIMIZER_H_
