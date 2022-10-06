@@ -448,6 +448,9 @@ flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call)
 				imprime_registrador_assembly_4(escopo_reg->top, i->op0) ;
 			printf(", %%eax\n");
 			break;
+		case ILOC_addI:
+			printf("addl $%d, %%eax\n", i->op1->val);
+			break;
 		case ILOC_sub:
 			if (ac_idx == 0)
 			{
@@ -463,12 +466,23 @@ flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call)
 				printf(", %%eax\n");
 			}
 			break;
+		case ILOC_subI:
+			printf("subl $%d, %%eax\n", i->op1->val);
+			break;
+		case ILOC_rsubI:
+			printf("negl %%eax\n");
+			printf("addl $%d, %%eax\n", i->op1->val);
+			break;
+
 		case ILOC_mult:
 			printf("imull ");
 			ac_idx == 0? 
 				imprime_registrador_assembly_4(escopo_reg->top, i->op1) : 
 				imprime_registrador_assembly_4(escopo_reg->top, i->op0) ;
 			printf(", %%eax\n");
+			break;
+		case ILOC_multI:
+			printf("imull $%d, %%eax\n", i->op1->val);
 			break;
 		case ILOC_div:
 			printf("pushq %%rdx\n");
@@ -489,7 +503,12 @@ flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call)
 			printf("\n");
 			printf("popq %%rdx\n");
 			break;
+		case ILOC_divI:
+			
 		default:
+			printf("// missing translation: ");
+			imprime_opcode(i->opcode);
+			printf("\n");
 			break;
 		}
 		ac->op = i->op2;
