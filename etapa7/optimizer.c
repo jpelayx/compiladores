@@ -46,7 +46,7 @@ opt_code_t *otimizacao_janela(opt_code_t *start)
             // coloca aqui as otimizacoes 
             oc = operacao_com_imediato(&changed, oc);
             oc = remove_instr_inutil(&changed, oc);
-            oc->i = simplificacao_algebrica_mult_2(&changed, oc->i);
+            oc->i = simplificacao_algebrica(&changed, oc->i);
             oc = simplificacao_inc_dec(&changed, oc);
             oc = remove_jump_inutil(&changed, oc);
             oc = oc->next;
@@ -140,7 +140,6 @@ void substitui_reg(opt_code_t* it, operando_instr_t *old, operando_instr_t *new)
     }
 }
 
-
 opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc)
 {
     // loadI c => r1 
@@ -149,95 +148,149 @@ opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc)
     // opI r2, c => r3
     if(oc == NULL)
         return oc;
+    if(oc->i->opcode != ILOC_loadI)
+        return oc;    
+
+    int tam_janela = 2;
     
-    instr_t *i = oc->i;
-    if(i->opcode != ILOC_loadI)
-        return oc;
-    
-    if(oc->next == NULL)
-        return oc;
-    
-    instr_t *j = oc->next->i;
-    int op_idx = operando_em_instr(j, i->op1);
-    if(op_idx == -1 || op_idx == 2)
-            return oc;
-    
-    instr_t *new_j = calloc(1, sizeof(instr_t)); 
-    switch (j->opcode)
+    instr_t *i = oc->i,
+            *j = NULL;
+    opt_code_t *next = oc->next;
+    bool remove_i = false, subs_j = false;
+    for(int pos = 0; pos < tam_janela; pos++)
     {
-    case ILOC_add:
-        new_j->opcode = ILOC_addI;
-        new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
-        new_j->op1 = i->op0;
-        new_j->op2 = j->op2;
-        break;
-    case ILOC_sub:
-        new_j->opcode = op_idx == 0 ? ILOC_rsubI : ILOC_subI;
-        new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
-        new_j->op1 = i->op0;
-        new_j->op2 = j->op2;
-        break;
-    case ILOC_mult:
-        new_j->opcode = ILOC_multI;
-        new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
-        new_j->op1 = i->op0;
-        new_j->op2 = j->op2;
-        break;
-    case ILOC_div:
-        new_j->opcode = op_idx == 0 ? ILOC_rdivI : ILOC_divI;
-        new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
-        new_j->op1 = i->op0;
-        new_j->op2 = j->op2;
-        break;
-    case ILOC_addI:
-        new_j->opcode = ILOC_loadI;
-        new_j->op0 = gera_imediato(j->op1->val + i->op0->val);
-        new_j->op1 = j->op2;
-        break;
-    case ILOC_subI:
-        new_j->opcode = ILOC_loadI;
-        new_j->op0 = gera_imediato(i->op0->val - j->op1->val) ;
-        new_j->op1 = j->op2;
-        break;
-    case ILOC_rsubI:
-        new_j->opcode = ILOC_loadI;
-        new_j->op0 = gera_imediato(j->op1->val - i->op0->val) ;
-        new_j->op1 = j->op2;
-        break;
-    case ILOC_multI:
-        new_j->opcode = ILOC_loadI;
-        new_j->op0 = gera_imediato(j->op1->val * i->op0->val);
-        new_j->op1 = j->op2;
-        break;
-    case ILOC_divI:
-        new_j->opcode = ILOC_loadI;
-        new_j->op0 = gera_imediato(i->op0->val / j->op1->val) ;
-        new_j->op1 = j->op2;
-        break;
-    case ILOC_rdivI:
-        new_j->opcode = ILOC_loadI;
-        new_j->op0 = gera_imediato(j->op1->val / i->op0->val) ;
-        new_j->op1 = j->op2;
-        break;
-    case ILOC_store:
-    case ILOC_storeAI:
-    case ILOC_storeAO:
-        // char *flag = strdup("OPT_STORE_IMEDIATO");
-        // if(i->comment == NULL || strstr(i->comment, flag) == NULL)
-        //     concatena_comentario(flag, i);
-        return oc;
-    default:
-        return oc;
-        break;
+        if (next == NULL)
+            break;
+        j = next->i;    
+    
+        int op_idx = operando_em_instr(j, i->op1);
+        if(op_idx == 0 || op_idx == 1)
+        {
+            instr_t *new_j = calloc(1, sizeof(instr_t)); 
+            subs_j = false;
+            switch (j->opcode)
+            {
+            case ILOC_add:
+                new_j->opcode = ILOC_addI;
+                new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
+                new_j->op1 = i->op0;
+                new_j->op2 = j->op2;
+                subs_j = true;
+                break;
+            case ILOC_sub:
+                new_j->opcode = op_idx == 0 ? ILOC_rsubI : ILOC_subI;
+                new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
+                new_j->op1 = i->op0;
+                new_j->op2 = j->op2;
+                subs_j = true;
+                break;
+            case ILOC_mult:
+                new_j->opcode = ILOC_multI;
+                new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
+                new_j->op1 = i->op0;
+                new_j->op2 = j->op2;
+                subs_j = true;
+                break;
+            case ILOC_div:
+                new_j->opcode = op_idx == 0 ? ILOC_rdivI : ILOC_divI;
+                new_j->op0 = op_idx == 0 ? j->op1 : j->op0;
+                new_j->op1 = i->op0;
+                new_j->op2 = j->op2;
+                subs_j = true;
+                break;
+            case ILOC_addI:
+                new_j->opcode = ILOC_loadI;
+                new_j->op0 = gera_imediato(j->op1->val + i->op0->val);
+                new_j->op1 = j->op2;
+                subs_j = true;
+                break;
+            case ILOC_subI:
+                new_j->opcode = ILOC_loadI;
+                new_j->op0 = gera_imediato(i->op0->val - j->op1->val) ;
+                new_j->op1 = j->op2;
+                subs_j = true;
+                break;
+            case ILOC_rsubI:
+                new_j->opcode = ILOC_loadI;
+                new_j->op0 = gera_imediato(j->op1->val - i->op0->val) ;
+                new_j->op1 = j->op2;
+                subs_j = true;
+                break;
+            case ILOC_multI:
+                new_j->opcode = ILOC_loadI;
+                new_j->op0 = gera_imediato(j->op1->val * i->op0->val);
+                new_j->op1 = j->op2;
+                subs_j = true;
+                break;
+            case ILOC_divI:
+                new_j->opcode = ILOC_loadI;
+                new_j->op0 = gera_imediato(i->op0->val / j->op1->val) ;
+                new_j->op1 = j->op2;
+                subs_j = true;
+                break;
+            case ILOC_rdivI:
+                new_j->opcode = ILOC_loadI;
+                new_j->op0 = gera_imediato(j->op1->val / i->op0->val) ;
+                new_j->op1 = j->op2;
+                subs_j = true;
+                break;
+            case ILOC_store:
+            case ILOC_storeAI:
+            case ILOC_storeAO:
+                char *flag = malloc((19 + 10) * sizeof(char));
+                sprintf(flag, "OPT_STORE_IMEDIATO %d", i->op0->val);
+                if(j->comment == NULL || strstr(j->comment, flag) == NULL)
+                    concatena_comentario(flag, j);
+            default:
+                break;
+            }
+            if(subs_j)
+            {
+                new_j->comment = j->comment;
+                new_j->label = j->label;
+                next->i = new_j;
+                imprime_opcode(new_j->opcode);
+                remove_i = true;
+            }
+            else 
+                free(new_j);
+        }
+        next = next->next;
     }
-    new_j->comment = j->comment;
-    new_j->label = j->label;
-    concatena_comentario(i->comment, new_j);
-    oc->next = oc->next->next;
-    oc->next->prev = oc;
-    oc->i = new_j;
-    *changed = true;
+    if(remove_i)
+    {
+        if(i->comment != NULL)
+            realoca_comentario(oc);
+        opt_code_t *aux = oc->next;
+        if(oc->next != NULL)
+            oc->next->prev = oc->prev;
+        if(oc->prev != NULL)
+            oc->prev->next = oc->next;    
+        free(oc);
+        *changed = true;
+        return aux;
+    }
     return oc;
+}
+
+void realoca_comentario(opt_code_t *oc)
+{
+    char *c = oc->i->comment;
+    if( strstr(c, "EXPR_ARIT_END") != NULL && strstr(c, "EXPR_ARIT_START") != NULL)
+        return;
+    // move o comentario pra instrucao anterior
+    if(strstr(c, "EXPR_ARIT_END") != NULL)
+    {
+        if(oc->prev == NULL)
+            return;
+        concatena_comentario(c, oc->prev->i);
+    }
+    else 
+    {
+        if(oc->next == NULL)
+            return;
+        concatena_comentario(c, oc->next->i);
+    }
 }
 
 opt_code_t *load_code(code_t *c)
@@ -305,14 +358,39 @@ opt_code_t *inicio(opt_code_t *oc)
     return oc;
 }
 
-instr_t* simplificacao_algebrica_mult_2(bool *changed, instr_t *i)
+instr_t* simplificacao_algebrica(bool *changed, instr_t *i)
 {
     if (i->opcode == ILOC_multI){
         if (i->op1->val == 2){
             i->opcode = ILOC_add;
             i->op1 = i->op0;
             *changed = true;
+            return i;
         }
+        if(i->op1->val == 0)
+        {
+            i->opcode = ILOC_loadI;
+            i->op0 = i->op1;
+            i->op1 = i->op2;
+            *changed = true;
+            return i;
+        }
+    }
+    if(i->opcode == ILOC_sub && operandos_iguais(i->op0, i->op1))
+    {
+        i->opcode = ILOC_loadI;
+        i->op0 = gera_imediato(0);
+        i->op1 = i->op2;
+        *changed = true;
+        return i;
+    }
+    if(i->opcode == ILOC_div && operandos_iguais(i->op0, i->op1))
+    {
+        i->opcode = ILOC_loadI;
+        i->op0 = gera_imediato(1);
+        i->op1 = i->op2;
+        *changed = true;
+        return i;
     }
     return i;
 }

@@ -22,6 +22,7 @@ code_t* optmize(code_t *c);
 opt_code_t *otimizacao_janela(opt_code_t *start);
 
 opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc);
+void realoca_comentario(opt_code_t *oc);
 
 opt_code_t *simplificacoes_aritmeticas(bool *changed, opt_code_t *oc);
 
@@ -31,7 +32,7 @@ void substitui_reg(opt_code_t* it, operando_instr_t *old, operando_instr_t *new)
 
 opt_code_t *remove_store_load(bool *changed, opt_code_t *oc);
 
-instr_t* simplificacao_algebrica_mult_2(bool *changed, instr_t *i);
+instr_t* simplificacao_algebrica(bool *changed, instr_t *i);
 
 opt_code_t *simplificacao_inc_dec(bool *changed, opt_code_t *oc);
 
