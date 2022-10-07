@@ -19,6 +19,8 @@
     s1 = s2 / s2 --> s1 = 1
     s1 = s2 - s2  --> s1 = 0
     s1 = s2 * 0 --> s1 = 0
+
+    AVALIACAO DE OPERACOES COM CONSTANTES
     s1 = imediato op imediato --> s1 = resultado
  */
 
@@ -249,7 +251,6 @@ opt_code_t *operacao_com_imediato(bool *changed, opt_code_t *oc)
                 new_j->comment = j->comment;
                 new_j->label = j->label;
                 next->i = new_j;
-                imprime_opcode(new_j->opcode);
                 remove_i = true;
             }
             else 
@@ -401,7 +402,7 @@ opt_code_t *simplificacao_inc_dec(bool *changed, opt_code_t *oc)
     if(i->opcode == ILOC_addI && i->op1->val == 1)
     {
         char *flag = strdup("OPT_INC");
-        if(strstr(i->comment, flag) == NULL)
+        if(i->comment == NULL || strstr(i->comment, flag) == NULL)
         {
             concatena_comentario(flag, i);
             *changed = true;
@@ -411,7 +412,7 @@ opt_code_t *simplificacao_inc_dec(bool *changed, opt_code_t *oc)
     if(i->opcode == ILOC_subI && i->op1->val == 1)
     {
         char *flag = strdup("OPT_DEC");
-        if(strstr(i->comment, flag) == NULL)
+        if(i->comment == NULL || strstr(i->comment, flag) == NULL)
         {
             concatena_comentario(flag, i);
             *changed = true;

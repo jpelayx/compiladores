@@ -425,9 +425,11 @@ flag_traducao_t traducao_call(instr_t *i, bool eh_expr)
 flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call)
 {
 	static acumulador_t *ac;
+	static int num_regs;
 	static int arit_stack;
 	if(eh_inicio_expr_arit(i))
 	{
+		num_regs = escopo_reg->top->num_regs;
 		ac = NULL;
 		arit_stack = stack_ctrl; // topo da pilha no inicio da expr
 		printf("// INICIO EXPR AR\n");
@@ -464,7 +466,7 @@ flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call)
 			printf(", %%eax\n");
 			break;
 		case ILOC_addI:
-			if(strstr(i->comment, "OPT_INC") != NULL)
+			if(i->comment != NULL && strstr(i->comment, "OPT_INC") != NULL)
 				printf("incl %%eax\n");
 			else
 				printf("addl $%d, %%eax\n", i->op1->val);
@@ -485,7 +487,7 @@ flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call)
 			}
 			break;
 		case ILOC_subI:
-			if(strstr(i->comment, "OPT_DEC") != NULL)
+			if(i->comment != NULL && strstr(i->comment, "OPT_DEC") != NULL)
 				printf("decl %%eax\n");
 			else
 				printf("subl $%d, %%eax\n", i->op1->val);
@@ -542,10 +544,12 @@ flag_traducao_t traducao_expr_arit(instr_t *i, bool ignora_call)
 		// move o resultado pro temporario adequado 
 		if(ac != NULL)
 		{
+			escopo_reg->top->num_regs = num_regs;
 			printf("movl %%eax, ");
 			imprime_registrador_assembly_4(escopo_reg->top, i->op2);
 			printf("\n");
 		}
+		
 		printf("// FIM EXPR AR\n");
 		return TRAD_NORMAL;
 	}
