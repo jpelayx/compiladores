@@ -74,6 +74,24 @@ int main ()
 Nesse exemplo o código sem otimização tem 83 linhas,
 o código otimizado tem 80 linhas.
 
+NUMERO 3
 
+int main(){
+	int x;
+	x = 33;
+	int i;
+	for(i = 0: i <= 99999: i = i + 1)
+	{
+		x = x + 1;
+	};
+	return x;
+}
 
+Nesse exemplo, a versão sem otimização do código conta com duas operações addl
+que são executadas diversas vezes, devido às expressões que incrementam 
+o valor de x e o valor de i em 1 dentro do loop.
+
+Na versão otimizada, esses comandos são substituidos por incl para 
+melhor desempenho devido à maior velocidade de execução 
+do comando incl comparado com addl.
 
